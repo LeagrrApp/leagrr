@@ -1,0 +1,93 @@
+.unit {
+}
+
+.field {
+  display: block;
+  width: 100%;
+  padding: var(--spacer-s);
+  background-color: #fff;
+  border: 0.0625rem solid var(--color-grey-dark);
+  border-radius: var(--spacer-xs);
+  font: inherit;
+
+  & + label {
+    margin-block-start: var(--spacer-xs);
+  }
+
+  &:user-valid {
+    border-color: var(--color-primary);
+  }
+
+  &:user-invalid {
+    border-color: var(--color-danger);
+    background-color: hsla(from var(--color-danger) h s l / 20%);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.label {
+  cursor: pointer;
+
+  &:where(
+      :not(:has(+ [type="checkbox"], + [type="radio"])):not(
+          [type="checkbox"] + label,
+          [type="radio"] + label
+        )
+    ) {
+    display: block;
+    width: 100%;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.0625rem;
+  }
+
+  &:has(+ input, + select, + textarea) {
+    margin-block-end: var(--spacer-xs);
+  }
+}
+
+.field_wrap {
+  position: relative;
+
+  .field {
+    padding-inline-end: calc(1.5em + (var(--spacer-s) * 2));
+  }
+}
+
+.toggle_password {
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  position: absolute;
+  inset: 0 0 0 auto;
+  height: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  transition: color var(--transition), opacity var(--transition);
+
+  &:where(:hover, :focus-visible) {
+    opacity: 1;
+  }
+}
+
+.toggle_password_visible {
+  opacity: 1;
+  color: var(--color-primary-dark);
+}
+
+.errors {
+  padding: var(--spacer-xs);
+  margin: 0;
+  margin-block-start: var(--spacer-s);
+  list-style-type: none;
+  border: 0.0625rem solid var(--color-danger);
+  background-color: var(--color-danger-light);
+  font-size: var(--type-x-small);
+}
