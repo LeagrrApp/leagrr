@@ -3,21 +3,20 @@
 import { signup } from "@/actions/auth";
 import Button from "../Button/Button";
 import Input from "../forms/Input";
-import Col from "../Grid/Col";
-import Grid from "../Grid/Grid";
+import Col from "../layout/Col";
+import Grid from "../layout/Grid";
 import { useActionState, useEffect } from "react";
+import Flex from "../layout/Flex";
+import Link from "next/link";
 
 export default function SignUp() {
   const [state, action, pending] = useActionState(signup, undefined);
-
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
 
   return (
     <form action={action}>
       <Grid gap="base" cols={2}>
         <Col fullSpan>
+          <h1>Sign Up</h1>
           <p>
             Sign up to join <strong>Leagrr</strong> and get your season started!
           </p>
@@ -62,9 +61,12 @@ export default function SignUp() {
           required
         />
         <Col fullSpan>
-          <Button type="submit" fullWidth>
-            Sign Up
-          </Button>
+          <Flex alignItems="center" gap="base">
+            <Button type="submit">Sign Up</Button>
+            <p>
+              Already have an account? <Link href="/sign-in">Sign In</Link>
+            </p>
+          </Flex>
         </Col>
       </Grid>
     </form>

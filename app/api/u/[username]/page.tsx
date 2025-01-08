@@ -1,9 +1,9 @@
 import Container from "@/components/ui/Container/Container";
 
-export default async function Page() {
+export default function Page() {
   return (
-    <Container maxWidth="35rem">
-      <h1>Leagrr</h1>
+    <Container>
+      <h1>Welcome to the user page!</h1>
     </Container>
   );
 }

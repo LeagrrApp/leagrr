@@ -3,6 +3,10 @@ interface ResultProps {
   status: number;
 }
 
+interface SelectResultProps extends ResultProps {
+  data?: UserData;
+}
+
 // TODO: flush this out to include expanded role and gender information
 interface UserData {
   user_id?: number;
@@ -12,4 +16,5 @@ interface UserData {
   email?: string;
   pronouns?: string;
   user_role?: number;
+  password_hash?: string;
 }

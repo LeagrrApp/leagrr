@@ -1,5 +1,5 @@
 import { CSSProperties, PropsWithChildren } from "react";
-import grid from "./grid.module.css";
+import layout from "./layout.module.css";
 
 interface GridProps {
   gap?: SizeOptions;
@@ -22,7 +22,7 @@ export default function Grid({
   if (cols) styles["--cols"] = cols;
 
   return (
-    <div style={styles} className={grid.grid}>
+    <div style={styles} className={layout.grid}>
       {children}
     </div>
   );

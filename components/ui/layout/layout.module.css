@@ -1,0 +1,20 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 1), 1fr);
+  gap: var(--gap, 0);
+}
+
+.flex {
+  display: flex;
+  gap: var(--gap, 0);
+  align-items: var(--align-items);
+  justify-content: var(--justify-content);
+}
+
+.col {
+  grid-column: var(--col-span);
+  flex-grow: var(--flex-grow);
+  flex-shrink: var(--flex-shrink);
+  flex-basis: var(--flex-basis);
+  align-self: var(--align-self);
+}

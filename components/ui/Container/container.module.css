@@ -1,4 +1,5 @@
 .container {
+  display: var(--display, block);
   padding-inline: var(--spacer-base);
   margin-inline: auto;
   width: var(--container-width, var(--container));

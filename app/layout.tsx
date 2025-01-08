@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Noto_Sans } from "next/font/google";
 import "./globals.css";
 import "material-symbols";
+import TempNav from "@/components/ui/TempNav/TempNav";
 
 const notoSans = Noto_Sans({
   variable: "--font-primary",
@@ -28,7 +29,10 @@ export default function RootLayout({
       lang="en-CA"
       className={`${notoSans.variable} ${plusJakartaSans.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <TempNav />
+        {children}
+      </body>
     </html>
   );
 }
