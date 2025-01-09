@@ -6,7 +6,7 @@ import { apply_classes } from "@/utils/helpers/html-attributes";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   href?: Url;
-  variant?: "secondary" | "accent";
+  variant?: ColorOptions;
   outline?: boolean;
   size?: "h1" | "h2" | "h3" | "h4" | "h5";
   fullWidth?: boolean;

@@ -43,7 +43,7 @@
 .button_secondary {
   --btn-bg-color: var(--color-secondary);
   --btn-border-color: var(--color-secondary-dark);
-  --btn-text-color: #000;
+  --btn-text-color: var(--color-black);
   &:where(:hover, :focus-visible) {
     --btn-bg-color: var(--color-secondary-dark);
   }
@@ -51,7 +51,7 @@
   &:is(.button_outline) {
     &:where(:hover, :focus-visible) {
       --btn-bg-color: var(--color-secondary);
-      --btn-text-color: #000;
+      --btn-text-color: var(--color-black);
     }
   }
 }
@@ -59,7 +59,7 @@
 .button_accent {
   --btn-bg-color: var(--color-accent);
   --btn-border-color: var(--color-accent-dark);
-  --btn-text-color: #000;
+  --btn-text-color: var(--color-black);
   &:where(:hover, :focus-visible) {
     --btn-bg-color: var(--color-accent-dark);
   }
@@ -67,12 +67,78 @@
   &:is(.button_outline) {
     &:where(:hover, :focus-visible) {
       --btn-bg-color: var(--color-accent);
-      --btn-text-color: #000;
+      --btn-text-color: var(--color-black);
+    }
+  }
+}
+
+.button_success {
+  --btn-bg-color: var(--color-success);
+  --btn-border-color: var(--color-success-dark);
+  --btn-text-color: var(--color-black);
+  &:where(:hover, :focus-visible) {
+    --btn-bg-color: var(--color-success-dark);
+  }
+
+  &:is(.button_outline) {
+    &:where(:hover, :focus-visible) {
+      --btn-bg-color: var(--color-success);
+      --btn-text-color: var(--color-black);
+    }
+  }
+}
+
+.button_warning {
+  --btn-bg-color: var(--color-warning);
+  --btn-border-color: var(--color-warning-dark);
+  --btn-text-color: var(--color-black);
+  &:where(:hover, :focus-visible) {
+    --btn-bg-color: var(--color-warning-dark);
+  }
+
+  &:is(.button_outline) {
+    &:where(:hover, :focus-visible) {
+      --btn-bg-color: var(--color-warning);
+      --btn-text-color: var(--color-black);
+    }
+  }
+}
+
+.button_danger {
+  --btn-bg-color: var(--color-danger);
+  --btn-border-color: var(--color-danger-dark);
+  --btn-text-color: var(--color-black);
+  &:where(:hover, :focus-visible) {
+    --btn-bg-color: var(--color-danger-dark);
+    --btn-text-color: var(--color-white);
+  }
+
+  &:is(.button_outline) {
+    &:where(:hover, :focus-visible) {
+      --btn-bg-color: var(--color-danger);
+      --btn-text-color: var(--color-black);
+    }
+  }
+}
+
+.button_grey {
+  --btn-bg-color: var(--color-grey);
+  --btn-border-color: var(--color-grey-dark);
+  --btn-text-color: var(--color-black);
+  &:where(:hover, :focus-visible) {
+    --btn-bg-color: var(--color-grey-dark);
+    --btn-text-color: var(--color-white);
+  }
+
+  &:is(.button_outline) {
+    &:where(:hover, :focus-visible) {
+      --btn-bg-color: var(--color-grey);
+      --btn-text-color: var(--color-black);
     }
   }
 }
 
 .button_outline {
   --btn-bg-color: transparent;
-  --btn-text-color: #000;
+  --btn-text-color: var(--color-black);
 }

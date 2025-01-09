@@ -136,7 +136,7 @@ export async function signUp(state: FormState, formData: FormData) {
     });
 
     // redirect user
-    redirect(`/u/${userData.username}`);
+    redirect(`/dashboard/`);
   }
 
   return {
@@ -215,7 +215,7 @@ export async function signIn(state: FormState, formData: FormData) {
     });
 
     // redirect user
-    redirect(`/u/${username}`);
+    redirect(`/dashboard/`);
   }
 
   // user not found, return result for front end alerts
@@ -227,6 +227,7 @@ export async function signIn(state: FormState, formData: FormData) {
 export async function logOut() {
   // remove the session
   (await cookies()).set("session", "", { expires: new Date(0) });
+  redirect("/sign-in");
 }
 
 export async function isLoggedIn(): Promise<UserData> {

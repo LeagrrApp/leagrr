@@ -2,5 +2,5 @@
   display: var(--display, block);
   padding-inline: var(--spacer-base);
   margin-inline: auto;
-  width: var(--container-width, var(--container));
+  width: min(var(--container-width, var(--container)), 100%);
 }

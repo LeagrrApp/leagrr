@@ -4,6 +4,7 @@
     from var(--color-primary) h calc(s - 40) calc(l + 45)
   );
   --color-primary-dark: hsl(from var(--color-primary) h s calc(l - 20));
+  --color-primary-darker: hsl(from var(--color-primary) h s calc(l - 30));
   --color-secondary: #daa0f2;
   --color-secondary-pale: hsl(
     from var(--color-secondary) h calc(s - 40) calc(l + 15)
@@ -31,6 +32,9 @@
   --color-white: #fff;
   --color-black: #000;
 
+  --color-foreground: var(--color-black);
+  --color-background: var(--color-white);
+
   --container: 65rem;
   --container-narrow: 35rem;
 
@@ -45,15 +49,19 @@
   --spacer-em-xs: calc(var(--spacer) * 1em / 6);
   --spacer-em-s: calc(var(--spacer) * 1em / 3);
   --spacer-em-m: calc(var(--spacer) * 1em / 2);
+  --spacer-em-ml: calc(var(--spacer) * 1em * (2 / 3));
   --spacer-em-base: calc(var(--spacer) * 1em);
   --spacer-em-l: calc(var(--spacer) * 1em * 2);
   --spacer-em-xl: calc(var(--spacer) * 1em * 3);
 
-  --type-scale-h1: clamp(1.383rem, 4.435cqi, 3.052rem);
-  --type-scale-h2: clamp(1.296rem, 3.737cqi, 2.441rem);
-  --type-scale-h3: clamp(1.215rem, 3.168cqi, 1.953rem);
-  --type-scale-h4: clamp(1.138rem, 2.701cqi, 1.563rem);
-  --type-scale-h5: clamp(1.067rem, 2.317cqi, 1.25rem);
+  --type-scale-xxxl: clamp(2.566rem, 8.526cqi, 5.96rem);
+  --type-scale-xxl: clamp(2.281rem, 7.049cqi, 4.768rem);
+  --type-scale-xl: clamp(2.027rem, 5.842cqi, 3.815rem);
+  --type-scale-h1: clamp(1.802rem, 4.854cqi, 3.052rem);
+  --type-scale-h2: clamp(1.602rem, 4.043cqi, 2.441rem);
+  --type-scale-h3: clamp(1.424rem, 3.377cqi, 1.953rem);
+  --type-scale-h4: clamp(1.266rem, 2.829cqi, 1.563rem);
+  --type-scale-h5: clamp(1.125rem, 2.375cqi, 1.25rem);
   --type-scale-h6: 1rem;
   --type-scale-base: 1em;
   --type-scale-s: 0.875rem;
@@ -89,6 +97,8 @@ html {
   text-size-adjust: none;
   font-family: var(--font-primary);
   line-height: 1.5;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
 }
 
 /* Remove default margin in favour of better control in authored CSS */
@@ -215,6 +225,17 @@ textarea:not([rows]) {
 }
 
 /* ---------- Typography ---------- */
+.type-scale-xxxl {
+  font-size: var(--type-scale-xxxl);
+}
+
+.type-scale-xxl {
+  font-size: var(--type-scale-xxl);
+}
+
+.type-scale-xl {
+  font-size: var(--type-scale-xl);
+}
 
 h1,
 .type-scale-h1 {

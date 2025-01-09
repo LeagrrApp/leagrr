@@ -1,0 +1,68 @@
+.menu {
+  display: flex;
+  background-color: var(--color-primary);
+
+  @media only screen and (min-width: 60rem) {
+    flex-direction: column;
+    border-inline-end: 0.125rem solid var(--color-primary-dark);
+  }
+}
+
+.menu_logo {
+  display: block;
+  padding-inline: var(--spacer-base);
+  padding-block: var(--spacer-s);
+  color: var(--color-white);
+  font-weight: bold;
+  font-size: var(--type-scale-h3);
+  text-decoration: none;
+  font-style: italic;
+}
+
+.menu_nav {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.menu_heading {
+  font-size: var(--type-scale-h5);
+  padding-inline: var(--spacer-base);
+  padding-block-start: var(--spacer-base);
+  text-transform: uppercase;
+  letter-spacing: 0.0625rem;
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacer-s);
+  margin-block-end: var(--spacer-m);
+  color: var(--color-white);
+  &::after {
+    content: " ";
+    display: block;
+    flex-grow: 1;
+    height: 0.125em;
+    background-color: var(--color-primary-dark);
+    translate: 0 -50%;
+  }
+}
+
+.menu_list {
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+}
+
+.menu_actions {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: end;
+}
+
+.menu .menu_item {
+  color: var(--color-white);
+  &:where(:hover, :focus-visible) {
+    color: var(--color-white);
+    background-color: var(--color-primary-dark);
+  }
+}

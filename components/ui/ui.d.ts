@@ -20,3 +20,19 @@ type JustifyOptions =
   | "space-evenly";
 
 type AlignOptions = "start" | "end" | "center";
+
+type DirectionOptions = "row" | "row-reverse" | "column" | "column-reverse";
+
+type BasicLink = {
+  href: string;
+  text: string;
+};
+
+type ColorOptions =
+  | "primary"
+  | "secondary"
+  | "accent"
+  | "success"
+  | "warning"
+  | "danger"
+  | "grey";
