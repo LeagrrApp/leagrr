@@ -1,7 +1,7 @@
 :root {
   --color-primary: #056cf2;
   --color-primary-pale: hsl(
-    from var(--color-primary) h calc(s - 40) calc(l + 40)
+    from var(--color-primary) h calc(s - 40) calc(l + 45)
   );
   --color-primary-dark: hsl(from var(--color-primary) h s calc(l - 20));
   --color-secondary: #daa0f2;
@@ -15,11 +15,13 @@
   );
   --color-accent-dark: hsl(from var(--color-accent) h s calc(l - 20));
   --color-success: #88f2a6;
+  --color-success-pale: hsl(from var(--color-success) h s calc(l + 20));
   --color-success-dark: hsl(from var(--color-success) h s calc(l - 20));
   --color-warning: #f2eb88;
+  --color-warning-pale: hsl(from var(--color-warning) h s calc(l + 23));
   --color-warning-dark: hsl(from var(--color-warning) h s calc(l - 20));
   --color-danger: #f28d88;
-  --color-danger-light: hsl(from var(--color-danger) h s calc(l + 20));
+  --color-danger-pale: hsl(from var(--color-danger) h s calc(l + 20));
   --color-danger-dark: hsl(from var(--color-danger) h s calc(l - 20));
   --color-grey: #d8e0f2;
   --color-grey-light: hsl(from var(--color-grey) h s calc(l + 6));
@@ -53,8 +55,9 @@
   --type-scale-h4: clamp(1.138rem, 2.701cqi, 1.563rem);
   --type-scale-h5: clamp(1.067rem, 2.317cqi, 1.25rem);
   --type-scale-h6: 1rem;
-  --type-small: 0.875rem;
-  --type-x-small: 0.75rem;
+  --type-scale-base: 1em;
+  --type-scale-s: 0.875rem;
+  --type-scale-xs: 0.75rem;
 
   --radius: calc(var(--spacer) * 1em / 3);
   --radius-s: calc(var(--radius) / 2);

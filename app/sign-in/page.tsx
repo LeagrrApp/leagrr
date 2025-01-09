@@ -1,6 +1,7 @@
 "use client";
 
 import { signIn } from "@/actions/auth";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Container from "@/components/ui/Container/Container";
 import Input from "@/components/ui/forms/Input";
@@ -12,10 +13,6 @@ import { useActionState, useEffect } from "react";
 
 export default function Page() {
   const [state, action, pending] = useActionState(signIn, undefined);
-
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
 
   return (
     <Container maxWidth="30rem">
@@ -34,6 +31,7 @@ export default function Page() {
               </p>
             </Flex>
           </Col>
+          {state?.message && <Alert alert={state.message} type="danger" />}
         </Grid>
       </form>
     </Container>

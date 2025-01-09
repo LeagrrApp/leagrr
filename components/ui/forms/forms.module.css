@@ -1,4 +1,7 @@
 .unit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacer-s);
 }
 
 .field {
@@ -9,10 +12,6 @@
   border: 0.0625rem solid var(--color-grey-dark);
   border-radius: var(--spacer-xs);
   font: inherit;
-
-  & + label {
-    margin-block-start: var(--spacer-xs);
-  }
 
   &:user-valid {
     border-color: var(--color-primary);
@@ -43,10 +42,6 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.0625rem;
-  }
-
-  &:has(+ input, + select, + textarea) {
-    margin-block-end: var(--spacer-xs);
   }
 }
 
@@ -80,14 +75,4 @@
 .toggle_password_visible {
   opacity: 1;
   color: var(--color-primary-dark);
-}
-
-.errors {
-  padding: var(--spacer-xs);
-  margin: 0;
-  margin-block-start: var(--spacer-s);
-  list-style-type: none;
-  border: 0.0625rem solid var(--color-danger);
-  background-color: var(--color-danger-light);
-  font-size: var(--type-x-small);
 }

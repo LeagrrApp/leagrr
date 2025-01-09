@@ -1,9 +1,8 @@
-import Container from "@/components/ui/Container/Container";
+import { redirect } from "next/navigation";
+import { isLoggedIn } from "@/actions/auth";
 
 export default async function Page() {
-  return (
-    <Container maxWidth="35rem">
-      <h1>Leagrr</h1>
-    </Container>
-  );
+  isLoggedIn();
+
+  redirect("/dashboard");
 }

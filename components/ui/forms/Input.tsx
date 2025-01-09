@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import forms from "./forms.module.css";
+import Alert from "../Alert/Alert";
 
 interface InputWrapProps {
   isPassword: boolean;
@@ -25,7 +26,10 @@ interface InputProps extends Partial<HTMLInputElement> {
   labelAfter?: boolean;
   labelAsPlaceholder?: boolean;
   onChange?: ChangeEventHandler;
-  errors?: string[];
+  errors?: {
+    errs?: string[];
+    type?: string;
+  };
 }
 
 export default function Input({
@@ -113,13 +117,7 @@ export default function Input({
           {label}
         </label>
       )}
-      {errors?.length && (
-        <ul className={forms.errors}>
-          {errors.map((err) => (
-            <li key={err}>{err}</li>
-          ))}
-        </ul>
-      )}
+      {errors?.errs?.length && <Alert alert={errors.errs} type={errors.type} />}
     </div>
   );
 }

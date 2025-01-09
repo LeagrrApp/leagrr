@@ -27,40 +27,40 @@ export default function Page() {
           <Input
             name="username"
             label="Username"
-            errors={state?.errors?.username}
+            errors={{ errs: state?.errors?.username, type: "danger" }}
             required
           />
           <Input
             name="email"
             label="Email"
             type="email"
-            errors={state?.errors?.email}
+            errors={{ errs: state?.errors?.email, type: "danger" }}
             required
           />
           <Input
             name="first_name"
             label="First Name"
-            errors={state?.errors?.first_name}
+            errors={{ errs: state?.errors?.first_name, type: "danger" }}
             required
           />
           <Input
             name="last_name"
             label="Last Name"
-            errors={state?.errors?.last_name}
+            errors={{ errs: state?.errors?.last_name, type: "danger" }}
             required
           />
           <Input
             name="password"
             label="Password"
             type="password"
-            errors={state?.errors?.password}
+            errors={{ errs: state?.errors?.password, type: "danger" }}
             required
           />
           <Input
             name="password_confirm"
             label="Confirm Password"
             type="password"
-            errors={state?.errors?.password_confirm}
+            errors={{ errs: state?.errors?.password_confirm, type: "danger" }}
             required
           />
           <Col fullSpan>
