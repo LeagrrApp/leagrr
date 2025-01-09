@@ -19,7 +19,7 @@ type JustifyOptions =
   | "space-around"
   | "space-evenly";
 
-type AlignOptions = "start" | "end" | "center";
+type AlignOptions = "flex-start" | "flex-end" | "center";
 
 type DirectionOptions = "row" | "row-reverse" | "column" | "column-reverse";
 
