@@ -91,14 +91,17 @@ export async function signUp(state: FormState, formData: FormData) {
   const selectSql = `
     SELECT
       user_id,
-      user_role
+      user_role,
+      username,
+      first_name,
+      last_name
     FROM
       admin.users
     WHERE
       username=$1
   `;
 
-  const selectResult: SelectResultProps = await db
+  const selectResult: UserSelectResultProps = await db
     .query(selectSql, [userData.username])
     .then((res) => {
       if (!res.rowCount) {
@@ -120,10 +123,17 @@ export async function signUp(state: FormState, formData: FormData) {
     });
 
   if (selectResult.data) {
-    const { user_id, user_role } = selectResult.data;
+    const { user_id, user_role, username, first_name, last_name } =
+      selectResult.data;
 
     // create user session
-    await createSession(user_id as number, user_role as number);
+    await createSession({
+      user_id,
+      user_role,
+      username,
+      first_name,
+      last_name,
+    });
 
     // redirect user
     redirect(`/u/${userData.username}`);
@@ -146,6 +156,8 @@ export async function signIn(state: FormState, formData: FormData) {
       user_id,
       user_role,
       username,
+      first_name,
+      last_name,
       password_hash
     FROM
       admin.users
@@ -153,7 +165,7 @@ export async function signIn(state: FormState, formData: FormData) {
       username=$1 OR email=$1
   `;
 
-  const selectResult: SelectResultProps = await db
+  const selectResult: UserSelectResultProps = await db
     .query(selectSql, [identifier])
     .then((res) => {
       if (!res.rowCount) {
@@ -174,7 +186,14 @@ export async function signIn(state: FormState, formData: FormData) {
 
   // If user was found, continue sign in steps
   if (selectResult.data) {
-    const { user_id, user_role, username, password_hash } = selectResult.data;
+    const {
+      user_id,
+      user_role,
+      username,
+      first_name,
+      last_name,
+      password_hash,
+    } = selectResult.data;
 
     // compare provided password with password_hash from db
     const passwordsMatch = await bcrypt.compare(password, password_hash);
@@ -187,7 +206,13 @@ export async function signIn(state: FormState, formData: FormData) {
       };
 
     // create user session
-    await createSession(user_id as number, user_role as number);
+    await createSession({
+      user_id,
+      user_role,
+      username,
+      first_name,
+      last_name,
+    });
 
     // redirect user
     redirect(`/u/${username}`);
@@ -204,8 +229,12 @@ export async function logOut() {
   (await cookies()).set("session", "", { expires: new Date(0) });
 }
 
-export async function isLoggedIn() {
+export async function isLoggedIn(): Promise<UserData> {
   const session = await getSession();
 
+  console.log(session);
+
   if (!session) redirect("/sign-in");
+
+  return session.userData;
 }

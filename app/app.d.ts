@@ -3,7 +3,7 @@ interface ResultProps {
   status: number;
 }
 
-interface SelectResultProps extends ResultProps {
+interface UserSelectResultProps extends ResultProps {
   data?: UserData;
 }
 
@@ -16,5 +16,6 @@ interface UserData {
   email?: string;
   pronouns?: string;
   user_role?: number;
+  role?: number;
   password_hash?: string;
 }

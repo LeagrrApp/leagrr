@@ -1,6 +1,6 @@
 import "server-only";
 import { SessionPayload } from "./definitions";
-import { jwtVerify, SignJWT } from "jose";
+import { JWTPayload, jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -27,9 +27,9 @@ export async function decrypt(session: string | undefined = "") {
   }
 }
 
-export async function createSession(user_id: number, user_role: number) {
+export async function createSession(userData: UserData) {
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  const session = await encrypt({ user_id, user_role, expiresAt });
+  const session = await encrypt({ userData, expiresAt });
   const cookieStore = await cookies();
 
   cookieStore.set("session", session, {
@@ -41,10 +41,17 @@ export async function createSession(user_id: number, user_role: number) {
   });
 }
 
-export async function getSession() {
+interface SessionProps extends JWTPayload {
+  exp: number;
+  expiresAt: Date;
+  iat: number;
+  userData: UserData;
+}
+
+export async function getSession(): Promise<SessionProps | undefined> {
   const session = (await cookies()).get("session")?.value;
-  if (!session) return null;
-  return await decrypt(session);
+  if (!session) return undefined;
+  return (await decrypt(session)) as SessionProps;
 }
 
 // TODO: this doesn't seem to be working...?
@@ -61,8 +68,7 @@ export async function updateSession() {
   // console.log(expires);
 
   const newSession = await encrypt({
-    user_id: payload.user_id as number,
-    user_role: payload.user_role,
+    userData: payload.userData as UserData,
     expiresAt: expires,
   });
 

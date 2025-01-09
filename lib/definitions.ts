@@ -41,6 +41,6 @@ export type FormState =
   | undefined;
 
 export interface SessionPayload extends JWTPayload {
-  user_id: number;
+  userData: UserData;
   expiresAt: Date;
 }
