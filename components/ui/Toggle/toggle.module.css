@@ -1,0 +1,48 @@
+.toggle {
+  padding: 0;
+  margin: 0;
+  background-color: var(--color-primary-pale);
+  border: 0.0625rem solid var(--color-white);
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.25rem;
+
+  width: var(--spacer-l);
+  height: calc(var(--spacer-l) * 0.875);
+  border-radius: var(--spacer-s);
+}
+
+.toggle span[class^="tog"] {
+  display: block;
+  width: 100%;
+  height: 0.25rem;
+  background-color: var(--color-primary-dark);
+  border-radius: 1rem;
+  position: relative;
+  transition: all var(--transition);
+}
+
+.tog_top {
+  inset-block-start: 0;
+}
+
+.tog_bottom {
+  inset-block-end: 0;
+}
+
+.toggle_active {
+  .tog_top {
+    inset-block-start: 50%;
+    translate: 0 -50%;
+    rotate: 45deg;
+  }
+  .tog_middle {
+    opacity: 0;
+  }
+  .tog_bottom {
+    inset-block-end: 50%;
+    translate: 0 50%;
+    rotate: -45deg;
+  }
+}

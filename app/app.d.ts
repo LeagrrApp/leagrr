@@ -19,3 +19,16 @@ interface UserData {
   role?: number;
   password_hash?: string;
 }
+
+interface MenuItemData {
+  slug: string;
+  name: string;
+  img?: string;
+}
+
+interface UserDashboardMenuData extends ResultProps {
+  data?: {
+    teams: MenuItemData[];
+    leagues: MenuItemData[];
+  };
+}

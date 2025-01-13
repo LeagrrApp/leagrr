@@ -9,6 +9,9 @@
   --color-secondary-pale: hsl(
     from var(--color-secondary) h calc(s - 40) calc(l + 15)
   );
+  --color-secondary-light: hsl(
+    from var(--color-secondary) h calc(s - 40) calc(l + 5)
+  );
   --color-secondary-dark: hsl(from var(--color-secondary) h s calc(l - 20));
   --color-accent: #88dff2;
   --color-accent-pale: hsl(

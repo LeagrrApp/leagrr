@@ -1,10 +1,8 @@
-"use server";
-
 import Menu from "@/components/dashboard/Menu/Menu";
 import SkipLinks from "@/components/ui/accessibility/SkipLinks";
 import css from "./layout.module.css";
-import { isLoggedIn } from "@/actions/auth";
 import { getSession } from "@/lib/session";
+import { getUserDashboardMenuData } from "@/actions/users";
 import { redirect } from "next/navigation";
 
 export default async function Layout({
@@ -12,10 +10,12 @@ export default async function Layout({
 }: {
   children: React.ReactNode;
 }) {
-  // Check if user is logged in
   const session = await getSession();
-  // redirect if not
   if (!session) redirect("/sign-in");
+
+  const userDashboardMenuData = await getUserDashboardMenuData(
+    session?.userData.user_id
+  );
 
   const skipLinks: BasicLink[] = [
     {
@@ -32,11 +32,12 @@ export default async function Layout({
     <div className={css.dashboard}>
       <SkipLinks links={skipLinks} />
 
-      <Menu />
+      <Menu
+        userData={session?.userData}
+        userDashboardMenuData={userDashboardMenuData}
+      />
 
-      <main id="main" tabIndex={0}>
-        {children}
-      </main>
+      <main id="main">{children}</main>
     </div>
   );
 }

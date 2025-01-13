@@ -1,47 +1,79 @@
 .menu {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 100000;
   display: flex;
   background-color: var(--color-primary);
+  align-items: center;
+  padding-inline: var(--spacer-base);
+  padding-block: var(--spacer-s);
+  isolation: isolate;
 
   @media only screen and (min-width: 60rem) {
     flex-direction: column;
     border-inline-end: 0.125rem solid var(--color-primary-dark);
+    position: static;
+    isolation: unset;
+    inset-block-start: unset;
+    z-index: auto;
+    padding: 0;
+    align-items: unset;
   }
 }
 
 .menu_logo {
   display: block;
-  padding-inline: var(--spacer-base);
-  padding-block: var(--spacer-s);
   color: var(--color-white);
   font-weight: bold;
   font-size: var(--type-scale-h3);
   text-decoration: none;
   font-style: italic;
+  margin-inline-end: auto;
+
+  &:where(:hover, :focus-visible) {
+    color: var(--color-secondary-light);
+  }
+
+  @media only screen and (min-width: 60rem) {
+    margin-inline-end: unset;
+    padding-inline: var(--spacer-base);
+    padding-block: var(--spacer-s);
+    margin-block-end: var(--spacer-ml);
+  }
 }
 
-.menu_profile {
+.menu .menu_toggle {
+  @media only screen and (min-width: 60rem) {
+    display: none;
+  }
+}
+
+.menu .menu_item {
   display: flex;
   align-items: center;
   color: var(--color-white);
   text-decoration: none;
   padding-inline: var(--spacer-em-base);
   padding-block: var(--spacer-em-ml);
-  margin-block-start: var(--spacer-ml);
   gap: var(--spacer-em-base);
   &:where(a:hover, a:focus-visible) {
-    background-color: var(--color-primary-dark);
+    @media only screen and (min-width: 60rem) {
+      background-color: var(--color-primary-dark);
+    }
   }
 }
 
-.menu_profile_pic {
+.menu_item_pic {
   border-radius: 50%;
   border: 0.0625rem solid var(--color-primary-pale);
   width: 1.25rem;
   height: 1.25rem;
+  object-fit: cover;
+  background-color: #fff;
   scale: 1.2;
 }
 
-.menu_profile_letters {
+.menu_item_letters {
   width: 1.25rem;
   aspect-ratio: 1;
   font-size: 0.75rem;
@@ -52,7 +84,7 @@
   color: var(--color-primary);
   border-radius: 50%;
 
-  .menu_profile:where(:hover, :focus-visible) & {
+  .menu_item:where(:hover, :focus-visible) & {
     color: var(--color-primary-dark);
   }
 }
@@ -61,6 +93,32 @@
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+
+  position: absolute;
+  width: 100%;
+  height: 100dvh;
+  background-color: var(--color-primary);
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  padding-block-start: 3.5rem;
+  z-index: -1;
+  translate: -100%;
+  transition: all var(--transition);
+
+  @media only screen and (min-width: 60rem) {
+    position: static;
+    width: unset;
+    height: unset;
+    z-index: auto;
+    padding-block-start: 0;
+    translate: 0;
+    transition: none;
+    background-color: transparent;
+  }
+}
+
+.menu_nav_open {
+  translate: 0;
 }
 
 .menu_heading {
@@ -96,12 +154,4 @@
   flex-direction: column;
   flex-grow: 1;
   justify-content: flex-end;
-}
-
-.menu .menu_item {
-  color: var(--color-white);
-  &:where(:hover, :focus-visible) {
-    color: var(--color-white);
-    background-color: var(--color-primary-dark);
-  }
 }
