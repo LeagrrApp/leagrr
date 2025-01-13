@@ -1,6 +1,7 @@
 import { isLoggedIn } from "@/actions/auth";
 import { getUserData } from "@/actions/users";
 import Container from "@/components/ui/Container/Container";
+import Icon from "@/components/ui/Icon/Icon";
 import { getSession } from "@/lib/session";
 import { notFound } from "next/navigation";
 
@@ -9,21 +10,20 @@ export default async function Page({
 }: {
   params: Promise<{ username: string }>;
 }) {
-  const userData = await isLoggedIn();
+  const userSession = await isLoggedIn();
 
-  console.log(userData);
+  console.log(userSession);
 
   const { username } = await params;
+  const currentUser = username === userSession.username;
 
-  const { data } = await getUserData(username);
+  const { data } = await getUserData(username, userSession.user_role);
 
   if (!data) {
     notFound();
   }
 
   const { first_name, last_name, email, role } = data;
-
-  const currentUser = username === userData.username;
 
   return (
     <Container>

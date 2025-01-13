@@ -6,6 +6,7 @@
   padding-inline: var(--spacer-em-base);
   padding-block: var(--spacer-em-ml);
   gap: var(--spacer-em-base);
+  transition: all var(--transition);
   &:where(a:hover, a:focus-visible) {
     color: var(--color-primary-dark);
   }

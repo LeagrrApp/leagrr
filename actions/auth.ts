@@ -233,8 +233,6 @@ export async function logOut() {
 export async function isLoggedIn(): Promise<UserData> {
   const session = await getSession();
 
-  console.log(session);
-
   if (!session) redirect("/sign-in");
 
   return session.userData;

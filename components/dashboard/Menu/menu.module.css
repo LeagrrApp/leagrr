@@ -19,6 +19,44 @@
   font-style: italic;
 }
 
+.menu_profile {
+  display: flex;
+  align-items: center;
+  color: var(--color-white);
+  text-decoration: none;
+  padding-inline: var(--spacer-em-base);
+  padding-block: var(--spacer-em-ml);
+  margin-block-start: var(--spacer-ml);
+  gap: var(--spacer-em-base);
+  &:where(a:hover, a:focus-visible) {
+    background-color: var(--color-primary-dark);
+  }
+}
+
+.menu_profile_pic {
+  border-radius: 50%;
+  border: 0.0625rem solid var(--color-primary-pale);
+  width: 1.25rem;
+  height: 1.25rem;
+  scale: 1.2;
+}
+
+.menu_profile_letters {
+  width: 1.25rem;
+  aspect-ratio: 1;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-white);
+  color: var(--color-primary);
+  border-radius: 50%;
+
+  .menu_profile:where(:hover, :focus-visible) & {
+    color: var(--color-primary-dark);
+  }
+}
+
 .menu_nav {
   display: flex;
   flex-direction: column;
@@ -26,15 +64,15 @@
 }
 
 .menu_heading {
-  font-size: var(--type-scale-h5);
+  font-size: var(--type-scale-s);
   padding-inline: var(--spacer-base);
   padding-block-start: var(--spacer-base);
   text-transform: uppercase;
-  letter-spacing: 0.0625rem;
+  letter-spacing: 0.125rem;
   display: flex;
   align-items: baseline;
   gap: var(--spacer-s);
-  margin-block-end: var(--spacer-m);
+  margin-block: var(--spacer-ml) var(--spacer-m);
   color: var(--color-white);
   &::after {
     content: " ";
@@ -43,6 +81,7 @@
     height: 0.125em;
     background-color: var(--color-primary-dark);
     translate: 0 -50%;
+    opacity: 0.5;
   }
 }
 

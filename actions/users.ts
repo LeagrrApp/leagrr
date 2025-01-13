@@ -2,7 +2,11 @@
 
 import { db } from "@/db/pg";
 
-export async function getUserData(identifier: string | number) {
+export async function getUserData(
+  identifier: string,
+  user_role: number = 3,
+  currentUser: boolean = false
+): Promise<UserSelectResultProps> {
   const sql = `
     SELECT
       u.user_id,
