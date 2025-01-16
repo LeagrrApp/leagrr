@@ -12,10 +12,9 @@ import { useActionState } from "react";
 
 interface EditLeagueProps {
   league: LeagueData;
-  user_id: number;
 }
 
-export default function EditLeague({ league, user_id }: EditLeagueProps) {
+export default function EditLeague({ league }: EditLeagueProps) {
   const [state, action] = useActionState(editLeague, undefined);
 
   const sports = [
@@ -57,48 +56,47 @@ export default function EditLeague({ league, user_id }: EditLeagueProps) {
   ];
 
   return (
-    <Container maxWidth="35rem">
-      <form action={action}>
-        <Grid gap="base" cols={{ xs: 1, m: 2 }}>
-          <Col fullSpan>
-            <Input
-              label="Name"
-              name="name"
-              value={league.name}
-              errors={{ errs: state?.errors?.name, type: "danger" }}
-              required
-            />
-          </Col>
-          <Col fullSpan>
-            <TextArea
-              label="Description"
-              name="description"
-              value={league.description}
-              errors={{ errs: state?.errors?.description, type: "danger" }}
-              optional
-            />
-          </Col>
-          <Select
-            label="Sport"
-            name="sport_id"
-            choices={sports}
-            value={league.sport_id.toString()}
+    <form action={action}>
+      <Grid gap="base" cols={{ xs: 1, m: 2 }}>
+        <Col fullSpan>
+          <Input
+            label="Name"
+            name="name"
+            value={league.name}
+            errors={{ errs: state?.errors?.name, type: "danger" }}
+            required
           />
-          <Select
-            label="status"
-            name="status"
-            choices={status_options}
-            value={league.status}
-            errors={{ errs: state?.errors?.status, type: "danger" }}
+        </Col>
+        <Col fullSpan>
+          <TextArea
+            label="Description"
+            name="description"
+            value={league.description}
+            errors={{ errs: state?.errors?.description, type: "danger" }}
+            optional
           />
-          <input type="hidden" name="league_id" value={league.league_id} />
-          <Col fullSpan>
-            <Button type="submit" fullWidth>
-              Save League
-            </Button>
-          </Col>
-        </Grid>
-      </form>
-    </Container>
+        </Col>
+        <Select
+          label="Sport"
+          name="sport_id"
+          choices={sports}
+          value={league.sport_id.toString()}
+        />
+        <Select
+          label="status"
+          name="status"
+          choices={status_options}
+          value={league.status}
+          errors={{ errs: state?.errors?.status, type: "danger" }}
+        />
+        <input type="hidden" name="league_id" value={league.league_id} />
+        <Col fullSpan>
+          <Button type="submit" fullWidth>
+            <i className="material-symbols-outlined">save</i>
+            Save League
+          </Button>
+        </Col>
+      </Grid>
+    </form>
   );
 }

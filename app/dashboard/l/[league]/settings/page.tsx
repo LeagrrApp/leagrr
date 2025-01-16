@@ -2,6 +2,8 @@ import { deleteLeague, getLeagueData } from "@/actions/leagues";
 import { verifyUserRole } from "@/actions/users";
 import EditLeague from "@/components/dashboard/leagues/EditLeague/EditLeague";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
+import Container from "@/components/ui/Container/Container";
+import Grid from "@/components/ui/layout/Grid";
 import { verifySession } from "@/lib/session";
 import { notFound, redirect } from "next/navigation";
 
@@ -10,7 +12,7 @@ export default async function Page({
 }: {
   params: Promise<{ league: string }>;
 }) {
-  const userData = await verifySession();
+  await verifySession();
 
   const { league: slug } = await params;
 
@@ -26,24 +28,29 @@ export default async function Page({
 
   if (isCommissioner || isManager || isAdmin)
     return (
-      <>
-        <h2>League Settings</h2>
-
-        {(isCommissioner || isAdmin) && (
-          <ModalConfirmAction
-            defaultState={{
-              league_id: league.league_id,
-            }}
-            actionFunction={deleteLeague}
-            confirmationHeading={`Are you sure you want to delete ${league.name}?`}
-            triggerIcon="delete"
-            triggerLabel="Delete league"
-            triggerIconPadding={["ml", "base"]}
-          />
-        )}
-
-        <EditLeague league={league} user_id={userData.user_id} />
-      </>
+      <Container maxWidth="35rem">
+        <Grid gap="base">
+          <EditLeague league={league} />
+          {(isCommissioner || isAdmin) && (
+            <ModalConfirmAction
+              defaultState={{
+                league_id: league.league_id,
+              }}
+              actionFunction={deleteLeague}
+              confirmationHeading={`Are you sure you want to delete ${league.name}?`}
+              confirmationByline={`This action is permanent cannot be undone. Consider setting the league's status to "Archived" instead.`}
+              trigger={{
+                icon: "delete",
+                label: "Delete league",
+                buttonStyles: {
+                  variant: "danger",
+                  fullWidth: true,
+                },
+              }}
+            />
+          )}
+        </Grid>
+      </Container>
     );
 
   redirect(`/dashboard/l/${slug}`);

@@ -159,7 +159,11 @@
 .menu .menu_logout {
   color: var(--color-white);
   background-color: var(--color-primary-darker);
+  border-color: var(--color-primary-darker);
+  border-radius: 0;
+  justify-content: flex-start;
   &:where(:hover, :focus-visible) {
     background-color: var(--color-danger-dark);
+    border-color: var(--color-danger-dark);
   }
 }

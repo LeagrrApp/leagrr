@@ -186,10 +186,14 @@ export default function Menu({ userData, userDashboardMenuData }: MenuProps) {
             <ModalConfirmAction
               actionFunction={logOut}
               confirmationHeading="Are you sure you want to log out?"
-              triggerIcon="logout"
-              triggerLabel="Sign Out"
-              triggerClasses={css.menu_logout}
-              triggerIconPadding={["ml", "base"]}
+              trigger={{
+                icon: "logout",
+                label: "Sign Out",
+                classes: css.menu_logout,
+                buttonStyles: {
+                  fullWidth: true,
+                },
+              }}
             />
           </li>
         </ul>

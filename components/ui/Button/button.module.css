@@ -5,7 +5,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacer-em-m);
+  gap: var(--spacer-em-base);
 
   padding: var(--spacer-em-m) var(--spacer-em-base);
   border-radius: var(--spacer-em-s);

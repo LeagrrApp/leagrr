@@ -1,10 +1,10 @@
 .trigger {
-  padding: 0;
+  /* padding: 0;
   border: 0;
   background-color: transparent;
   display: block;
   width: 100%;
-  border-radius: 0;
+  border-radius: 0; */
 }
 
 .trigger_icon {
@@ -20,6 +20,7 @@
   border: 0.125rem solid var(--color-grey);
   border-radius: var(--spacer-m);
   padding: var(--spacer-l);
+  text-align: center;
 }
 
 .dialog::backdrop {
@@ -28,6 +29,12 @@
 
 .dialog_heading {
   font-size: var(--type-scale-h4);
-  text-align: center;
+  margin-block-end: var(--spacer-base);
+  &:where(:has(+ p)) {
+    margin-block-end: var(--spacer-m);
+  }
+}
+
+.dialog_byline {
   margin-block-end: var(--spacer-base);
 }

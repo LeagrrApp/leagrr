@@ -7,48 +7,56 @@ import Grid from "@/components/ui/layout/Grid";
 import Button from "@/components/ui/Button/Button";
 import { apply_classes } from "@/utils/helpers/html-attributes";
 import Alert from "@/components/ui/Alert/Alert";
+import { ButtonProps, SizeOptions } from "@/components/ui/ui";
 
 interface ModalConfirmActionProps {
   defaultState?: any;
   actionFunction(): any;
   confirmationHeading: string;
+  confirmationByline?: string;
   confirmationButton?: string;
-  triggerClasses?: string | string[];
-  triggerLabel: string;
-  triggerIcon: string;
-  triggerIconPadding?: SizeOptions[];
+  trigger: {
+    classes?: string | string[];
+    label: string;
+    icon: string;
+    buttonStyles?: ButtonProps;
+  };
 }
 
 export default function ModalConfirmAction({
   defaultState,
   actionFunction,
   confirmationHeading,
+  confirmationByline,
   confirmationButton,
-  triggerClasses,
-  triggerLabel,
-  triggerIcon,
-  triggerIconPadding,
+  trigger,
 }: ModalConfirmActionProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [state, action] = useActionState(actionFunction, defaultState);
 
   return (
     <>
-      <button
-        className={css.trigger}
+      <Button
+        className={apply_classes(css.trigger, trigger?.classes)}
         onClick={() => dialogRef?.current?.showModal()}
+        variant={trigger?.buttonStyles?.variant || "transparent"}
+        outline={trigger?.buttonStyles?.outline}
+        size={trigger?.buttonStyles?.size}
+        fullWidth={trigger?.buttonStyles?.fullWidth}
+        asSpan={trigger?.buttonStyles?.asSpan}
       >
-        <Icon
-          className={apply_classes(css.trigger_icon, triggerClasses)}
-          icon={triggerIcon}
-          label={triggerLabel}
-          padding={triggerIconPadding}
-        />
-      </button>
+        {trigger.icon && (
+          <i className="material-symbols-outlined">{trigger.icon}</i>
+        )}
+        {trigger.label}
+      </Button>
 
       <dialog className={css.dialog} ref={dialogRef}>
         <form action={action}>
           <h2 className={css.dialog_heading}>{confirmationHeading}</h2>
+          {confirmationByline && (
+            <p className={css.dialog_byline}>{confirmationByline}</p>
+          )}
           <Grid cols={2} gap="base">
             <Button type="submit" variant="danger">
               {confirmationButton || "Confirm"}
