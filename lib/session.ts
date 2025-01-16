@@ -3,6 +3,7 @@ import { SessionPayload } from "./definitions";
 import { JWTPayload, jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { redirect } from "next/navigation";
 
 const secretKey = process.env.SESSION_SECRET;
 const encodedKey = new TextEncoder().encode(secretKey);
@@ -29,7 +30,7 @@ export async function decrypt(session: string | undefined = "") {
 
 export async function createSession(userData: UserData) {
   // const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // One week
-  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // One hour
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // One day
   const session = await encrypt({ userData, expiresAt });
   const cookieStore = await cookies();
 
@@ -43,10 +44,7 @@ export async function createSession(userData: UserData) {
 }
 
 interface SessionProps extends JWTPayload {
-  exp: number;
-  expiresAt: Date;
-  iat: number;
-  userData: UserData;
+  userData?: UserData;
 }
 
 export async function getSession(): Promise<SessionProps | undefined> {
@@ -55,33 +53,42 @@ export async function getSession(): Promise<SessionProps | undefined> {
   return (await decrypt(session)) as SessionProps;
 }
 
-// TODO: this doesn't seem to be working...?
-export async function updateSession() {
-  "use server";
-  // console.log("starting to update session!");
-  const session = (await cookies()).get("session")?.value;
-  if (!session) return null;
+export async function verifySession(): Promise<UserData> {
+  const cookie = (await cookies()).get("session")?.value;
+  const session: SessionProps | undefined = await decrypt(cookie);
 
-  const payload = await decrypt(session);
-  if (!payload) return null;
+  if (!session?.userData) redirect("/sign-in");
 
-  // const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // One week
-  // const expires = new Date(Date.now() + 60 * 60 * 1000); // One hour
-  const expires = new Date(Date.now() + 60 * 1000); // One minute
-  // console.log(expires);
-
-  const newSession = await encrypt({
-    userData: payload.userData as UserData,
-    expiresAt: expires,
-  });
-
-  const cookieStore = await cookies();
-  cookieStore.set("session", newSession, {
-    httpOnly: true,
-    secure: true,
-    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    sameSite: "lax",
-    path: "/",
-  });
-  // console.log("finished updating session!");
+  return session.userData;
 }
+
+// TODO: this doesn't seem to be working...?
+// export async function updateSession() {
+//   "use server";
+//   // console.log("starting to update session!");
+//   const session = (await cookies()).get("session")?.value;
+//   if (!session) return null;
+
+//   const payload = await decrypt(session);
+//   if (!payload) return null;
+
+//   // const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // One week
+//   // const expires = new Date(Date.now() + 60 * 60 * 1000); // One hour
+//   const expires = new Date(Date.now() + 60 * 1000); // One minute
+//   // console.log(expires);
+
+//   const newSession = await encrypt({
+//     userData: payload.userData as UserData,
+//     expiresAt: expires,
+//   });
+
+//   const cookieStore = await cookies();
+//   cookieStore.set("session", newSession, {
+//     httpOnly: true,
+//     secure: true,
+//     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+//     sameSite: "lax",
+//     path: "/",
+//   });
+//   // console.log("finished updating session!");
+// }

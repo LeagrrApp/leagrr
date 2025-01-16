@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/db/pg";
+import { verifySession } from "@/lib/session";
 
 interface MenuItemData {
   slug: string;
@@ -8,14 +9,8 @@ interface MenuItemData {
   img?: string;
 }
 
-export async function getUserDashboardMenuData(
-  user_id?: number
-): Promise<UserDashboardMenuData> {
-  if (!user_id)
-    return {
-      message: "Please provide a username",
-      status: 400,
-    };
+export async function getDashboardMenuData(): Promise<UserDashboardMenuData> {
+  const { user_id } = await verifySession();
 
   // get list of teams that the user is a part of
   const teamSql = `
@@ -115,10 +110,10 @@ export async function getUserDashboardMenuData(
 }
 
 export async function getUserData(
-  identifier: string,
-  user_role: number = 3,
-  currentUser: boolean = false
+  identifier: string
 ): Promise<UserSelectResultProps> {
+  const { user_id } = await verifySession();
+
   const sql = `
     SELECT
       u.user_id,
@@ -171,4 +166,62 @@ export async function getUserData(
   console.log(result);
 
   return result;
+}
+
+interface UserRoleResult extends ResultProps {
+  data: {
+    user_role: number;
+    role_name: string;
+  };
+}
+
+export async function verifyUserRole(
+  roleType?: string | number
+): Promise<UserRoleResult | boolean> {
+  const { user_id } = await verifySession();
+
+  const sql = `
+    SELECT
+      u.user_role,
+      r.name as role_name
+    FROM
+      admin.users as u
+    JOIN
+      admin.user_roles as r
+    ON
+      u.user_role = r.user_role_id
+    WHERE
+      u.user_id = $1
+  `;
+
+  const result: UserRoleResult = await db
+    .query(sql, [user_id])
+    .then((res) => {
+      if (!res.rowCount) {
+        throw new Error("User not found.");
+      }
+
+      return {
+        message: `User role confirmed as ${res.rows[0].role_name}`,
+        status: 200,
+        data: res.rows[0],
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 404,
+        data: {
+          user_role: 0,
+          role_name: "Not found",
+        },
+      };
+    });
+
+  if (!roleType) return result;
+
+  if (typeof roleType === "string") {
+    return result.data?.role_name === roleType;
+  }
+  return result.data?.user_role === roleType;
 }

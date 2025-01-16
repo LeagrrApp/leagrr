@@ -155,3 +155,11 @@
   flex-grow: 1;
   justify-content: flex-end;
 }
+
+.menu .menu_logout {
+  color: var(--color-white);
+  background-color: var(--color-primary-darker);
+  &:where(:hover, :focus-visible) {
+    background-color: var(--color-danger-dark);
+  }
+}

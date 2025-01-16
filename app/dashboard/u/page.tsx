@@ -1,8 +1,8 @@
-import { isLoggedIn } from "@/actions/auth";
+import { verifySession } from "@/lib/session";
 import { redirect } from "next/navigation";
 
 export default async function Page() {
-  const userData = await isLoggedIn();
+  const { username } = await verifySession();
 
-  redirect(`/u/${userData.username}`);
+  redirect(`/dashboard/u/${username}`);
 }

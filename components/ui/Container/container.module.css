@@ -3,4 +3,8 @@
   padding-inline: var(--spacer-base);
   margin-inline: auto;
   width: min(var(--container-width, var(--container)), 100%);
+
+  @media only screen and (min-width: 60rem) {
+    padding-inline: var(--spacer-l);
+  }
 }

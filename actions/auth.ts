@@ -1,7 +1,7 @@
 "use server";
 
 import bcrypt from "bcrypt";
-import { SignupFormSchema, FormState } from "@/lib/definitions";
+import { SignupFormSchema, SignInUpFormState } from "@/lib/definitions";
 import { db } from "@/db/pg";
 import { createSession, getSession } from "@/lib/session";
 import { isObjectEmpty } from "@/utils/helpers/objects";
@@ -17,7 +17,7 @@ interface ErrorProps {
   password_confirm?: string[] | undefined;
 }
 
-export async function signUp(state: FormState, formData: FormData) {
+export async function signUp(state: SignInUpFormState, formData: FormData) {
   const userData = {
     email: formData.get("email"),
     username: formData.get("username"),
@@ -144,7 +144,7 @@ export async function signUp(state: FormState, formData: FormData) {
   };
 }
 
-export async function signIn(state: FormState, formData: FormData) {
+export async function signIn(state: SignInUpFormState, formData: FormData) {
   const identifier = formData.get("identifier") as string;
   const password = formData.get("password") as string;
 

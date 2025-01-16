@@ -2,12 +2,9 @@
   padding-block-start: var(--spacer-l);
 }
 
-.dashboard_header h1 {
-  border-block-end: 0.125rem solid var(--color-primary);
-}
-
-.dashboard_container {
-  @media only screen and (min-width: 60rem) {
-    padding-inline: var(--spacer-l);
-  }
+.dashboard_header_admin_bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacer-base);
+  margin-block-end: var(--spacer-base);
 }

@@ -2,17 +2,14 @@
 
 import Link from "next/link";
 import css from "./menu.module.css";
-import { getSession } from "@/lib/session";
 import Icon from "@/components/ui/Icon/Icon";
 import { apply_classes } from "@/utils/helpers/html-attributes";
-import Logout from "../Logout/Logout";
 import Image from "next/image";
-import profilePic from "./profile.jpg";
-import { getUserDashboardMenuData } from "@/actions/users";
 import Alert from "@/components/ui/Alert/Alert";
 import { PropsWithChildren, useState } from "react";
 import Toggle from "@/components/ui/Toggle/Toggle";
-import Button from "@/components/ui/Button/Button";
+import { logOut } from "@/actions/auth";
+import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
 
 function MenuStructure({ children }: PropsWithChildren) {
   return (
@@ -119,7 +116,7 @@ export default function Menu({ userData, userDashboardMenuData }: MenuProps) {
             <Icon
               className={css.menu_item}
               icon="add_circle"
-              label="Join a team"
+              label="Add a team"
               href="/dashboard/t/"
             />
           </li>
@@ -186,7 +183,14 @@ export default function Menu({ userData, userDashboardMenuData }: MenuProps) {
             />
           </li>
           <li>
-            <Logout />
+            <ModalConfirmAction
+              actionFunction={logOut}
+              confirmationHeading="Are you sure you want to log out?"
+              triggerIcon="logout"
+              triggerLabel="Sign Out"
+              triggerClasses={css.menu_logout}
+              triggerIconPadding={["ml", "base"]}
+            />
           </li>
         </ul>
       </nav>

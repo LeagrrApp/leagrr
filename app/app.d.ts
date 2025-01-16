@@ -9,13 +9,13 @@ interface UserSelectResultProps extends ResultProps {
 
 // TODO: flush this out to include expanded role and gender information
 interface UserData {
-  user_id?: number;
+  user_id: number;
   first_name?: string;
   last_name?: string;
   username?: string;
   email?: string;
   pronouns?: string;
-  user_role?: number;
+  user_role: number;
   role?: number;
   password_hash?: string;
 }
@@ -31,4 +31,15 @@ interface UserDashboardMenuData extends ResultProps {
     teams: MenuItemData[];
     leagues: MenuItemData[];
   };
+}
+
+interface LeagueData {
+  league_id: number;
+  name: string;
+  description?: string;
+  sport_id: number;
+  sport?: string;
+  status: string;
+  seasons?: SeasonData[];
+  league_role_id?: number;
 }

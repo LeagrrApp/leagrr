@@ -28,6 +28,7 @@ DROP TABLE IF EXISTS league_management.division_rosters CASCADE;
 DROP TABLE IF EXISTS league_management.playoffs CASCADE;
 DROP TABLE IF EXISTS league_management.venues CASCADE;
 DROP TABLE IF EXISTS league_management.arenas CASCADE;
+DROP TABLE IF EXISTS league_management.league_venues CASCADE;
 DROP TABLE IF EXISTS league_management.games CASCADE;
 DROP SCHEMA IF EXISTS league_management CASCADE;
 
@@ -106,8 +107,12 @@ CREATE TABLE admin.sports (
   slug            VARCHAR(50) NOT NULL UNIQUE,
   name            VARCHAR(50) NOT NULL,
   description     TEXT,
+  status          VARCHAR(20) NOT NULL DEFAULT 'public',
   created_on      TIMESTAMP DEFAULT NOW()
 );
+
+ALTER TABLE IF EXISTS admin.sports
+    ADD CONSTRAINT sport_status_enum CHECK (status IN ('draft', 'public', 'archived'));
 
 -- Create admin.genders
 -- List of gender options selected by users and used to restrict rosters in divisions
@@ -130,6 +135,7 @@ CREATE TABLE admin.users (
   pronouns        VARCHAR(50),
   user_role       INT NOT NULL DEFAULT 3,
   password_hash   VARCHAR(100),
+  status          VARCHAR(20) NOT NULL DEFAULT 'active',
   created_on      TIMESTAMP DEFAULT NOW()
 );
 
@@ -141,6 +147,9 @@ ALTER TABLE admin.users
 ADD CONSTRAINT fk_users_gender_id FOREIGN KEY (gender_id)
     REFERENCES admin.genders (gender_id);
 
+ALTER TABLE IF EXISTS admin.users
+    ADD CONSTRAINT user_status_enum CHECK (status IN ('active', 'inactive', 'suspended', 'banned'));
+
 -- Create league_management.teams
 -- Create team that can be connected to multiple divisions in different leagues.
 CREATE TABLE league_management.teams (
@@ -148,8 +157,13 @@ CREATE TABLE league_management.teams (
   slug            VARCHAR(50) NOT NULL UNIQUE,
   name            VARCHAR(50) NOT NULL,
   description     TEXT,
+  join_code       VARCHAR(50) NOT NULL DEFAULT gen_random_uuid(),
+  status          VARCHAR(20) NOT NULL DEFAULT 'active',
   created_on      TIMESTAMP DEFAULT NOW()
 );
+
+ALTER TABLE IF EXISTS league_management.teams
+    ADD CONSTRAINT team_status_enum CHECK (status IN ('active', 'inactive', 'suspended', 'banned'));
 
 -- Create league_management.team_memberships
 -- Joiner table adding users to teams with a specific team role
@@ -163,11 +177,11 @@ CREATE TABLE league_management.team_memberships (
 
 ALTER TABLE league_management.team_memberships
 ADD CONSTRAINT fk_team_memberships_user_id FOREIGN KEY (user_id)
-    REFERENCES admin.users (user_id);
+    REFERENCES admin.users (user_id) ON DELETE CASCADE;
 
 ALTER TABLE league_management.team_memberships
 ADD CONSTRAINT fk_team_memberships_team_id FOREIGN KEY (team_id)
-    REFERENCES league_management.teams (team_id);
+    REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
 
 ALTER TABLE league_management.team_memberships
 ADD CONSTRAINT fk_team_memberships_team_role_id FOREIGN KEY (team_role_id)
@@ -181,12 +195,59 @@ CREATE TABLE league_management.leagues (
   name            VARCHAR(50) NOT NULL,
   description     TEXT,
   sport_id        INT,
+  status          VARCHAR(20) NOT NULL DEFAULT 'draft',
   created_on      TIMESTAMP DEFAULT NOW()
 );
+
+ALTER TABLE IF EXISTS league_management.leagues
+    ADD CONSTRAINT league_status_enum CHECK (status IN ('draft', 'public', 'archived'));
 
 ALTER TABLE league_management.leagues
 ADD CONSTRAINT fk_leagues_sport_id FOREIGN KEY (sport_id)
     REFERENCES admin.sports (sport_id);
+
+CREATE OR REPLACE FUNCTION generate_unique_slug()
+RETURNS TRIGGER AS $$
+DECLARE
+    base_slug TEXT;
+    final_slug TEXT;
+    slug_rank INT;
+BEGIN
+    -- Generate the initial slug by processing the name
+    base_slug := lower(
+                      regexp_replace(
+                          regexp_replace(
+                              regexp_replace(NEW.name, '\s+', '-', 'g'),
+                              '[^a-zA-Z0-9\-]', '', 'g'
+                          ),
+                      '-+', '-', 'g')
+                  );
+
+    -- Check if this slug already exists and if so, append a number to ensure uniqueness
+    SELECT COUNT(*) INTO slug_rank
+    FROM league_management.leagues
+    WHERE slug LIKE base_slug || '%';
+
+    IF slug_rank = 0 THEN
+        -- No duplicates found, assign base slug
+        final_slug := base_slug;
+    ELSE
+        -- Duplicates found, append the count as a suffix
+        final_slug := base_slug || '-' || slug_rank;
+    END IF;
+
+    -- Assign the final slug to the new record
+    NEW.slug := final_slug;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER set_leagues_slug
+BEFORE INSERT ON league_management.leagues
+FOR EACH ROW
+WHEN (NEW.slug IS NULL)
+EXECUTE FUNCTION generate_unique_slug();
 
 -- Create league_management.league_admins
 -- A joiner table that connects a user with a league and assigns them a specific role
@@ -200,15 +261,15 @@ CREATE TABLE league_management.league_admins (
 
 ALTER TABLE league_management.league_admins
 ADD CONSTRAINT fk_league_admins_league_role_id FOREIGN KEY (league_role_id)
-    REFERENCES admin.league_roles (league_role_id);
+    REFERENCES admin.league_roles (league_role_id) ON DELETE CASCADE;
 
 ALTER TABLE league_management.league_admins
 ADD CONSTRAINT fk_league_admins_league_id FOREIGN KEY (league_id)
-    REFERENCES league_management.leagues (league_id);
+    REFERENCES league_management.leagues (league_id) ON DELETE CASCADE;
 
 ALTER TABLE league_management.league_admins
 ADD CONSTRAINT fk_league_admins_user_id FOREIGN KEY (user_id)
-    REFERENCES admin.users (user_id);
+    REFERENCES admin.users (user_id) ON DELETE CASCADE;
 
 -- Create league_management.seasons
 -- Define season table. Seasons are reoccurring time periods within a league, can feature multiple divisions
@@ -220,8 +281,16 @@ CREATE TABLE league_management.seasons (
   league_id       INT,
   start_date      DATE,
   end_date        DATE,
+  status          VARCHAR(20) NOT NULL DEFAULT 'draft',
   created_on      TIMESTAMP DEFAULT NOW()
 );
+
+ALTER TABLE league_management.seasons
+ADD CONSTRAINT fk_seasons_league_id FOREIGN KEY (league_id)
+    REFERENCES league_management.leagues (league_id) ON DELETE CASCADE;
+
+ALTER TABLE IF EXISTS league_management.seasons
+    ADD CONSTRAINT season_status_enum CHECK (status IN ('draft', 'public', 'archived'));
 
 -- Create league_management.season_admins
 -- A joiner table that connects a user with a season and assigns them a specific role
@@ -235,15 +304,15 @@ CREATE TABLE league_management.season_admins (
 
 ALTER TABLE league_management.season_admins
 ADD CONSTRAINT fk_season_admins_season_role_id FOREIGN KEY (season_role_id)
-    REFERENCES admin.season_roles (season_role_id);
+    REFERENCES admin.season_roles (season_role_id) ON DELETE CASCADE;
 
 ALTER TABLE league_management.season_admins
 ADD CONSTRAINT fk_season_admins_season_id FOREIGN KEY (season_id)
-    REFERENCES league_management.seasons (season_id);
+    REFERENCES league_management.seasons (season_id) ON DELETE CASCADE;
 
 ALTER TABLE league_management.season_admins
 ADD CONSTRAINT fk_season_admins_user_id FOREIGN KEY (user_id)
-    REFERENCES admin.users (user_id);
+    REFERENCES admin.users (user_id) ON DELETE CASCADE;
 
 -- Create league_management.divisions
 -- A division is a grouping of teams of same skill level within a season.
@@ -253,14 +322,22 @@ CREATE TABLE league_management.divisions (
   name            VARCHAR(50) NOT NULL,
   description     TEXT,
   tier            INT,
-  gender          VARCHAR(10) NOT NULL DEFAULT 'Co-ed',
+  gender          VARCHAR(10) NOT NULL DEFAULT 'All',
   season_id       INT,
+  join_code       VARCHAR(50) NOT NULL DEFAULT gen_random_uuid(),
+  status          VARCHAR(20) NOT NULL DEFAULT 'draft',
   created_on      TIMESTAMP DEFAULT NOW()
 );
 
 ALTER TABLE league_management.divisions
 ADD CONSTRAINT fk_divisions_season_id FOREIGN KEY (season_id)
-    REFERENCES league_management.seasons (season_id);
+    REFERENCES league_management.seasons (season_id) ON DELETE CASCADE;
+
+ALTER TABLE IF EXISTS league_management.divisions
+    ADD CONSTRAINT division_gender_enum CHECK (gender IN ('All', 'Men', 'Women'));
+
+ALTER TABLE IF EXISTS league_management.divisions
+    ADD CONSTRAINT division_status_enum CHECK (status IN ('draft', 'public', 'archived'));
 
 -- Create league_management.division_teams
 -- Joiner table connecting teams with divisions
@@ -273,11 +350,11 @@ CREATE TABLE league_management.division_teams (
 
 ALTER TABLE league_management.division_teams
 ADD CONSTRAINT fk_division_teams_division_id FOREIGN KEY (division_id)
-    REFERENCES league_management.divisions (division_id);
+    REFERENCES league_management.divisions (division_id) ON DELETE CASCADE;
 
 ALTER TABLE league_management.division_teams
 ADD CONSTRAINT fk_division_teams_team_id FOREIGN KEY (team_id)
-    REFERENCES league_management.teams (team_id);
+    REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
 
 -- Create league_management.division_rosters
 -- Joiner table assigning players to a team within divisions
@@ -290,11 +367,11 @@ CREATE TABLE league_management.division_rosters (
 
 ALTER TABLE league_management.division_rosters
 ADD CONSTRAINT fk_division_rosters_division_team_id FOREIGN KEY (division_team_id)
-    REFERENCES league_management.division_teams (division_team_id);
+    REFERENCES league_management.division_teams (division_team_id) ON DELETE CASCADE;
 
 ALTER TABLE league_management.division_rosters
 ADD CONSTRAINT fk_division_rosters_user_id FOREIGN KEY (user_id)
-    REFERENCES admin.users (user_id);
+    REFERENCES admin.users (user_id) ON DELETE CASCADE;
 
 -- Create league_management.playoffs
 -- Create a playoff round that is connected to a division and is assigned a playoff_structure
@@ -304,12 +381,21 @@ CREATE TABLE league_management.playoffs (
   name                  VARCHAR(50) NOT NULL,
   description           TEXT,
   playoff_structure_id  INT,
+  season_id             INT,
+  status                VARCHAR(20) NOT NULL DEFAULT 'draft',
   created_on            TIMESTAMP DEFAULT NOW()
 );
 
 ALTER TABLE league_management.playoffs
 ADD CONSTRAINT fk_playoffs_playoff_structure_id FOREIGN KEY (playoff_structure_id)
-    REFERENCES admin.playoff_structures (playoff_structure_id);
+    REFERENCES admin.playoff_structures (playoff_structure_id) ON DELETE CASCADE;
+
+ALTER TABLE league_management.playoffs
+ADD CONSTRAINT fk_playoffs_season_id FOREIGN KEY (season_id)
+    REFERENCES league_management.seasons (season_id) ON DELETE CASCADE;
+
+ALTER TABLE IF EXISTS league_management.leagues
+    ADD CONSTRAINT leagues_status_enum CHECK (status IN ('draft', 'public', 'archived'));
 
 -- Create league_management.venues
 CREATE TABLE league_management.venues (
@@ -333,7 +419,24 @@ CREATE TABLE league_management.arenas (
 
 ALTER TABLE league_management.arenas
 ADD CONSTRAINT fk_arena_venue_id FOREIGN KEY (venue_id)
-    REFERENCES league_management.venues (venue_id);
+    REFERENCES league_management.venues (venue_id) ON DELETE CASCADE;
+
+-- Create league_management.league_venues
+-- Joiner table that allows leagues to create a list of venues used within the league
+CREATE TABLE league_management.league_venues (
+  league_venue_id     SERIAL NOT NULL PRIMARY KEY,
+  venue_id            INT,
+  league_id           INT,
+  created_on          TIMESTAMP DEFAULT NOW()
+);
+
+ALTER TABLE league_management.league_venues
+ADD CONSTRAINT fk_league_venue_venue_id FOREIGN KEY (venue_id)
+    REFERENCES league_management.venues (venue_id) ON DELETE CASCADE;
+
+ALTER TABLE league_management.league_venues
+ADD CONSTRAINT fk_league_venue_league_id FOREIGN KEY (league_id)
+    REFERENCES league_management.leagues (league_id) ON DELETE CASCADE;
 
 -- Create league_management.games
 CREATE TABLE league_management.games (
@@ -342,16 +445,28 @@ CREATE TABLE league_management.games (
   home_team_score   INT DEFAULT 0,
   away_team_id      INT,
   away_team_score   INT DEFAULT 0,
-  division_id       INT NOT NULL,
+  division_id       INT,
+  playoff_id        INT,
   date_time         TIMESTAMP,
   arena_id          INT,
-  status            VARCHAR(20),
+  status            VARCHAR(20) NOT NULL DEFAULT 'draft',
   created_on        TIMESTAMP DEFAULT NOW()
 );
 
 ALTER TABLE league_management.games
+ADD CONSTRAINT fk_game_division_id FOREIGN KEY (division_id)
+    REFERENCES league_management.divisions (division_id) ON DELETE CASCADE;
+
+ALTER TABLE league_management.games
+ADD CONSTRAINT fk_game_playoff_id FOREIGN KEY (playoff_id)
+    REFERENCES league_management.playoffs (playoff_id) ON DELETE CASCADE;
+
+ALTER TABLE league_management.games
 ADD CONSTRAINT fk_game_arena_id FOREIGN KEY (arena_id)
     REFERENCES league_management.arenas (arena_id);
+
+ALTER TABLE IF EXISTS league_management.games
+    ADD CONSTRAINT game_status_enum CHECK (status IN ('draft', 'public', 'completed', 'cancelled', 'postponed', 'archived'));
 
 -- Stats
 
@@ -413,7 +528,7 @@ ADD CONSTRAINT fk_assists_team_id FOREIGN KEY (team_id)
 -- Create penalties
 -- Tracks individual penalties committed by players and connects them with games
 CREATE TABLE stats.penalties (
-  penalty_id         SERIAL NOT NULL PRIMARY KEY,
+  penalty_id      SERIAL NOT NULL PRIMARY KEY,
   game_id         INT NOT NULL,
   user_id         INT NOT NULL,
   team_id         INT NOT NULL,
@@ -586,33 +701,33 @@ INSERT INTO admin.users
   (username, email, first_name, last_name, gender_id, pronouns, user_role, password_hash)
 VALUES
   -- 1
-  ('moose', 'hello+2@adamrobillard.ca', 'Adam', 'Robillard', 3, 'any/all', 1, 'heyAdam123'),
+  ('moose', 'hello+2@adamrobillard.ca', 'Adam', 'Robillard', 3, 'any/all', 1, '$2b$10$7pjrECYElk1ithndcAhtcuPytB2Hc8DiDi3e8gAEXYcfIjOVZdEfS'),
   -- 2
-  ('goose', 'hello+1@adamrobillard.ca', 'Hannah', 'Brown', 1, 'she/her', 3, 'heyHannah123'),
+  ('goose', 'hello+1@adamrobillard.ca', 'Hannah', 'Brown', 1, 'she/her', 3, '$2b$10$99E/cmhMolqnQFi3E6CXHOpB7zYYANgDToz1F.WkFrZMOXCFBvxji'),
   -- 3
-  ('caboose', 'hello+3@adamrobillard.ca', 'Aida', 'Robillard', 3, 'any/all', 1, 'heyAida123'),
+  ('caboose', 'hello+3@adamrobillard.ca', 'Aida', 'Robillard', 3, 'any/all', 1, '$2b$10$UM16ckCNhox47R0yOq873uCUX4Pal3GEVlNY8kYszWGGM.Y3kyiZC'),
   -- 4
-  ('caleb', 'hello+4@adamrobillard.ca', 'Caleb', 'Smith', 2, 'he/him', 2, 'heyCaleb123'),
+  ('caleb', 'caleb@example.com', 'Caleb', 'Smith', 2, 'he/him', 2, 'heyCaleb123'),
   -- 5
-  ('kat', 'hello+5@adamrobillard.ca', 'Kat', 'Ferguson', 3, 'they/them', 2, 'heyKat123'),
+  ('kat', 'kat@example.com', 'Kat', 'Ferguson', 3, 'they/them', 2, 'heyKat123'),
   -- 6
-  ('trainMan', 'hello+6@adamrobillard.ca', 'Stephen', 'Spence', 2, 'he/him', 3, 'heyStephen123'),
+  ('trainMan', 'trainMan@example.com', 'Stephen', 'Spence', 2, 'he/him', 3, 'heyStephen123'),
   -- 7
-  ('theGoon', 'hello+7@adamrobillard.ca', 'Levi', 'Bradley', 3, 'they/them', 3, 'heyLevi123'),
+  ('theGoon', 'theGoon@example.com', 'Levi', 'Bradley', 3, 'they/them', 3, 'heyLevi123'),
   -- 8
-  ('cheryl', 'hello+8@adamrobillard.ca', 'Cheryl', 'Chaos', null, null, 3, 'heyCheryl123'),
+  ('cheryl', 'cheryl@example.com', 'Cheryl', 'Chaos', null, null, 3, 'heyCheryl123'),
   -- 9
-  ('mason', 'hello+9@adamrobillard.ca', 'Mason', 'Nonsense', null, null, 3, 'heyMasonl123'),
+  ('mason', 'mason@example.com', 'Mason', 'Nonsense', null, null, 3, 'heyMasonl123'),
   -- 10
-  ('jayce', 'hello+10@adamrobillard.ca', 'Jayce', 'LeClaire', 3, 'they/them', 3, 'heyJaycel123'),
+  ('jayce', 'jayce@example.com', 'Jayce', 'LeClaire', 3, 'they/them', 3, 'heyJaycel123'),
   -- 11
-  ('britt', 'hello+110@adamrobillard.ca', 'Britt', 'Neron', 3, 'they/them', 3, 'heyBrittl123'),
+  ('britt', 'britt@example.com', 'Britt', 'Neron', 3, 'they/them', 3, 'heyBrittl123'),
   -- 12
-  ('tesolin', 'hello+12@adamrobillard.ca', 'Zachary', 'Tesolin', 2, 'he/him', 3, 'heyZach123'),
+  ('tesolin', 'tesolin@example.com', 'Zachary', 'Tesolin', 2, 'he/him', 3, 'heyZach123'),
   -- 13
-  ('robocop', 'hello+13@adamrobillard.ca', 'Andrew', 'Robillard', 2, 'he/him', 3, 'heyAndrew123'),
+  ('robocop', 'robocop@example.com', 'Andrew', 'Robillard', 2, 'he/him', 3, 'heyAndrew123'),
   -- 14
-  ('trex', 'hello+14@adamrobillard.ca', 'Tim', 'Robillard', 2, 'he/him', 3, 'heyTim123')
+  ('trex', 'trex@example.com', 'Tim', 'Robillard', 2, 'he/him', 3, 'heyTim123')
 ;
 
 -- Default generic users
@@ -917,14 +1032,14 @@ VALUES
 INSERT INTO league_management.divisions
   (slug, name, tier, season_id, gender)
 VALUES
-  ('div-inc', 'Div Inc', 1, 1, 'Co-ed'),
-  ('div-1', 'Div 1', 1, 3, 'Co-ed'),
-  ('div-2', 'Div 2', 1, 3, 'Co-ed'),
-  ('div-1', 'Div 1', 1, 4, 'Co-ed'),
-  ('div-2', 'Div 2', 2, 4, 'Co-ed'),
-  ('div-3', 'Div 3', 3, 4, 'Co-ed'),
-  ('div-4', 'Div 4', 4, 4, 'Co-ed'),
-  ('div-5', 'Div 5', 5, 4, 'Co-ed'),
+  ('div-inc', 'Div Inc', 1, 1, 'All'),
+  ('div-1', 'Div 1', 1, 3, 'All'),
+  ('div-2', 'Div 2', 1, 3, 'All'),
+  ('div-1', 'Div 1', 1, 4, 'All'),
+  ('div-2', 'Div 2', 2, 4, 'All'),
+  ('div-3', 'Div 3', 3, 4, 'All'),
+  ('div-4', 'Div 4', 4, 4, 'All'),
+  ('div-5', 'Div 5', 5, 4, 'All'),
   ('men-35', 'Men 35+', 6, 4, 'Men'),
   ('women-35', 'Women 35+', 6, 4, 'Women')
 ;

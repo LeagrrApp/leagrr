@@ -3,15 +3,10 @@
   align-items: center;
   color: inherit;
   text-decoration: none;
-  padding-inline: var(--spacer-em-base);
-  padding-block: var(--spacer-em-ml);
+  padding: var(--icon-padding, 0);
   gap: var(--spacer-em-base);
   transition: all var(--transition);
   &:where(a:hover, a:focus-visible) {
     color: var(--color-primary-dark);
   }
 }
-
-/* .icon i {
-  padding: var(--spacer-em-base);
-} */

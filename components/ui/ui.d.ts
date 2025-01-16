@@ -1,4 +1,18 @@
-type SizeOptions = "s" | "m" | "ml" | "base" | "l" | "xl";
+type SizeOptions =
+  | "xs"
+  | "s"
+  | "m"
+  | "ml"
+  | "base"
+  | "l"
+  | "xl"
+  | "em-xs"
+  | "em-s"
+  | "em-m"
+  | "em-ml"
+  | "em-base"
+  | "em-l"
+  | "em-xl";
 
 type FontSizeOptions =
   | "h1"

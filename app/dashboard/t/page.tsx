@@ -1,12 +1,13 @@
-import { isLoggedIn } from "@/actions/auth";
 import DBHeader from "@/components/dashboard/DashboardHeader/DBHeader";
+import { verifySession } from "@/lib/session";
 
 export default async function Page() {
-  await isLoggedIn();
+  await verifySession();
 
   return (
-    <DBHeader>
-      <h1>Join a team!</h1>
-    </DBHeader>
+    <DBHeader
+      headline="Add a team"
+      byline="You can either create a new team, or join an existing one with a join code."
+    />
   );
 }

@@ -1,6 +1,11 @@
 import { JWTPayload } from "jose";
 import { z } from "zod";
 
+export interface SessionPayload extends JWTPayload {
+  userData: UserData;
+  expiresAt: Date;
+}
+
 export const SignupFormSchema = z.object({
   username: z
     .string()
@@ -26,7 +31,7 @@ export const SignupFormSchema = z.object({
     .trim(),
 });
 
-export type FormState =
+export type SignInUpFormState =
   | {
       errors?: {
         username?: string[];
@@ -40,7 +45,31 @@ export type FormState =
     }
   | undefined;
 
-export interface SessionPayload extends JWTPayload {
-  userData: UserData;
-  expiresAt: Date;
+export const LeagueFormSchema = z.object({
+  name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters long." })
+    .trim(),
+  description: z
+    .string()
+    .min(2, { message: "Description must be at least 2 characters long." })
+    .trim()
+    .optional(),
+  sport_id: z.number(),
+  status: z.enum(["draft", "public", "archived"]).optional(),
+});
+
+interface ErrorProps {
+  name?: string[] | undefined;
+  description?: string[] | undefined;
+  sport_id?: string[] | undefined;
+  status?: string[] | undefined;
 }
+
+export type LeagueFormState =
+  | {
+      errors?: ErrorProps;
+      message?: string;
+      status?: number;
+    }
+  | undefined;

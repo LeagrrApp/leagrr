@@ -1,7 +1,4 @@
-.logout {
-}
-
-.logout_toggle {
+.trigger {
   padding: 0;
   border: 0;
   background-color: transparent;
@@ -10,26 +7,26 @@
   border-radius: 0;
 }
 
-.logout_toggle_icon {
-  color: var(--color-white);
+.trigger_icon {
+  /* color: var(--color-white);
   background-color: var(--color-primary-darker);
   &:where(:hover, :focus-visible) {
     background-color: var(--color-danger-dark);
-  }
+  } */
 }
 
-.logout_dialog {
+.dialog {
   width: min(100%, 25rem);
   border: 0.125rem solid var(--color-grey);
   border-radius: var(--spacer-m);
   padding: var(--spacer-l);
 }
 
-.logout_dialog::backdrop {
+.dialog::backdrop {
   background-color: hsla(from var(--color-grey-darker) h s calc(l - 40) / 0.75);
 }
 
-.logout_heading {
+.dialog_heading {
   font-size: var(--type-scale-h4);
   text-align: center;
   margin-block-end: var(--spacer-base);

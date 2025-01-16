@@ -45,6 +45,11 @@
   }
 }
 
+.label_optional {
+  font-size: var(--type-scale-s);
+  color: hsl(from var(--color-black) h s calc(l + 40));
+}
+
 .field_wrap {
   position: relative;
 
