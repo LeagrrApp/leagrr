@@ -34,7 +34,7 @@ export default function Button({
 
   if (className) classes.push(className);
 
-  const styles: ButtonStyles = {};
+  const styles: ButtonStyles = { ...style };
 
   if (variant) {
     classes.push(button[`button_${variant}`]);
