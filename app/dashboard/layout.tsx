@@ -10,7 +10,12 @@ export default async function Layout({
   children: React.ReactNode;
 }) {
   const userData = await verifySession();
-  const dashboardMenuData = await getDashboardMenuData();
+  const { data } = await getDashboardMenuData();
+
+  if (!data)
+    throw new Error(
+      "Sorry, an error occurred and we were unable to load your data."
+    );
 
   const skipLinks: BasicLink[] = [
     {
@@ -27,7 +32,7 @@ export default async function Layout({
     <div className={css.dashboard}>
       <SkipLinks links={skipLinks} />
 
-      <Menu userData={userData} userDashboardMenuData={dashboardMenuData} />
+      <Menu userData={userData} menuData={data} />
 
       <main id="main">{children}</main>
     </div>

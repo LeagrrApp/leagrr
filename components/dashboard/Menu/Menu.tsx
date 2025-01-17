@@ -10,41 +10,34 @@ import { PropsWithChildren, useState } from "react";
 import Toggle from "@/components/ui/Toggle/Toggle";
 import { logOut } from "@/actions/auth";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
+import { usePathname } from "next/navigation";
 
-function MenuStructure({ children }: PropsWithChildren) {
+interface MenuProps {
+  userData: UserData;
+  menuData: {
+    teams: MenuItemData[];
+    leagues: MenuItemData[];
+  };
+}
+
+export default function Menu({ userData, menuData }: MenuProps) {
+  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const imgUrl = null;
+
+  const { teams, leagues } = menuData;
+
   return (
     <header id="menu" className={css.menu}>
       <Link className={css.menu_logo} href="/dashboard">
         Leagrr
       </Link>
 
-      {children}
-    </header>
-  );
-}
-
-interface MenuProps {
-  userData: UserData;
-  userDashboardMenuData: UserDashboardMenuData;
-}
-
-export default function Menu({ userData, userDashboardMenuData }: MenuProps) {
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const imgUrl = null;
-
-  if (!userDashboardMenuData?.data)
-    throw new Error(
-      "Sorry, an error occurred and we were unable to load your data."
-    );
-
-  const { teams, leagues } = userDashboardMenuData?.data;
-
-  return (
-    <MenuStructure>
       <Link
         className={css.menu_item}
         href={`/dashboard/u/${userData?.username}`}
+        aria-current={pathname.includes(`/dashboard/u/${userData?.username}`)}
       >
         {imgUrl ? (
           <Image
@@ -84,6 +77,7 @@ export default function Menu({ userData, userDashboardMenuData }: MenuProps) {
               <Link
                 className={css.menu_item}
                 href={`/dashboard/t/${team.slug}`}
+                aria-current={pathname.includes(`/dashboard/t/${team.slug}`)}
               >
                 {team.img ? (
                   <Image
@@ -108,6 +102,7 @@ export default function Menu({ userData, userDashboardMenuData }: MenuProps) {
               icon="add_circle"
               label="Add a team"
               href="/dashboard/t/"
+              aria-current={pathname === `/dashboard/t`}
             />
           </li>
         </ul>
@@ -121,6 +116,9 @@ export default function Menu({ userData, userDashboardMenuData }: MenuProps) {
                   <Link
                     className={css.menu_item}
                     href={`/dashboard/l/${league.slug}`}
+                    aria-current={pathname.includes(
+                      `/dashboard/l/${league.slug}`
+                    )}
                   >
                     {league.img ? (
                       <Image
@@ -146,6 +144,7 @@ export default function Menu({ userData, userDashboardMenuData }: MenuProps) {
                     icon="add_circle"
                     label="Create a league"
                     href="/dashboard/l/"
+                    aria-current={pathname === `/dashboard/l`}
                   />
                 </li>
               )}
@@ -161,6 +160,7 @@ export default function Menu({ userData, userDashboardMenuData }: MenuProps) {
                 className={css.menu_item}
                 label="Admin"
                 icon="admin_panel_settings"
+                aria-current={pathname === `/dashboard/admin`}
               />
             </li>
           )}
@@ -170,6 +170,7 @@ export default function Menu({ userData, userDashboardMenuData }: MenuProps) {
               className={css.menu_item}
               label="Settings"
               icon="settings"
+              aria-current={pathname === `/dashboard/settings`}
             />
           </li>
           <li>
@@ -188,6 +189,6 @@ export default function Menu({ userData, userDashboardMenuData }: MenuProps) {
           </li>
         </ul>
       </nav>
-    </MenuStructure>
+    </header>
   );
 }

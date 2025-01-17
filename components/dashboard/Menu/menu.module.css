@@ -56,6 +56,9 @@
   padding-inline: var(--spacer-em-base);
   padding-block: var(--spacer-em-ml);
   gap: var(--spacer-em-base);
+  &:where([aria-current="true"]) {
+    background-color: hsla(from var(--color-primary-dark) h s l / 0.5);
+  }
   &:where(a:hover, a:focus-visible) {
     @media only screen and (min-width: 60rem) {
       background-color: var(--color-primary-dark);
