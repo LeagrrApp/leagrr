@@ -3,8 +3,6 @@ import css from "./icon.module.css";
 import { apply_classes, paddingString } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
 import { CSSProperties } from "react";
-// TODO: fix how to no longer need these imports?
-import { FontSizeOptions, SizeOptions } from "../ui";
 
 interface IconProps {
   icon: string;

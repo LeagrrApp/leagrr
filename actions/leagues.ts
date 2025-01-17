@@ -6,13 +6,6 @@ import { redirect } from "next/navigation";
 import { verifyUserRole } from "./users";
 import { verifySession } from "@/lib/session";
 
-interface LeagueResultProps extends ResultProps {
-  data?: {
-    league_id: number;
-    slug: string;
-  };
-}
-
 export async function createLeague(
   state: LeagueFormState,
   formData: FormData
@@ -49,7 +42,7 @@ export async function createLeague(
   `;
 
   // Insert new league into the database
-  const leagueInsertResult: LeagueResultProps = await db
+  const leagueInsertResult: ResultProps<LeagueData> = await db
     .query(leagueInsertSql, [
       leagueData.name,
       leagueData.description,
@@ -101,6 +94,8 @@ export async function createLeague(
 
   // Failed to add user as league admin, delete the league and return error
   if (leagueAdminInsertResult.status === 400) {
+    // TODO: delete the league on this error
+
     return leagueAdminInsertResult;
   }
 
@@ -108,32 +103,10 @@ export async function createLeague(
   redirect(`/dashboard/l/${slug}`);
 }
 
-interface LeagueResult extends ResultProps {
-  data?: LeagueData;
-}
-
-interface SeasonData {
-  slug: string;
-  name: string;
-  status: string;
-}
-
-interface SeasonsResult extends ResultProps {
-  data?: {
-    seasons: SeasonData[];
-  };
-}
-
-interface AdminsResult extends ResultProps {
-  data?: {
-    league_role_id: number | undefined;
-  };
-}
-
 export async function verifyLeagueAdminRole(
   league_id: number,
   roleType?: number
-): Promise<AdminsResult | boolean> {
+): Promise<ResultProps<AdminRole> | boolean> {
   // Verify user session
   const { user_id } = await verifySession();
 
@@ -148,7 +121,7 @@ export async function verifyLeagueAdminRole(
   `;
 
   // query database for any matching both league and user
-  const adminsResult: AdminsResult = await db
+  const adminsResult: ResultProps<AdminRole> = await db
     .query(adminsSql, [league_id, user_id])
     .then((res) => {
       if (res.rowCount) {
@@ -184,7 +157,9 @@ export async function verifyLeagueAdminRole(
   return adminsResult;
 }
 
-export async function getLeagueData(slug: string): Promise<LeagueResult> {
+export async function getLeagueData(
+  slug: string
+): Promise<ResultProps<LeagueData>> {
   // Verify user session
   await verifySession();
 
@@ -204,7 +179,7 @@ export async function getLeagueData(slug: string): Promise<LeagueResult> {
   `;
 
   // make request to database for leagues
-  const leagueResult: LeagueResult = await db
+  const leagueResult: ResultProps<LeagueData> = await db
     .query(leagueSql, [slug])
     .then((res) => {
       if (!res.rowCount) {
@@ -219,7 +194,7 @@ export async function getLeagueData(slug: string): Promise<LeagueResult> {
     .catch((err) => {
       return {
         message: err.message,
-        status: 400,
+        status: 404,
       };
     });
 
@@ -231,7 +206,9 @@ export async function getLeagueData(slug: string): Promise<LeagueResult> {
     SELECT
       slug,
       name,
-      status
+      status,
+      start_date,
+      end_date
     FROM
       league_management.seasons
     WHERE
@@ -240,7 +217,7 @@ export async function getLeagueData(slug: string): Promise<LeagueResult> {
   `;
 
   // make request to database for seasons
-  const seasonsResult: SeasonsResult = await db
+  const seasonsResult: ResultProps<{ seasons: SeasonData[] }> = await db
     .query(seasonsSql, [leagueResult.data.league_id])
     .then((res) => {
       return {
@@ -344,7 +321,7 @@ export async function editLeague(
   `;
 
   // query the database
-  const updatedResult: LeagueResultProps = await db
+  const updatedResult: ResultProps<LeagueData> = await db
     .query(sql, [
       leagueData.name,
       leagueData.description,

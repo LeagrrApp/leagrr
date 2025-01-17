@@ -1,4 +1,4 @@
-import Menu from "@/components/ui/Menu/Menu";
+import Menu from "@/components/dashboard/Menu/Menu";
 import SkipLinks from "@/components/ui/accessibility/SkipLinks";
 import css from "./layout.module.css";
 import { verifySession } from "@/lib/session";

@@ -34,18 +34,8 @@ export default function Menu({ userData, userDashboardMenuData }: MenuProps) {
   const imgUrl = null;
 
   if (!userDashboardMenuData?.data)
-    return (
-      <MenuStructure>
-        <div style={{ padding: "var(--spacer-base)" }}>
-          <Alert
-            alert={[
-              `Sorry, there was an issue loading the dashboard sidebar.`,
-              userDashboardMenuData.message,
-            ]}
-            type="danger"
-          />
-        </div>
-      </MenuStructure>
+    throw new Error(
+      "Sorry, an error occurred and we were unable to load your data."
     );
 
   const { teams, leagues } = userDashboardMenuData?.data;

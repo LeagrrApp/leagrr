@@ -59,7 +59,7 @@ export const LeagueFormSchema = z.object({
   status: z.enum(["draft", "public", "archived"]).optional(),
 });
 
-interface ErrorProps {
+interface LeagueErrorProps {
   name?: string[] | undefined;
   description?: string[] | undefined;
   sport_id?: string[] | undefined;
@@ -68,8 +68,79 @@ interface ErrorProps {
 
 export type LeagueFormState =
   | {
-      errors?: ErrorProps;
+      errors?: LeagueErrorProps;
       message?: string;
       status?: number;
     }
   | undefined;
+
+export const SeasonFormSchema = z.object({
+  name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters long." })
+    .trim(),
+  description: z
+    .string()
+    .min(2, { message: "Description must be at least 2 characters long." })
+    .trim()
+    .optional(),
+  league_id: z.number(),
+  start_date: z.string().date(),
+  end_date: z.string().date(),
+  status: z.enum(["draft", "public", "archived"]).optional(),
+});
+
+export interface SeasonErrorProps {
+  name?: string[] | undefined;
+  description?: string[] | undefined;
+  league_id?: string[] | undefined;
+  start_date?: string[] | undefined;
+  end_date?: string[] | undefined;
+  status?: string[] | undefined;
+}
+
+export type SeasonFormState =
+  | {
+      errors?: SeasonErrorProps;
+      message?: string;
+      status?: number;
+    }
+  | undefined;
+
+export const sports_options = [
+  {
+    value: 1,
+    label: "Hockey",
+  },
+  {
+    value: 2,
+    label: "Soccer",
+  },
+  {
+    value: 3,
+    label: "Basketball",
+  },
+  {
+    value: 4,
+    label: "Pickleball",
+  },
+  {
+    value: 5,
+    label: "Badminton",
+  },
+];
+
+export const status_options = [
+  {
+    value: "draft",
+    label: "Draft",
+  },
+  {
+    value: "public",
+    label: "Public",
+  },
+  {
+    value: "archived",
+    label: "Archived",
+  },
+];

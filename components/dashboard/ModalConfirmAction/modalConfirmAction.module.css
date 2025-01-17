@@ -16,15 +16,7 @@
 }
 
 .dialog {
-  width: min(100%, 25rem);
-  border: 0.125rem solid var(--color-grey);
-  border-radius: var(--spacer-m);
-  padding: var(--spacer-l);
   text-align: center;
-}
-
-.dialog::backdrop {
-  background-color: hsla(from var(--color-grey-darker) h s calc(l - 40) / 0.75);
 }
 
 .dialog_heading {

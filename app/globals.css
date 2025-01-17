@@ -186,7 +186,7 @@ select {
 
 /* Make sure textareas without a rows attribute are not tiny */
 textarea:not([rows]) {
-  min-height: 10em;
+  min-height: 5em;
 }
 
 /* Anything that has been anchored to should have extra scroll margin */
@@ -295,4 +295,26 @@ button {
   display: grid;
   grid-template-columns: repeat(var(--cols, 1), 1fr);
   gap: var(--gap, 0);
+}
+
+/* ---------- Spacers ---------- */
+
+.push {
+  margin-block-end: var(--spacer-base);
+}
+
+.push-0 {
+  margin-block-end: 0;
+}
+
+.push-s {
+  margin-block-end: var(--spacer-s);
+}
+
+.push-m {
+  margin-block-end: var(--spacer-m);
+}
+
+.push-ml {
+  margin-block-end: var(--spacer-ml);
 }

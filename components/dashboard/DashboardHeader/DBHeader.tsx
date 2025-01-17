@@ -7,15 +7,14 @@ import Line from "@/components/ui/decorations/Line";
 import Badge from "@/components/ui/Badge/Badge";
 import { Url } from "next/dist/shared/lib/router/router";
 import Icon from "@/components/ui/Icon/Icon";
-import { usePathname, useRouter } from "next/navigation";
-import ButtonInvis from "@/components/ui/ButtonInvis/ButtonInvis";
+import { usePathname } from "next/navigation";
 
 interface DBHeaderProps {
   narrow?: boolean;
   headline: string;
   byline?: string;
   status?: string;
-  settingsLink?: Url;
+  editLink?: Url;
 }
 
 export default function DBHeader({
@@ -24,10 +23,9 @@ export default function DBHeader({
   headline,
   byline,
   status,
-  settingsLink,
+  editLink,
 }: PropsWithChildren<DBHeaderProps>) {
   const pathname = usePathname();
-  const router = useRouter();
 
   let badgeColor: ColorOptions = status === "archived" ? "danger" : "warning";
 
@@ -37,22 +35,17 @@ export default function DBHeader({
         maxWidth={narrow ? "35rem" : ""}
         className={css.dashboard_container}
       >
-        {settingsLink && (
+        {editLink && (
           <div className={css.dashboard_header_admin_bar}>
-            {pathname.includes("settings") ? (
-              <ButtonInvis
-                onClick={() => router.back()}
-                aria-label="Click to return to league page"
-              >
-                <Icon icon="chevron_left" label="Back to league" size="h4" />
-              </ButtonInvis>
-            ) : (
+            {pathname === editLink ? (
               <Icon
-                icon="settings"
-                label="Edit settings"
-                href={settingsLink}
+                icon="chevron_left"
+                label="Back to league"
                 size="h4"
+                href={`./`}
               />
+            ) : (
+              <Icon icon="edit" label="Edit League" href={editLink} size="h4" />
             )}
           </div>
         )}

@@ -1,14 +1,10 @@
-interface ResultProps {
+interface ResultProps<T> {
   message: string;
   status: number;
+  data?: T;
 }
 
-interface UserSelectResultProps extends ResultProps {
-  data?: UserData;
-}
-
-// TODO: flush this out to include expanded role and gender information
-interface UserData {
+type UserData = {
   user_id: number;
   first_name?: string;
   last_name?: string;
@@ -16,25 +12,13 @@ interface UserData {
   email?: string;
   pronouns?: string;
   user_role: number;
-  role?: number;
+  role_name?: string;
   password_hash?: string;
-}
+};
 
-interface MenuItemData {
-  slug: string;
-  name: string;
-  img?: string;
-}
-
-interface UserDashboardMenuData extends ResultProps {
-  data?: {
-    teams: MenuItemData[];
-    leagues: MenuItemData[];
-  };
-}
-
-interface LeagueData {
+type LeagueData = {
   league_id: number;
+  slug: string;
   name: string;
   description?: string;
   sport_id: number;
@@ -42,4 +26,38 @@ interface LeagueData {
   status: string;
   seasons?: SeasonData[];
   league_role_id?: number;
-}
+};
+
+type SeasonData = {
+  season_id: number;
+  slug: string;
+  name?: string;
+  description?: string;
+  league_id?: number;
+  start_date?: Date | string;
+  end_date?: Date | string;
+  status?: string;
+  divisions?: DivisionData[];
+  league_slug?: string;
+};
+
+type DivisionData = {
+  name: string;
+  description?: string;
+  slug: string;
+  gender?: string;
+  tier?: number;
+  join_code?: string;
+  season_id?: number;
+  status?: string;
+};
+
+type AdminRole = {
+  league_role_id: number | undefined;
+};
+
+type MenuItemData = {
+  slug: string;
+  name: string;
+  img?: string;
+};

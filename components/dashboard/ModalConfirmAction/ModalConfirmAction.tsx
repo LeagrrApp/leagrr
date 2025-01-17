@@ -2,12 +2,11 @@
 
 import { useActionState, useRef } from "react";
 import css from "./modalConfirmAction.module.css";
-import Icon from "@/components/ui/Icon/Icon";
 import Grid from "@/components/ui/layout/Grid";
-import Button from "@/components/ui/Button/Button";
+import Button, { ButtonProps } from "@/components/ui/Button/Button";
 import { apply_classes } from "@/utils/helpers/html-attributes";
 import Alert from "@/components/ui/Alert/Alert";
-import { ButtonProps, SizeOptions } from "@/components/ui/ui";
+import Dialog from "@/components/ui/Dialog/Dialog";
 
 interface ModalConfirmActionProps {
   defaultState?: any;
@@ -51,7 +50,7 @@ export default function ModalConfirmAction({
         {trigger.label}
       </Button>
 
-      <dialog className={css.dialog} ref={dialogRef}>
+      <Dialog className={css.dialog} ref={dialogRef}>
         <form action={action}>
           <h2 className={css.dialog_heading}>{confirmationHeading}</h2>
           {confirmationByline && (
@@ -74,7 +73,7 @@ export default function ModalConfirmAction({
             <Alert alert={state.message} type="danger" marginStart="m" />
           )}
         </form>
-      </dialog>
+      </Dialog>
     </>
   );
 }

@@ -1,5 +1,3 @@
-import { ButtonHTMLAttributes } from "react";
-
 type SizeOptions =
   | "xs"
   | "s"
@@ -52,12 +50,3 @@ type ColorOptions =
   | "warning"
   | "danger"
   | "grey";
-
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  href?: Url;
-  variant?: ColorOptions | "transparent";
-  outline?: boolean;
-  size?: "h1" | "h2" | "h3" | "h4" | "h5";
-  fullWidth?: boolean;
-  asSpan?: boolean;
-}

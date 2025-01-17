@@ -8,55 +8,20 @@ import Select from "@/components/ui/forms/Select";
 import TextArea from "@/components/ui/forms/TextArea";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
+import { sports_options, status_options } from "@/lib/definitions";
+import { Url } from "next/dist/shared/lib/router/router";
 import { useActionState } from "react";
 
 interface EditLeagueProps {
   league: LeagueData;
+  backLink: Url;
 }
 
-export default function EditLeague({ league }: EditLeagueProps) {
+export default function EditLeague({ league, backLink }: EditLeagueProps) {
   const [state, action] = useActionState(editLeague, undefined);
 
-  const sports = [
-    {
-      value: 1,
-      label: "Hockey",
-    },
-    {
-      value: 2,
-      label: "Soccer",
-    },
-    {
-      value: 3,
-      label: "Basketball",
-    },
-    {
-      value: 4,
-      label: "Pickleball",
-    },
-    {
-      value: 5,
-      label: "Badminton",
-    },
-  ];
-
-  const status_options = [
-    {
-      value: "draft",
-      label: "Draft",
-    },
-    {
-      value: "public",
-      label: "Public",
-    },
-    {
-      value: "archived",
-      label: "Archived",
-    },
-  ];
-
   return (
-    <form action={action}>
+    <form className="push" action={action}>
       <Grid gap="base" cols={{ xs: 1, m: 2 }}>
         <Col fullSpan>
           <Input
@@ -79,7 +44,7 @@ export default function EditLeague({ league }: EditLeagueProps) {
         <Select
           label="Sport"
           name="sport_id"
-          choices={sports}
+          choices={sports_options}
           value={league.sport_id.toString()}
         />
         <Select
@@ -90,10 +55,16 @@ export default function EditLeague({ league }: EditLeagueProps) {
           errors={{ errs: state?.errors?.status, type: "danger" }}
         />
         <input type="hidden" name="league_id" value={league.league_id} />
-        <Col fullSpan>
+        <Col>
           <Button type="submit" fullWidth>
             <i className="material-symbols-outlined">save</i>
             Save League
+          </Button>
+        </Col>
+        <Col>
+          <Button href={backLink} fullWidth variant="grey">
+            <i className="material-symbols-outlined">cancel</i>
+            Cancel
           </Button>
         </Col>
       </Grid>

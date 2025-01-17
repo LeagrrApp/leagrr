@@ -15,7 +15,17 @@ export default async function Page({
   if (!league) return null;
 
   if (league.seasons && league.seasons.length > 0) {
-    // redirect to first season
+    // redirect to first season that has a start_date before today and an end_date after today.
+    const currentSeasons = league.seasons.filter((s) => {
+      const now = new Date(Date.now());
+      const start_date = new Date(s.start_date);
+      const end_date = new Date(s.end_date);
+      return start_date < now && now < end_date;
+    });
+
+    if (currentSeasons[0])
+      redirect(`/dashboard/l/${slug}/s/${currentSeasons[0].slug}`);
+
     redirect(`/dashboard/l/${slug}/s/${league.seasons[0].slug}`);
   }
 

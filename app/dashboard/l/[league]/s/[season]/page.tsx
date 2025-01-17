@@ -1,3 +1,5 @@
+import Container from "@/components/ui/Container/Container";
+
 export default async function Page({
   params,
 }: {
@@ -6,8 +8,8 @@ export default async function Page({
   const { season: slug } = await params;
 
   return (
-    <>
+    <Container>
       <h2>{slug}</h2>
-    </>
+    </Container>
   );
 }

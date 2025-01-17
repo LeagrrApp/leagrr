@@ -3,13 +3,12 @@
 import { db } from "@/db/pg";
 import { verifySession } from "@/lib/session";
 
-interface MenuItemData {
-  slug: string;
-  name: string;
-  img?: string;
-}
-
-export async function getDashboardMenuData(): Promise<UserDashboardMenuData> {
+export async function getDashboardMenuData(): Promise<
+  ResultProps<{
+    teams: MenuItemData[];
+    leagues: MenuItemData[];
+  }>
+> {
   const { user_id } = await verifySession();
 
   // get list of teams that the user is a part of
@@ -69,7 +68,9 @@ export async function getDashboardMenuData(): Promise<UserDashboardMenuData> {
     ON
       l.league_id = a.league_id
     WHERE
-      a.user_id = $1;
+      a.user_id = $1
+    ORDER BY
+      l.name ASC
   `;
 
   const leaguesResult: {
@@ -111,7 +112,7 @@ export async function getDashboardMenuData(): Promise<UserDashboardMenuData> {
 
 export async function getUserData(
   identifier: string
-): Promise<UserSelectResultProps> {
+): Promise<ResultProps<UserData>> {
   const { user_id } = await verifySession();
 
   const sql = `
@@ -168,16 +169,9 @@ export async function getUserData(
   return result;
 }
 
-interface UserRoleResult extends ResultProps {
-  data: {
-    user_role: number;
-    role_name: string;
-  };
-}
-
 export async function verifyUserRole(
   roleType?: string | number
-): Promise<UserRoleResult | boolean> {
+): Promise<ResultProps<UserData> | boolean> {
   const { user_id } = await verifySession();
 
   const sql = `
@@ -194,7 +188,7 @@ export async function verifyUserRole(
       u.user_id = $1
   `;
 
-  const result: UserRoleResult = await db
+  const result: ResultProps<UserData> = await db
     .query(sql, [user_id])
     .then((res) => {
       if (!res.rowCount) {
@@ -212,6 +206,7 @@ export async function verifyUserRole(
         message: err.message,
         status: 404,
         data: {
+          user_id,
           user_role: 0,
           role_name: "Not found",
         },

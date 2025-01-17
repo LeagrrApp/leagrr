@@ -1,8 +1,17 @@
-import { CSSProperties } from "react";
+import { ButtonHTMLAttributes, CSSProperties } from "react";
 import button from "./button.module.css";
 import Link from "next/link";
 import { apply_classes } from "@/utils/helpers/html-attributes";
-import { ButtonProps } from "../ui";
+import { Url } from "next/dist/shared/lib/router/router";
+
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  href?: Url;
+  variant?: ColorOptions | "transparent";
+  outline?: boolean;
+  size?: "h1" | "h2" | "h3" | "h4" | "h5" | "s" | "xs";
+  fullWidth?: boolean;
+  asSpan?: boolean;
+}
 
 interface ButtonStyles extends CSSProperties {
   "--btn-size"?: string;
@@ -52,14 +61,14 @@ export default function Button({
 
   if (asSpan)
     return (
-      <span style={style} className={apply_classes(classes)}>
+      <span style={styles} className={apply_classes(classes)}>
         {children}
       </span>
     );
 
   return (
     <button
-      style={style}
+      style={styles}
       className={apply_classes(classes)}
       type={type}
       onClick={onClick}
