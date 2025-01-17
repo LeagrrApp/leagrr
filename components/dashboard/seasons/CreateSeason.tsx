@@ -35,7 +35,7 @@ export default function CreateSeason({ league_id }: CreateSeasonProps) {
             label="Description"
             errors={{ errs: state?.errors?.description, type: "danger" }}
             defaultValue="Get your winter skate on!"
-            required
+            optional
           />
         </Col>
         <Input
@@ -56,7 +56,7 @@ export default function CreateSeason({ league_id }: CreateSeasonProps) {
         />
         <input type="hidden" name="league_id" value={league_id} />
         <Col>
-          <Button type="submit" fullWidth>
+          <Button type="submit" fullWidth disabled={pending}>
             Create Season
           </Button>
         </Col>

@@ -44,7 +44,9 @@ export default function CreateLeague({ user_id }: CreateLeagueProps) {
           errors={{ errs: state?.errors?.status, type: "danger" }}
         />
         <input type="hidden" name="user_id" value={user_id} />
-        <Button type="submit">Create League</Button>
+        <Button type="submit" disabled={pending}>
+          Create League
+        </Button>
       </Grid>
     </form>
   );

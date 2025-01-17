@@ -50,11 +50,7 @@ export const LeagueFormSchema = z.object({
     .string()
     .min(2, { message: "Name must be at least 2 characters long." })
     .trim(),
-  description: z
-    .string()
-    .min(2, { message: "Description must be at least 2 characters long." })
-    .trim()
-    .optional(),
+  description: z.string().trim().optional(),
   sport_id: z.number(),
   status: z.enum(["draft", "public", "archived"]).optional(),
 });
@@ -79,11 +75,7 @@ export const SeasonFormSchema = z.object({
     .string()
     .min(2, { message: "Name must be at least 2 characters long." })
     .trim(),
-  description: z
-    .string()
-    .min(2, { message: "Description must be at least 2 characters long." })
-    .trim()
-    .optional(),
+  description: z.string().trim().optional(),
   league_id: z.number(),
   start_date: z.string().date(),
   end_date: z.string().date(),

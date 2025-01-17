@@ -9,7 +9,6 @@ import {
 import { verifySession } from "@/lib/session";
 import { isObjectEmpty } from "@/utils/helpers/objects";
 import { redirect } from "next/navigation";
-import { DivisionProps } from "./divisions";
 import { verifyLeagueAdminRole } from "./leagues";
 import { verifyUserRole } from "./users";
 

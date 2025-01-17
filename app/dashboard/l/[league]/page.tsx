@@ -17,6 +17,10 @@ export default async function Page({
   if (league.seasons && league.seasons.length > 0) {
     // redirect to first season that has a start_date before today and an end_date after today.
     const currentSeasons = league.seasons.filter((s) => {
+      if (!s.start_date || !s.end_date) {
+        return;
+      }
+
       const now = new Date(Date.now());
       const start_date = new Date(s.start_date);
       const end_date = new Date(s.end_date);

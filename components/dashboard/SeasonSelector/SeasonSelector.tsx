@@ -9,11 +9,7 @@ import css from "./seasonSelector.module.css";
 import Badge from "@/components/ui/Badge/Badge";
 
 interface SeasonSelectorProps {
-  seasons: {
-    name: string;
-    slug: string;
-    status?: string;
-  }[];
+  seasons: SeasonData[];
   hasAdminRole: boolean;
 }
 

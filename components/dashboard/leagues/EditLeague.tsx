@@ -18,7 +18,7 @@ interface EditLeagueProps {
 }
 
 export default function EditLeague({ league, backLink }: EditLeagueProps) {
-  const [state, action] = useActionState(editLeague, undefined);
+  const [state, action, pending] = useActionState(editLeague, undefined);
 
   return (
     <form className="push" action={action}>
@@ -56,7 +56,7 @@ export default function EditLeague({ league, backLink }: EditLeagueProps) {
         />
         <input type="hidden" name="league_id" value={league.league_id} />
         <Col>
-          <Button type="submit" fullWidth>
+          <Button type="submit" fullWidth disabled={pending}>
             <i className="material-symbols-outlined">save</i>
             Save League
           </Button>

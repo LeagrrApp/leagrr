@@ -1,6 +1,6 @@
 "use client";
 
-import { editSeason, SeasonProps } from "@/actions/seasons";
+import { editSeason } from "@/actions/seasons";
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/forms/Input";
 import Select from "@/components/ui/forms/Select";
@@ -13,7 +13,7 @@ import { useActionState, useEffect } from "react";
 
 interface EditSeasonProps {
   backLink: Url;
-  season: SeasonProps;
+  season: SeasonData;
 }
 
 export default function EditSeason({ backLink, season }: EditSeasonProps) {
@@ -23,8 +23,12 @@ export default function EditSeason({ backLink, season }: EditSeasonProps) {
     console.log(state);
   }, [state]);
 
-  const start_date = new Date(season.start_date).toLocaleDateString("en-CA");
-  const end_date = new Date(season.end_date).toLocaleDateString("en-CA");
+  const start_date = season.start_date
+    ? new Date(season.start_date).toLocaleDateString("en-CA")
+    : "";
+  const end_date = season.end_date
+    ? new Date(season.end_date).toLocaleDateString("en-CA")
+    : "";
 
   return (
     <form className="push" action={action}>
@@ -54,7 +58,7 @@ export default function EditSeason({ backLink, season }: EditSeasonProps) {
             label="Description"
             errors={{ errs: state?.errors?.description, type: "danger" }}
             value={season.description}
-            required
+            optional
           />
         </Col>
         <Input
@@ -76,7 +80,7 @@ export default function EditSeason({ backLink, season }: EditSeasonProps) {
         <input type="hidden" name="league_id" value={season.league_id} />
         <input type="hidden" name="season_id" value={season.season_id} />
         <Col>
-          <Button type="submit" fullWidth>
+          <Button type="submit" fullWidth disabled={pending}>
             <i className="material-symbols-outlined">save</i>
             Save Season
           </Button>

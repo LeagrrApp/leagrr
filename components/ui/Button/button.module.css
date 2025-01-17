@@ -38,6 +38,11 @@
       --btn-text-color: var(--color-white);
     }
   }
+
+  &:is([disabled]) {
+    opacity: 0.5;
+    cursor: progress;
+  }
 }
 
 .button_secondary {
