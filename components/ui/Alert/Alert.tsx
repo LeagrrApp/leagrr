@@ -5,15 +5,25 @@ interface AlertProps {
   alert: string | string[];
   type?: string;
   fontSize?: FontSizeOptions;
+  marginStart?: SizeOptions;
+  marginEnd?: SizeOptions;
 }
 
 interface AlertStyles extends CSSProperties {
   "--alert-color": string;
   "--alert-bg": string;
   "--alert-font-size"?: string;
+  "--line-margin-start"?: string;
+  "--line-margin-end"?: string;
 }
 
-export default function Alert({ alert, type, fontSize }: AlertProps) {
+export default function Alert({
+  alert,
+  type,
+  fontSize,
+  marginStart,
+  marginEnd,
+}: AlertProps) {
   const styles: AlertStyles = {
     "--alert-color": `var(--color-${type || "primary"})`,
     "--alert-bg": `var(--color-${type || "primary"}-pale)`,
@@ -22,6 +32,10 @@ export default function Alert({ alert, type, fontSize }: AlertProps) {
   if (fontSize) {
     styles["--alert-font-size"] = `var(--type-scale-${fontSize})`;
   }
+
+  if (marginStart)
+    styles["--line-margin-start"] = `var(--spacer-${marginStart})`;
+  if (marginEnd) styles["--line-margin-end"] = `var(--spacer-${marginEnd})`;
 
   if (typeof alert === "string")
     return (

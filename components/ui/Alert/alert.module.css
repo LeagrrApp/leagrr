@@ -1,10 +1,11 @@
 .alert {
-  padding: var(--spacer-xs);
+  padding: var(--spacer-em-xs);
   margin: 0;
   border: 0.0625rem solid var(--alert-color, var(--color-primary));
-  border-radius: var(--spacer-xs);
+  border-radius: var(--spacer-em-xs);
   background-color: var(--alert-bg, var(--color-primary-pale));
   font-size: var(--alert-font-size, var(--type-scale-s));
+  margin-block: var(--line-margin-start, 0) var(--line-margin-end, 0);
   &:where(ul) {
     padding-inline-start: var(--spacer-em-base);
   }

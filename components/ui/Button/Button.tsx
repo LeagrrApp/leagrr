@@ -1,14 +1,14 @@
 import { ButtonHTMLAttributes, CSSProperties } from "react";
 import button from "./button.module.css";
-import { Url } from "next/dist/shared/lib/router/router";
 import Link from "next/link";
 import { apply_classes } from "@/utils/helpers/html-attributes";
+import { Url } from "next/dist/shared/lib/router/router";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   href?: Url;
-  variant?: "secondary" | "accent";
+  variant?: ColorOptions | "transparent";
   outline?: boolean;
-  size?: "h1" | "h2" | "h3" | "h4" | "h5";
+  size?: "h1" | "h2" | "h3" | "h4" | "h5" | "s" | "xs";
   fullWidth?: boolean;
   asSpan?: boolean;
 }
@@ -28,10 +28,13 @@ export default function Button({
   size,
   fullWidth,
   asSpan,
+  className,
 }: ButtonProps) {
   const classes = [button.button];
 
-  const styles: ButtonStyles = {};
+  if (className) classes.push(className);
+
+  const styles: ButtonStyles = { ...style };
 
   if (variant) {
     classes.push(button[`button_${variant}`]);
@@ -58,14 +61,14 @@ export default function Button({
 
   if (asSpan)
     return (
-      <span style={style} className={apply_classes(classes)}>
+      <span style={styles} className={apply_classes(classes)}>
         {children}
       </span>
     );
 
   return (
     <button
-      style={style}
+      style={styles}
       className={apply_classes(classes)}
       type={type}
       onClick={onClick}

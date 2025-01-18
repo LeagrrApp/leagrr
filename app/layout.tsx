@@ -29,10 +29,7 @@ export default function RootLayout({
       lang="en-CA"
       className={`${notoSans.variable} ${plusJakartaSans.variable}`}
     >
-      <body>
-        <TempNav />
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

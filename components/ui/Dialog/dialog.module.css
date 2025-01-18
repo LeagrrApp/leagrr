@@ -1,0 +1,39 @@
+.dialog {
+  width: min(100%, var(--dialog-width, 25rem));
+  border: 0.125rem solid var(--color-grey);
+  border-radius: var(--spacer-m);
+  padding: var(--spacer-l);
+}
+
+.dialog::backdrop {
+  background-color: hsla(from var(--color-grey-darker) h s calc(l - 40) / 0.75);
+}
+
+.dialog h2 {
+  font-size: var(--type-scale-h4);
+  margin-block-end: var(--spacer-base);
+  &:where(:has(+ p)) {
+    margin-block-end: var(--spacer-m);
+  }
+}
+
+.dialog p {
+  margin-block-end: var(--spacer-base);
+}
+
+.close {
+  position: absolute;
+  inset: var(--spacer-m) var(--spacer-m) auto auto;
+  width: 2rem;
+  aspect-ratio: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background-color: transparent;
+  border-radius: var(--spacer-s);
+  &:where(:hover, :focus-visible) {
+    background-color: var(--color-grey);
+  }
+}

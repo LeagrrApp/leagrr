@@ -1,0 +1,10 @@
+.badge {
+  display: inline-block;
+  padding: var(--spacer-em-s);
+  border: 0.0625rem solid var(--badge-color, var(--color-primary));
+  border-radius: var(--spacer-em-xs);
+  background-color: var(--badge-bg, var(--color-primary-pale));
+  font-size: var(--badge-font-size, 1em);
+  line-height: 1;
+  text-transform: uppercase;
+}

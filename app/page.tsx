@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { isLoggedIn } from "@/actions/auth";
+import { verifySession } from "@/lib/session";
 
 export default async function Page() {
-  isLoggedIn();
+  await verifySession();
 
   redirect("/dashboard");
 }

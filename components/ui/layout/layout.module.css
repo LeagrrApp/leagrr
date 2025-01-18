@@ -1,7 +1,27 @@
 .grid {
+  --col-count: var(--cols);
   display: grid;
-  grid-template-columns: repeat(var(--cols, 1), 1fr);
+  grid-template-columns: repeat(var(--col-count, 1), 1fr);
   gap: var(--gap, 0);
+
+  @media only screen and (min-width: 25rem) {
+    --col-count: var(--cols-s, var(--cols));
+  }
+
+  @media only screen and (min-width: 45rem) {
+    --col-count: var(--cols-m, var(--cols-s, var(--cols)));
+  }
+
+  @media only screen and (min-width: 60rem) {
+    --col-count: var(--cols-l, var(--cols-m, var(--cols-s, var(--cols))));
+  }
+
+  @media only screen and (min-width: 90rem) {
+    --col-count: var(
+      --cols-xl,
+      var(--cols-l, var(--cols-m, var(--cols-s, var(--cols))))
+    );
+  }
 }
 
 .flex {
@@ -9,6 +29,8 @@
   gap: var(--gap, 0);
   align-items: var(--align-items);
   justify-content: var(--justify-content);
+  flex-direction: var(--direction);
+  flex-wrap: var(--wrap);
 }
 
 .col {

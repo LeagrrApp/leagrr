@@ -1,9 +1,9 @@
 "use server";
 
 import bcrypt from "bcrypt";
-import { SignupFormSchema, FormState } from "@/lib/definitions";
+import { SignupFormSchema, SignInUpFormState } from "@/lib/definitions";
 import { db } from "@/db/pg";
-import { createSession, getSession } from "@/lib/session";
+import { createSession } from "@/lib/session";
 import { isObjectEmpty } from "@/utils/helpers/objects";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
@@ -17,7 +17,7 @@ interface ErrorProps {
   password_confirm?: string[] | undefined;
 }
 
-export async function signUp(state: FormState, formData: FormData) {
+export async function signUp(state: SignInUpFormState, formData: FormData) {
   const userData = {
     email: formData.get("email"),
     username: formData.get("username"),
@@ -57,10 +57,16 @@ export async function signUp(state: FormState, formData: FormData) {
     admin.users (username, email, first_name, last_name, password_hash)
     VALUES
     ($1, $2, $3, $4, $5)
+    RETURNING
+      user_id,
+      user_role,
+      username,
+      first_name,
+      last_name
     `;
 
   // run PostgreSql query with pg
-  const insertResult: ResultProps = await db
+  const insertResult: ResultProps<UserData> = await db
     .query(insertSql, [
       userData.username,
       userData.email,
@@ -68,8 +74,8 @@ export async function signUp(state: FormState, formData: FormData) {
       userData.last_name,
       password_hash,
     ])
-    .then(() => {
-      return { message: `Sign up successful!`, status: 200 };
+    .then((res) => {
+      return { message: `Sign up successful!`, status: 200, data: res.rows[0] };
     })
     .catch((err) => {
       console.log(err);
@@ -83,48 +89,10 @@ export async function signUp(state: FormState, formData: FormData) {
       };
     });
 
-  if (insertResult.status !== 200) {
-    // Insert failed, return error message
-    return { ...insertResult };
-  }
-
-  const selectSql = `
-    SELECT
-      user_id,
-      user_role,
-      username,
-      first_name,
-      last_name
-    FROM
-      admin.users
-    WHERE
-      username=$1
-  `;
-
-  const selectResult: UserSelectResultProps = await db
-    .query(selectSql, [userData.username])
-    .then((res) => {
-      if (!res.rowCount) {
-        // no user found
-        throw new Error("Sorry, user not found.");
-      }
-      // successfully found user
-      return {
-        message: "User data for session retrieved.",
-        data: res.rows[0],
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  if (selectResult.data) {
+  // If insert was a success, it will return data
+  if (insertResult.data) {
     const { user_id, user_role, username, first_name, last_name } =
-      selectResult.data;
+      insertResult.data;
 
     // create user session
     await createSession({
@@ -136,15 +104,16 @@ export async function signUp(state: FormState, formData: FormData) {
     });
 
     // redirect user
-    redirect(`/u/${userData.username}`);
+    redirect(`/dashboard/`);
   }
 
+  // if it failed, return message and status
   return {
-    ...selectResult,
+    ...insertResult,
   };
 }
 
-export async function signIn(state: FormState, formData: FormData) {
+export async function signIn(state: SignInUpFormState, formData: FormData) {
   const identifier = formData.get("identifier") as string;
   const password = formData.get("password") as string;
 
@@ -165,7 +134,7 @@ export async function signIn(state: FormState, formData: FormData) {
       username=$1 OR email=$1
   `;
 
-  const selectResult: UserSelectResultProps = await db
+  const selectResult: ResultProps<UserData> = await db
     .query(selectSql, [identifier])
     .then((res) => {
       if (!res.rowCount) {
@@ -195,6 +164,13 @@ export async function signIn(state: FormState, formData: FormData) {
       password_hash,
     } = selectResult.data;
 
+    if (!password_hash) {
+      return {
+        message: "Username or password was incorrect",
+        status: 401,
+      };
+    }
+
     // compare provided password with password_hash from db
     const passwordsMatch = await bcrypt.compare(password, password_hash);
 
@@ -215,7 +191,7 @@ export async function signIn(state: FormState, formData: FormData) {
     });
 
     // redirect user
-    redirect(`/u/${username}`);
+    redirect(`/dashboard/`);
   }
 
   // user not found, return result for front end alerts
@@ -227,14 +203,5 @@ export async function signIn(state: FormState, formData: FormData) {
 export async function logOut() {
   // remove the session
   (await cookies()).set("session", "", { expires: new Date(0) });
-}
-
-export async function isLoggedIn(): Promise<UserData> {
-  const session = await getSession();
-
-  console.log(session);
-
-  if (!session) redirect("/sign-in");
-
-  return session.userData;
+  redirect("/sign-in");
 }

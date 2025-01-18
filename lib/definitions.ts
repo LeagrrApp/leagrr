@@ -1,6 +1,11 @@
 import { JWTPayload } from "jose";
 import { z } from "zod";
 
+export interface SessionPayload extends JWTPayload {
+  userData: UserData;
+  expiresAt: Date;
+}
+
 export const SignupFormSchema = z.object({
   username: z
     .string()
@@ -26,7 +31,7 @@ export const SignupFormSchema = z.object({
     .trim(),
 });
 
-export type FormState =
+export type SignInUpFormState =
   | {
       errors?: {
         username?: string[];
@@ -40,7 +45,94 @@ export type FormState =
     }
   | undefined;
 
-export interface SessionPayload extends JWTPayload {
-  userData: UserData;
-  expiresAt: Date;
+export const LeagueFormSchema = z.object({
+  name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters long." })
+    .trim(),
+  description: z.string().trim().optional(),
+  sport_id: z.number(),
+  status: z.enum(["draft", "public", "archived"]).optional(),
+});
+
+interface LeagueErrorProps {
+  name?: string[] | undefined;
+  description?: string[] | undefined;
+  sport_id?: string[] | undefined;
+  status?: string[] | undefined;
 }
+
+export type LeagueFormState =
+  | {
+      errors?: LeagueErrorProps;
+      message?: string;
+      status?: number;
+    }
+  | undefined;
+
+export const SeasonFormSchema = z.object({
+  name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters long." })
+    .trim(),
+  description: z.string().trim().optional(),
+  league_id: z.number(),
+  start_date: z.string().date(),
+  end_date: z.string().date(),
+  status: z.enum(["draft", "public", "archived"]).optional(),
+});
+
+export interface SeasonErrorProps {
+  name?: string[] | undefined;
+  description?: string[] | undefined;
+  league_id?: string[] | undefined;
+  start_date?: string[] | undefined;
+  end_date?: string[] | undefined;
+  status?: string[] | undefined;
+}
+
+export type SeasonFormState =
+  | {
+      errors?: SeasonErrorProps;
+      message?: string;
+      status?: number;
+    }
+  | undefined;
+
+export const sports_options = [
+  {
+    value: 1,
+    label: "Hockey",
+  },
+  {
+    value: 2,
+    label: "Soccer",
+  },
+  {
+    value: 3,
+    label: "Basketball",
+  },
+  {
+    value: 4,
+    label: "Pickleball",
+  },
+  {
+    value: 5,
+    label: "Badminton",
+  },
+];
+
+export const status_options = [
+  {
+    value: "draft",
+    label: "Draft",
+  },
+  {
+    value: "public",
+    label: "Public",
+  },
+  {
+    value: "archived",
+    label: "Archived",
+  },
+];

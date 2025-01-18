@@ -2,5 +2,19 @@
   display: var(--display, block);
   padding-inline: var(--spacer-base);
   margin-inline: auto;
-  width: var(--container-width, var(--container));
+  width: min(var(--container-width, var(--container)), 100%);
+
+  @media only screen and (min-width: 60rem) {
+    padding-inline: var(--spacer-l);
+  }
+}
+
+.container_grid {
+  --display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: var(--spacer-base);
+
+  & > * {
+    grid-column: 1 / -1;
+  }
 }

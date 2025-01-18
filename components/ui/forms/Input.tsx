@@ -6,7 +6,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import forms from "./forms.module.css";
+import css from "./forms.module.css";
 import Alert from "../Alert/Alert";
 
 interface InputWrapProps {
@@ -17,12 +17,12 @@ function InputWrap({
   children,
   isPassword,
 }: PropsWithChildren<InputWrapProps>) {
-  if (isPassword) return <div className={forms.field_wrap}>{children}</div>;
+  if (isPassword) return <div className={css.field_wrap}>{children}</div>;
   return <>{children}</>;
 }
 
 interface InputProps extends Partial<HTMLInputElement> {
-  label: string;
+  label?: string;
   labelAfter?: boolean;
   labelAsPlaceholder?: boolean;
   onChange?: ChangeEventHandler;
@@ -30,6 +30,7 @@ interface InputProps extends Partial<HTMLInputElement> {
     errs?: string[];
     type?: string;
   };
+  optional?: boolean;
 }
 
 export default function Input({
@@ -48,6 +49,7 @@ export default function Input({
   autocapitalize,
   onChange,
   errors,
+  optional,
 }: InputProps) {
   const [inputValue, setInputValue] = useState(value || defaultValue || "");
   const [inputType, setInputType] = useState(type || "");
@@ -75,15 +77,16 @@ export default function Input({
   }
 
   return (
-    <div className={forms.unit}>
+    <div className={css.unit}>
       {!labelAfter && (
-        <label className={forms.label} htmlFor={name}>
-          {label}
+        <label className={css.label} htmlFor={name}>
+          {label}{" "}
+          {optional && <span className={css.label_optional}>(Optional)</span>}
         </label>
       )}
       <InputWrap isPassword={type === "password"}>
         <input
-          className={forms.field}
+          className={css.field}
           type={inputType || "text"}
           name={name}
           id={name}
@@ -100,8 +103,8 @@ export default function Input({
           <button
             className={
               inputType === "password"
-                ? forms.toggle_password
-                : `${forms.toggle_password} ${forms.toggle_password_visible}`
+                ? css.toggle_password
+                : `${css.toggle_password} ${css.toggle_password_visible}`
             }
             onClick={togglePassword}
             type="button"
@@ -113,8 +116,9 @@ export default function Input({
         )}
       </InputWrap>
       {labelAfter && (
-        <label className={forms.label} htmlFor={name}>
-          {label}
+        <label className={css.label} htmlFor={name}>
+          {label}{" "}
+          {optional && <span className={css.label_optional}>(Optional)</span>}
         </label>
       )}
       {errors?.errs?.length && <Alert alert={errors.errs} type={errors.type} />}
