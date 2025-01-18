@@ -1,13 +1,16 @@
-import Button from "@/components/ui/Button/Button";
-import Container from "@/components/ui/Container/Container";
-import Flex from "@/components/ui/layout/Flex";
+import { getDashboardMenuData } from "@/actions/users";
+import { verifySession } from "@/lib/session";
+import { redirect } from "next/navigation";
 
-export default function Page() {
-  return (
-    <div className="this_is_the_dashboard_page">
-      <Container>
-        <h1>Dashboard Page</h1>
-      </Container>
-    </div>
-  );
+export default async function Page() {
+  await verifySession();
+  const { data } = await getDashboardMenuData();
+
+  if (data?.leagues[0]) {
+    redirect(`/dashboard/l/${data?.leagues[0].slug}/`);
+  } else if (data?.teams[0]) {
+    redirect(`/dashboard/t/${data?.teams[0].slug}/`);
+  } else {
+    redirect(`/dashboard/t/`);
+  }
 }

@@ -167,6 +167,7 @@ export async function getLeagueData(
   const leagueSql = `
     SELECT
       league_id,
+      slug,
       name,
       description,
       sport_id,

@@ -1,8 +1,8 @@
-interface ResultProps<T> {
+type ResultProps<T> = {
   message: string;
   status: number;
   data?: T;
-}
+};
 
 type UserData = {
   user_id: number;

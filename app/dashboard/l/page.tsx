@@ -1,4 +1,5 @@
-import DBHeader from "@/components/dashboard/DashboardHeader/DBHeader";
+import DHeader from "@/components/dashboard/DHeader/DHeader";
+import LeagueHeader from "@/components/dashboard/LeagueHeader/LeagueHeader";
 import CreateLeague from "@/components/dashboard/leagues/CreateLeague";
 import Container from "@/components/ui/Container/Container";
 import { verifySession } from "@/lib/session";
@@ -11,7 +12,9 @@ export default async function Page() {
 
   return (
     <>
-      <DBHeader headline="Create a League" />
+      <DHeader>
+        <h1>Create a League</h1>
+      </DHeader>
       <Container>
         <CreateLeague user_id={user_id} />
       </Container>

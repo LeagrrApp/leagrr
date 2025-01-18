@@ -8,3 +8,13 @@
     padding-inline: var(--spacer-l);
   }
 }
+
+.container_grid {
+  --display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: var(--spacer-base);
+
+  & > * {
+    grid-column: 1 / -1;
+  }
+}

@@ -2,4 +2,5 @@
   height: var(--line-height, var(--spacer-xs));
   background-color: var(--line-color, var(--color-grey));
   margin-block: var(--line-margin-start, 0) var(--line-margin-end, 0);
+  width: 100%;
 }

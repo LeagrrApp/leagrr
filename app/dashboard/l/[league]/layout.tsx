@@ -1,6 +1,6 @@
 import { getLeagueData } from "@/actions/leagues";
 import { verifyUserRole } from "@/actions/users";
-import DBHeader from "@/components/dashboard/DashboardHeader/DBHeader";
+import LeagueHeader from "@/components/dashboard/LeagueHeader/LeagueHeader";
 import SeasonSelector from "@/components/dashboard/SeasonSelector/SeasonSelector";
 import { verifySession } from "@/lib/session";
 import Link from "next/link";
@@ -32,24 +32,9 @@ export default async function Layout({
   const canEditLeague =
     league.league_role_id === (1 || 2) || (isAdmin as boolean);
 
-  // add link to settings if can edit
-  const editLink = canEditLeague ? `/dashboard/l/${slug}/edit` : undefined;
-
   return (
     <>
-      <DBHeader
-        headline={league.name}
-        byline={league.description}
-        status={league.status}
-        editLink={editLink}
-      >
-        {league?.seasons && league?.seasons?.length !== 0 && (
-          <SeasonSelector
-            seasons={league?.seasons}
-            hasAdminRole={canEditLeague}
-          />
-        )}
-      </DBHeader>
+      <LeagueHeader league={league} canEdit={canEditLeague}></LeagueHeader>
 
       {children}
     </>

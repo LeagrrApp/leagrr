@@ -1,29 +1,22 @@
 export function apply_classes(
-  classes: string[] | string,
-  additionalClasses?: string[] | string
+  initialClass: string | string[],
+  additionalClass?: string | string[]
 ): string {
-  if (!classes) return "";
+  // convert provided classes to arrays if provided as a string
+  const initialAsArray: string[] =
+    typeof initialClass === "string" ? initialClass.split(" ") : initialClass;
+  const additionalAsArray: string[] | undefined =
+    typeof additionalClass === "string"
+      ? additionalClass.split(" ")
+      : additionalClass;
 
-  if (typeof classes === "string") {
-    if (!additionalClasses) return classes;
+  // merge into one array
+  const combinedArray: string[] = additionalAsArray
+    ? initialAsArray.concat(additionalAsArray)
+    : initialAsArray;
 
-    if (typeof additionalClasses === "string")
-      return `${classes} ${additionalClasses}`;
-  }
-
-  const updatedClassesArray = [...classes];
-
-  if (additionalClasses) {
-    if (typeof additionalClasses === "string") {
-      updatedClassesArray.push(additionalClasses);
-    } else {
-      updatedClassesArray.forEach((c) => {
-        updatedClassesArray.push(c);
-      });
-    }
-  }
-
-  return updatedClassesArray.join(" ");
+  // join array into single string with classes separated by spaces and return
+  return combinedArray.join(" ");
 }
 
 export function paddingString(paddings: SizeOptions[]): string {
