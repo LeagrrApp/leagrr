@@ -1,4 +1,6 @@
+import { canEditLeague, verifyLeagueAdminRole } from "@/actions/leagues";
 import { getSeason } from "@/actions/seasons";
+import { verifyUserRole } from "@/actions/users";
 import DivisionTabs from "@/components/dashboard/DivisionTabs/DivisionTabs";
 import Container from "@/components/ui/Container/Container";
 import { notFound } from "next/navigation";
@@ -16,12 +18,13 @@ export default async function Layout({
 
   if (!data) notFound();
 
+  // check to see if user can edit this league
+  const { canEdit } = await canEditLeague(data.league_id);
+
   return (
     <Container>
-      {data?.divisions && data.divisions.length !== 0 ? (
-        <DivisionTabs divisions={data.divisions} />
-      ) : (
-        <p>No divisions!</p>
+      {data?.divisions && data.divisions.length !== 0 && (
+        <DivisionTabs divisions={data.divisions} canAdd={canEdit} />
       )}
       {children}
     </Container>

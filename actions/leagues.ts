@@ -157,6 +157,48 @@ export async function verifyLeagueAdminRole(
   return adminsResult;
 }
 
+export async function canEditLeague(
+  league_id: number,
+  commissionerOnly?: boolean
+): Promise<{ canEdit: boolean; role: string | undefined }> {
+  // check if they are a site wide admin
+  const isAdmin = (await verifyUserRole(1)) as boolean;
+
+  // set the role name
+  let role: string | undefined = isAdmin ? "admin" : undefined;
+
+  // set initial canEdit to whether or not user is site wide admin
+  let canEdit = isAdmin;
+
+  // skip additional database query if we already know user has permission
+  if (!canEdit) {
+    // check for league admin privileges
+    const leagueAdminResult: ResultProps<AdminRole> | boolean =
+      await verifyLeagueAdminRole(league_id);
+
+    // verify which role the user has
+    if (
+      typeof leagueAdminResult === "object" &&
+      leagueAdminResult.data?.league_role_id
+    ) {
+      const leagueAdminRole = leagueAdminResult.data.league_role_id;
+
+      // set canEdit based on whether it is a commissionerOnly check or not
+      canEdit = commissionerOnly
+        ? leagueAdminRole === 1
+        : leagueAdminRole === (1 || 2);
+
+      // set name of role
+      role = leagueAdminRole === 1 ? "commissioner" : "manager";
+    }
+  }
+
+  return {
+    canEdit,
+    role,
+  };
+}
+
 export async function getLeagueData(
   slug: string
 ): Promise<ResultProps<LeagueData>> {

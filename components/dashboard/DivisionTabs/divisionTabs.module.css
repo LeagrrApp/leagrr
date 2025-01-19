@@ -23,6 +23,7 @@
 
 .division_tabs_list {
   display: flex;
+  align-items: flex-end;
   padding: 0;
   margin: 0;
   list-style-type: none;
@@ -40,8 +41,8 @@
 
 .division_tabs_item {
   text-decoration: none;
-  padding-inline: var(--spacer-base);
-  padding-block: var(--spacer-xs);
+  padding-inline: var(--spacer-em-ml);
+  padding-block: var(--spacer-em-xs);
   display: inline-flex;
   align-items: center;
   gap: var(--spacer-s);
@@ -51,7 +52,6 @@
   border-start-start-radius: var(--spacer-s);
   border-start-end-radius: var(--spacer-s);
   color: var(--color-black);
-  /* font-size: var(--type-scale-s); */
   white-space: nowrap;
 
   &:where(:hover, :focus-visible) {
@@ -67,5 +67,6 @@
     background-color: var(--color-primary);
     color: var(--color-white);
     border-color: var(--color-primary-dark);
+    /* font-size: var(--type-scale-h5); */
   }
 }

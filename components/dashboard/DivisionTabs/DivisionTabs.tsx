@@ -6,9 +6,10 @@ import { useParams, usePathname } from "next/navigation";
 
 type DivisionProps = {
   divisions: DivisionData[];
+  canAdd: boolean;
 };
 
-export default function DivisionTabs({ divisions }: DivisionProps) {
+export default function DivisionTabs({ divisions, canAdd }: DivisionProps) {
   const params = useParams();
   const pathname = usePathname();
 
@@ -39,6 +40,17 @@ export default function DivisionTabs({ divisions }: DivisionProps) {
             </li>
           );
         })}
+        {canAdd && (
+          <li>
+            <Link
+              className={css.division_tabs_add}
+              href={`/dashboard/l/${params.league}/s/${params.season}/d/`}
+            >
+              <i className="material-symbols-outlined">add_circle</i>
+              <span className="srt">Add Division</span>
+            </Link>
+          </li>
+        )}
       </ul>
     </nav>
   );

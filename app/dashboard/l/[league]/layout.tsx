@@ -1,4 +1,4 @@
-import { getLeagueData } from "@/actions/leagues";
+import { canEditLeague, getLeagueData } from "@/actions/leagues";
 import { verifyUserRole } from "@/actions/users";
 import LeagueHeader from "@/components/dashboard/LeagueHeader/LeagueHeader";
 import SeasonSelector from "@/components/dashboard/SeasonSelector/SeasonSelector";
@@ -25,16 +25,12 @@ export default async function Layout({
   // if league data is unavailable, redirect to notfound
   if (!league) notFound();
 
-  // verify user role to allow site admin to also edit league
-  const isAdmin = await verifyUserRole(1);
-
-  // check league role or site admin role to verify can edit league
-  const canEditLeague =
-    league.league_role_id === (1 || 2) || (isAdmin as boolean);
+  // set check for whether user has permission to edit league
+  const { canEdit } = await canEditLeague(league.league_id);
 
   return (
     <>
-      <LeagueHeader league={league} canEdit={canEditLeague}></LeagueHeader>
+      <LeagueHeader league={league} canEdit={canEdit} />
 
       {children}
     </>

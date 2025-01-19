@@ -3,6 +3,36 @@
 import { db } from "@/db/pg";
 import { verifySession } from "@/lib/session";
 
+type DivisionErrorProps = {
+  name?: string[] | undefined;
+  description?: string[] | undefined;
+  league_id?: string[] | undefined;
+  start_date?: string[] | undefined;
+  end_date?: string[] | undefined;
+  status?: string[] | undefined;
+};
+
+type DivisionFormState =
+  | {
+      errors?: DivisionErrorProps;
+      message?: string;
+      status?: number;
+    }
+  | undefined;
+
+export async function createDivision(
+  state: DivisionFormState,
+  formData: FormData
+): Promise<DivisionFormState> {
+  // check user is logged in
+  await verifySession();
+
+  return {
+    message: "Testing create division",
+    status: 200,
+  };
+}
+
 export async function getDivisions(season_id: number) {
   // check user is logged in
   const { user_id } = await verifySession();

@@ -1,4 +1,4 @@
-import { AdminsResult, verifyLeagueAdminRole } from "@/actions/leagues";
+import { canEditLeague, verifyLeagueAdminRole } from "@/actions/leagues";
 import { deleteSeason, getSeason } from "@/actions/seasons";
 import { verifyUserRole } from "@/actions/users";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
@@ -20,21 +20,8 @@ export default async function Page({
 
   const backLink = `/dashboard/l/${league}/s/${season}`;
 
-  // check for site wide admin privileges
-  const isAdmin = await verifyUserRole(1);
-  let canEdit = isAdmin;
-  let leagueAdminRole: number | undefined;
-  // skip additional database query if we already know user has permission
-  if (!canEdit) {
-    // check for league admin privileges
-    const leagueAdminResult: AdminsResult | boolean =
-      await verifyLeagueAdminRole(seasonData.league_id);
-
-    if (typeof leagueAdminResult === "object") {
-      leagueAdminRole = leagueAdminResult.data?.league_role_id;
-      canEdit = leagueAdminRole === (1 || 2);
-    }
-  }
+  // check to see if user can edit this league
+  const { canEdit } = await canEditLeague(seasonData.league_id, true);
 
   if (!canEdit) redirect(backLink);
 
@@ -49,7 +36,7 @@ export default async function Page({
       />
       <h2 className="push">Edit Season</h2>
       <EditSeason backLink={backLink} season={seasonData} />
-      {(isAdmin || leagueAdminRole === 1) && (
+      {canEdit && (
         <ModalConfirmAction
           defaultState={{
             season_id: seasonData.season_id,

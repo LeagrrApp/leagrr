@@ -213,10 +213,11 @@ export async function verifyUserRole(
       };
     });
 
-  if (!roleType) return result;
-
   if (typeof roleType === "string") {
     return result.data?.role_name === roleType;
   }
-  return result.data?.user_role === roleType;
+  if (typeof roleType === "number") {
+    return result.data?.user_role === roleType;
+  }
+  return result;
 }

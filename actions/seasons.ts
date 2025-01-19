@@ -9,7 +9,7 @@ import {
 import { verifySession } from "@/lib/session";
 import { isObjectEmpty } from "@/utils/helpers/objects";
 import { redirect } from "next/navigation";
-import { verifyLeagueAdminRole } from "./leagues";
+import { canEditLeague, verifyLeagueAdminRole } from "./leagues";
 import { verifyUserRole } from "./users";
 
 export async function createSeason(
@@ -314,20 +314,7 @@ export async function deleteSeason(state: {
   await verifySession();
 
   // set check for whether user has permission to delete
-  let canDelete = false;
-
-  // Check user role to see if they have admin privileges
-  const isAdmin = await verifyUserRole(1);
-  // if so, they can delete the league
-  if (isAdmin) canDelete = true;
-
-  // skip league admin check if already confirmed the user is a site wide admin
-  if (!canDelete) {
-    // do a check if user is the league commissioner
-    const isCommissioner = await verifyLeagueAdminRole(state.league_id, 1);
-
-    if (isCommissioner) canDelete = true;
-  }
+  const { canEdit: canDelete } = await canEditLeague(state.league_id, true);
 
   if (!canDelete) {
     // failed both user role check and league role check, shortcut out
@@ -359,6 +346,8 @@ export async function deleteSeason(state: {
         status: 400,
       };
     });
+
+  // TODO: improve error handling if there is an issue deleting season
 
   redirect(state.backLink);
 }
