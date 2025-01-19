@@ -1,4 +1,3 @@
-import { getDivisions } from "@/actions/divisions";
 import { getSeason } from "@/actions/seasons";
 import Container from "@/components/ui/Container/Container";
 import { notFound } from "next/navigation";
@@ -12,13 +11,11 @@ export default async function Page({
 
   const { data } = await getSeason(season, league, true);
 
-  console.log(data);
-
   if (!data) notFound();
 
   return (
     <Container>
-      <h2>{data.name}</h2>
+      <h2>Team Page</h2>
     </Container>
   );
 }

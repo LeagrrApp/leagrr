@@ -1,4 +1,5 @@
 .league_header {
+  margin-block-end: var(--spacer-l);
   @container (min-width: 60rem) {
     .league_header_headline {
       grid-column: span 8;

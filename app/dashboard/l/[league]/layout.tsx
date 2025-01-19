@@ -5,14 +5,14 @@ import SeasonSelector from "@/components/dashboard/SeasonSelector/SeasonSelector
 import { verifySession } from "@/lib/session";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PropsWithChildren } from "react";
 
 export default async function Layout({
   children,
   params,
-}: {
-  children: React.ReactNode;
+}: PropsWithChildren<{
   params: Promise<{ league: string }>;
-}) {
+}>) {
   // confirm user is logged in, if not, redirect
   await verifySession();
 
