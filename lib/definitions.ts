@@ -136,3 +136,11 @@ export const status_options = [
     label: "Archived",
   },
 ];
+
+export const league_roles = new Map<
+  number,
+  { league_role_id: number; name: string }
+>();
+
+league_roles.set(1, { league_role_id: 1, name: "Commissioner" });
+league_roles.set(2, { league_role_id: 2, name: "Manager" });

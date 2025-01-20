@@ -1,9 +1,6 @@
 import { canEditLeague, getLeagueData } from "@/actions/leagues";
-import { verifyUserRole } from "@/actions/users";
 import LeagueHeader from "@/components/dashboard/LeagueHeader/LeagueHeader";
-import SeasonSelector from "@/components/dashboard/SeasonSelector/SeasonSelector";
 import { verifySession } from "@/lib/session";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
 

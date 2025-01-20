@@ -1,6 +1,5 @@
-import { canEditLeague, verifyLeagueAdminRole } from "@/actions/leagues";
+import { canEditLeague } from "@/actions/leagues";
 import { deleteSeason, getSeason } from "@/actions/seasons";
-import { verifyUserRole } from "@/actions/users";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
 import EditSeason from "@/components/dashboard/seasons/EditSeason";
 import Container from "@/components/ui/Container/Container";

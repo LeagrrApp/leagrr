@@ -169,9 +169,7 @@ export async function getUserData(
   return result;
 }
 
-export async function verifyUserRole(
-  roleType?: string | number
-): Promise<ResultProps<UserData> | boolean> {
+export async function getUserRole(): Promise<number> {
   const { user_id } = await verifySession();
 
   const sql = `
@@ -188,36 +186,26 @@ export async function verifyUserRole(
       u.user_id = $1
   `;
 
-  const result: ResultProps<UserData> = await db
+  const result: number = await db
     .query(sql, [user_id])
     .then((res) => {
       if (!res.rowCount) {
         throw new Error("User not found.");
       }
 
-      return {
-        message: `User role confirmed as ${res.rows[0].role_name}`,
-        status: 200,
-        data: res.rows[0],
-      };
+      return res.rows[0].user_role;
     })
     .catch((err) => {
-      return {
-        message: err.message,
-        status: 404,
-        data: {
-          user_id,
-          user_role: 0,
-          role_name: "Not found",
-        },
-      };
+      // TODO: add more comprehensive error handling
+      console.log(err);
+      return 0;
     });
 
-  if (typeof roleType === "string") {
-    return result.data?.role_name === roleType;
-  }
-  if (typeof roleType === "number") {
-    return result.data?.user_role === roleType;
-  }
   return result;
+}
+
+export async function verifyUserRole(roleType: number) {
+  const user_role = await getUserRole();
+
+  return user_role === roleType;
 }

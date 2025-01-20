@@ -1,6 +1,5 @@
-import { canEditLeague, verifyLeagueAdminRole } from "@/actions/leagues";
+import { canEditLeague } from "@/actions/leagues";
 import { getSeason } from "@/actions/seasons";
-import { verifyUserRole } from "@/actions/users";
 import DivisionTabs from "@/components/dashboard/DivisionTabs/DivisionTabs";
 import Container from "@/components/ui/Container/Container";
 import { notFound } from "next/navigation";
