@@ -2,13 +2,12 @@ export function capitalize(string: string): string {
   return `${string.substring(0, 1).toUpperCase()}${string.substring(1)}`;
 }
 
-type Dirs = {};
-
 export function createDashboardUrl(
   dirs: {
     l?: string;
     s?: string;
     d?: string;
+    g?: string;
     t?: string;
   },
   additional?: string
@@ -25,6 +24,10 @@ export function createDashboardUrl(
 
   if (dirs.d) {
     url = `${url}/d/${dirs.d}`;
+  }
+
+  if (dirs.g) {
+    url = `${url}/g/${dirs.g}`;
   }
 
   if (dirs.t) {

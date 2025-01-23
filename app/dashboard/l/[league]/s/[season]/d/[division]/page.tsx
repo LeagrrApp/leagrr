@@ -8,6 +8,8 @@ import Card from "@/components/ui/Card/Card";
 import { canEditLeague } from "@/actions/leagues";
 import Button from "@/components/ui/Button/Button";
 import DivisionSchedule from "@/components/dashboard/divisions/DivisionSchedule/DivisionSchedule";
+import DashboardUnit from "@/components/dashboard/DashboardUnit/DashboardUnit";
+import DashboardUnitHeader from "@/components/dashboard/DashboardUnitHeader/DashboardUnitHeader";
 
 export default async function Page({
   params,
@@ -26,36 +28,35 @@ export default async function Page({
 
   return (
     <div className={css.division_grid}>
-      <div
-        className={apply_classes([css.division_unit, css.division_standings])}
-      >
-        <h3>
-          <Icon icon="trophy" label="Standings" labelFirst />
-        </h3>
-        {teams && teams.length > 0 ? (
-          <DivisionStandings teams={teams} />
-        ) : (
+      {teams && teams.length > 0 ? (
+        <DivisionStandings teams={teams} />
+      ) : (
+        <DashboardUnit gridArea="standings">
+          <DashboardUnitHeader>
+            <h3>
+              <Icon icon="trophy" label="Standings" labelFirst />
+            </h3>
+          </DashboardUnitHeader>
           <Card padding="base">
             <p className="push">There are no teams in this division yet!</p>
             {canEdit && <Button href="#">Invite teams</Button>}
           </Card>
-        )}
-      </div>
-      <div
-        className={apply_classes([css.division_unit, css.division_schedule])}
-      >
-        <h3>
-          <Icon icon="calendar_month" label="Schedule" labelFirst />
-        </h3>
-        {games && games.length > 0 ? (
-          <DivisionSchedule games={games} />
-        ) : (
+        </DashboardUnit>
+      )}
+
+      {games && games.length > 0 ? (
+        <DivisionSchedule games={games} canEdit={canEdit} />
+      ) : (
+        <DashboardUnit gridArea="schedule">
+          <h3>
+            <Icon icon="calendar_month" label="Schedule" labelFirst />
+          </h3>
           <Card padding="base">
             <p className="push">There are no upcoming games schedule!</p>
             {canEdit && <Button href="#">Add games</Button>}
           </Card>
-        )}
-      </div>
+        </DashboardUnit>
+      )}
       <div className={apply_classes([css.division_unit, css.division_stats])}>
         <h3>
           <Icon icon="leaderboard" label="Stats" labelFirst />

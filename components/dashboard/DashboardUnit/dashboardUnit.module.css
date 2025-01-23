@@ -1,0 +1,4 @@
+.dashboard_unit {
+  container: division_unit / inline-size;
+  grid-area: var(--grid-area, auto);
+}

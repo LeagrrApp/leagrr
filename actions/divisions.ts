@@ -464,9 +464,15 @@ export async function getDivision(
     divisionGamesSql = `
       ${divisionGamesSql}
       AND
-      status = 'public'
+      status NOT IN ('draft', 'archived')
     `;
   }
+
+  divisionGamesSql = `
+      ${divisionGamesSql}
+      ORDER BY
+        date_time DESC
+    `;
 
   const divisionGamesResult: ResultProps<GameData[]> = await db
     .query(divisionGamesSql, [divisionResult.data.division_id])

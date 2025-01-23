@@ -14,20 +14,3 @@
       "stats schedule";
   }
 }
-
-.division_unit h3 {
-  font-size: var(--type-scale-h4);
-  margin-block-end: var(--spacer-m);
-}
-
-.division_standings {
-  grid-area: standings;
-}
-
-.division_schedule {
-  grid-area: schedule;
-}
-
-.division_stats {
-  grid-area: stats;
-}

@@ -1,26 +1,40 @@
 "use client";
 
-import Card from "@/components/ui/Card/Card";
-import Table from "@/components/ui/Table/Table";
-import css from "./divisionSchedule.module.css";
-import { useEffect, useState } from "react";
-import Button from "@/components/ui/Button/Button";
 import ButtonInvis from "@/components/ui/ButtonInvis/ButtonInvis";
+import Card from "@/components/ui/Card/Card";
 import Icon from "@/components/ui/Icon/Icon";
+import Table from "@/components/ui/Table/Table";
+import Switch from "@/components/ui/forms/Switch/Switch";
+import { CSSProperties, useEffect, useState } from "react";
+import css from "./divisionSchedule.module.css";
+import DashboardUnit from "../../DashboardUnit/DashboardUnit";
+import DashboardUnitHeader from "../../DashboardUnitHeader/DashboardUnitHeader";
+import { apply_classes } from "@/utils/helpers/html-attributes";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import Button from "@/components/ui/Button/Button";
 
 type DivisionGamesProps = {
   games: GameData[];
+  canEdit: boolean;
 };
 
-export default function DivisionSchedule({ games }: DivisionGamesProps) {
+export default function DivisionSchedule({
+  games,
+  canEdit,
+}: DivisionGamesProps) {
+  const pathname = usePathname();
+
   const [showCompleted, setShowComplete] = useState(false);
   const [gameList, setGameList] = useState<GameData[]>(() => {
-    return games.filter((g) => {
-      const gameTime = new Date(g.date_time);
-      const now = new Date(Date.now());
+    return games
+      .filter((g) => {
+        const gameTime = new Date(g.date_time);
+        const now = new Date(Date.now());
 
-      return gameTime > now;
-    });
+        return gameTime > now;
+      })
+      .toReversed();
   });
   const [gameListOffset, setGameListOffset] = useState<number>(0);
   const [gameCount, setGameCount] = useState<number>(() => {
@@ -35,13 +49,15 @@ export default function DivisionSchedule({ games }: DivisionGamesProps) {
   const gamesPerPage = 10;
 
   useEffect(() => {
-    const updatedGamesList = games.filter((g) => {
-      const gameTime = new Date(g.date_time);
-      const now = new Date(Date.now());
+    const updatedGamesList = games
+      .filter((g) => {
+        const gameTime = new Date(g.date_time);
+        const now = new Date(Date.now());
 
-      if (showCompleted) return gameTime < now;
-      return gameTime > now;
-    });
+        if (showCompleted) return gameTime < now;
+        return gameTime > now;
+      })
+      .toReversed();
 
     if (showCompleted) {
       updatedGamesList.reverse();
@@ -56,7 +72,20 @@ export default function DivisionSchedule({ games }: DivisionGamesProps) {
   }, [showCompleted, gameListOffset]);
 
   return (
-    <>
+    <DashboardUnit gridArea="schedule">
+      <DashboardUnitHeader>
+        <h3>
+          <Icon icon="calendar_month" label="Schedule" labelFirst />
+        </h3>
+        <Switch
+          name="showCompleted"
+          label="Show completed games"
+          checked={showCompleted}
+          onChange={() => setShowComplete(!showCompleted)}
+          noSpread
+          className={css.division_schedule_switch}
+        />
+      </DashboardUnitHeader>
       <Card className="push-m" padding="ml">
         <Table className={css.division_schedule}>
           <thead>
@@ -91,9 +120,25 @@ export default function DivisionSchedule({ games }: DivisionGamesProps) {
                 hour12: false,
               });
 
+              const rowClasses = [];
+              if (g.status !== "public" && g.status !== "completed") {
+                rowClasses.push(
+                  css.game_list_flag,
+                  css[`game_list_flag_${g.status}`]
+                );
+              }
+
               return (
-                <tr key={g.game_id}>
-                  <td>{gameTime}</td>
+                <tr key={g.game_id} className={apply_classes(rowClasses)}>
+                  <td>
+                    {gameTime}
+                    <Link href={`${pathname}/g/${g.game_id}`}>
+                      <span className="srt">
+                        View game between {g.home_team} and
+                        {g.away_team} taking place {gameTime}
+                      </span>
+                    </Link>
+                  </td>
                   <td
                     className={
                       g.home_team_score > g.away_team_score
@@ -114,7 +159,7 @@ export default function DivisionSchedule({ games }: DivisionGamesProps) {
                     {showCompleted && <strong>{g.away_team_score}</strong>}{" "}
                     {g.away_team}
                   </td>
-                  <td>
+                  <td title={`${g.arena} - ${g.venue}`}>
                     {g.arena} - {g.venue}
                   </td>
                 </tr>
@@ -123,31 +168,31 @@ export default function DivisionSchedule({ games }: DivisionGamesProps) {
           </tbody>
         </Table>
       </Card>
-      <div className={css.division_schedule_controls}>
-        {gameListOffset !== 0 && (
-          <ButtonInvis
-            className={css.game_list_prev}
-            onClick={() => setGameListOffset(gameListOffset - 10)}
-          >
-            <Icon icon="chevron_left" label="Prev" gap="xs" />
-          </ButtonInvis>
-        )}
-        <Button
-          className={css.game_list_toggle}
-          onClick={() => setShowComplete(!showCompleted)}
-          padding={["s", "m"]}
-        >
-          {!showCompleted ? "Show Complete Games" : "Show Upcoming Games"}
-        </Button>
-        {gameListOffset < gameCount - 10 && (
-          <ButtonInvis
-            className={css.game_list_next}
-            onClick={() => setGameListOffset(gameListOffset + 10)}
-          >
-            <Icon icon="chevron_right" label="Next" labelFirst gap="xs" />
-          </ButtonInvis>
-        )}
-      </div>
-    </>
+      {gameCount > gamesPerPage && (
+        <div className={css.division_schedule_controls}>
+          {gameListOffset !== 0 && (
+            <ButtonInvis
+              className={css.game_list_prev}
+              onClick={() => setGameListOffset(gameListOffset - 10)}
+            >
+              <Icon icon="chevron_left" label="Prev" gap="xs" />
+            </ButtonInvis>
+          )}
+          <div className={css.game_list_count}>
+            {gameListOffset / gamesPerPage + 1} /{" "}
+            {Math.ceil(gameCount / gamesPerPage)}
+          </div>
+          {gameListOffset < gameCount - 10 && (
+            <ButtonInvis
+              className={css.game_list_next}
+              onClick={() => setGameListOffset(gameListOffset + 10)}
+            >
+              <Icon icon="chevron_right" label="Next" labelFirst gap="xs" />
+            </ButtonInvis>
+          )}
+        </div>
+      )}
+      {canEdit && <Button href={`${pathname}/g`}>Add Game</Button>}
+    </DashboardUnit>
   );
 }

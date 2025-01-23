@@ -1,0 +1,15 @@
+.dashboard_unit_header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacer-m) var(--spacer-base);
+  margin-block-end: var(--spacer-m);
+
+  @container (min-width: 30rem) {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+/* .dashboard_unit_header h3 {
+  font-size: var(--type-scale-h4);
+} */
