@@ -1,7 +1,11 @@
 "use server";
 
 import { db } from "@/db/pg";
-import { LeagueFormSchema, LeagueFormState } from "@/lib/definitions";
+import {
+  league_roles,
+  LeagueFormSchema,
+  LeagueFormState,
+} from "@/lib/definitions";
 import { redirect } from "next/navigation";
 import { verifyUserRole } from "./users";
 import { verifySession } from "@/lib/session";
@@ -103,10 +107,9 @@ export async function createLeague(
   redirect(`/dashboard/l/${slug}`);
 }
 
-export async function verifyLeagueAdminRole(
-  league_id: number,
-  roleType?: number
-): Promise<ResultProps<AdminRole> | boolean> {
+export async function getLeagueAdminRole(
+  league: number | string
+): Promise<number> {
   // Verify user session
   const { user_id } = await verifySession();
 
@@ -117,12 +120,12 @@ export async function verifyLeagueAdminRole(
     FROM
       league_management.league_admins
     WHERE
-      league_id = $1 AND user_id = $2
+      ${typeof league === "number" ? `league_id` : `slug`} = $1 AND user_id = $2
   `;
 
   // query database for any matching both league and user
   const adminsResult: ResultProps<AdminRole> = await db
-    .query(adminsSql, [league_id, user_id])
+    .query(adminsSql, [league, user_id])
     .then((res) => {
       if (res.rowCount) {
         return {
@@ -152,9 +155,54 @@ export async function verifyLeagueAdminRole(
       };
     });
 
-  if (roleType) return adminsResult.data?.league_role_id === roleType;
+  if (adminsResult.data?.league_role_id)
+    return adminsResult.data?.league_role_id;
 
-  return adminsResult;
+  return 0;
+}
+
+export async function verifyLeagueAdminRole(
+  league_id: number,
+  roleType: number
+): Promise<boolean> {
+  const league_role_id = await getLeagueAdminRole(league_id);
+
+  return league_role_id === roleType;
+}
+
+export async function canEditLeague(
+  league: number | string,
+  commissionerOnly?: boolean
+): Promise<{ canEdit: boolean; role: string | undefined }> {
+  // check if they are a site wide admin
+  const isAdmin = await verifyUserRole(1);
+
+  // set the role name
+  let role: string | undefined = isAdmin ? "admin" : undefined;
+
+  // set initial canEdit to whether or not user is site wide admin
+  let canEdit = isAdmin;
+
+  // skip additional database query if we already know user has permission
+  if (!canEdit) {
+    // check for league admin privileges
+    const leagueAdminResult: number = await getLeagueAdminRole(league);
+
+    // verify which role the user has
+    if (leagueAdminResult !== 0) {
+      // set canEdit based on whether it is a commissionerOnly check or not
+      canEdit = commissionerOnly
+        ? leagueAdminResult === 1
+        : leagueAdminResult === 1 || leagueAdminResult === 2;
+      // set name of role
+      role = league_roles.get(leagueAdminResult)?.name;
+    }
+  }
+
+  return {
+    canEdit,
+    role,
+  };
 }
 
 export async function getLeagueData(
@@ -237,7 +285,7 @@ export async function getLeagueData(
     });
   // TODO: add short circuit if there is an error getting seasons
 
-  const adminsResult = await verifyLeagueAdminRole(leagueResult.data.league_id);
+  const adminsResult = await getLeagueAdminRole(leagueResult.data.league_id);
   // TODO: add short circuit if there is an error getting league admins
 
   // combine all retrieved data into a single data object and return
@@ -247,10 +295,7 @@ export async function getLeagueData(
     data: {
       ...leagueResult.data,
       ...seasonsResult.data,
-      league_role_id:
-        typeof adminsResult === "object"
-          ? adminsResult?.data?.league_role_id
-          : undefined,
+      league_role_id: adminsResult,
     },
   };
 }
@@ -271,22 +316,8 @@ export async function editLeague(
     league_id: parseInt(formData.get("league_id") as string),
   };
 
-  // set check for whether user has permission to delete
-  let canEdit = false;
-
-  // Check user role to see if they have admin privileges
-  const isAdmin = await verifyUserRole(1);
-  // if so, they can delete the league
-  if (isAdmin) canEdit = true;
-
-  // skip league admin check if already confirmed the user is a site wide admin
-  if (!canEdit) {
-    // do a check if user is the league commissioner
-    const adminsResult = await verifyLeagueAdminRole(leagueData.league_id);
-
-    if (typeof adminsResult === "object")
-      canEdit = adminsResult?.data?.league_role_id === (1 || 2);
-  }
+  // check if user can edit league
+  const { canEdit } = await canEditLeague(leagueData.league_id);
 
   if (!canEdit) {
     // failed both user role check and league role check, shortcut out
@@ -386,7 +417,7 @@ export async function deleteLeague(state: { league_id: number }) {
   `;
 
   // query the database
-  const deleteResult = db
+  const deleteResult = await db
     .query(sql, [state.league_id])
     .then((res) => {
       return {

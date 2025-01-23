@@ -3,6 +3,7 @@
 import { ChangeEventHandler, useEffect, useState } from "react";
 import forms from "./forms.module.css";
 import Alert from "../Alert/Alert";
+import { capitalize } from "@/utils/helpers/formatting";
 
 interface SelectProps extends Partial<HTMLSelectElement> {
   label: string;
@@ -13,7 +14,10 @@ interface SelectProps extends Partial<HTMLSelectElement> {
     errs?: string[];
     type?: string;
   };
-  choices: { label: string; value: string | number }[];
+  choices:
+    | string[]
+    | { label: string; value: string | number }[]
+    | readonly [string, ...string[]];
 }
 
 export default function Select({
@@ -55,11 +59,20 @@ export default function Select({
         required={required}
         autoCapitalize={autocapitalize}
       >
-        {choices?.map((choice) => (
-          <option key={choice.value} value={choice.value}>
-            {choice.label}
-          </option>
-        ))}
+        {choices?.map((choice) => {
+          if (typeof choice === "object") {
+            return (
+              <option key={choice.value} value={choice.value}>
+                {choice.label}
+              </option>
+            );
+          }
+          return (
+            <option key={choice} value={choice}>
+              {capitalize(choice)}
+            </option>
+          );
+        })}
       </select>
       {labelAfter && (
         <label className={forms.label} htmlFor={name}>

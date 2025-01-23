@@ -16,6 +16,28 @@ type UserData = {
   password_hash?: string;
 };
 
+type TeamData = {
+  team_id: number;
+  slug: string;
+  name: string;
+  description?: string;
+  join_code?: string;
+  status?: string;
+};
+
+type TeamStandingsData = Pick<
+  TeamData,
+  "team_id" | "slug" | "name" | "status"
+> & {
+  games_played: number;
+  wins: number;
+  losses: number;
+  ties: number;
+  points: number;
+  goals_for: number;
+  goals_against: number;
+};
+
 type LeagueData = {
   league_id: number;
   slug: string;
@@ -33,7 +55,7 @@ type SeasonData = {
   slug: string;
   name?: string;
   description?: string;
-  league_id?: number;
+  league_id: number;
   start_date?: Date | string;
   end_date?: Date | string;
   status?: string;
@@ -42,14 +64,51 @@ type SeasonData = {
 };
 
 type DivisionData = {
+  division_id: string;
   name: string;
   description?: string;
   slug: string;
   gender?: string;
   tier?: number;
   join_code?: string;
-  season_id?: number;
   status?: string;
+  season_slug: string;
+  season_id: number;
+  league_slug: string;
+  league_id: number;
+  teams?: TeamStandingsData[];
+  games?: GameData[];
+};
+
+type DivisionPreview = Required<
+  Pick<
+    DivisionData,
+    "division_id" | "name" | "slug" | "gender" | "tier" | "status"
+  >
+>;
+
+type GameData = {
+  game_id: number;
+  home_team_id: number;
+  home_team: string;
+  home_team_score: number;
+  away_team_id: number;
+  away_team: string;
+  away_team_score: number;
+  division_id: number;
+  playoff_id?: number;
+  date_time: Date | string;
+  arena_id: number;
+  status:
+    | "draft"
+    | "public"
+    | "completed"
+    | "cancelled"
+    | "postponed"
+    | "archived";
+  arena: string;
+  arena_id: number;
+  venue: string;
 };
 
 type AdminRole = {

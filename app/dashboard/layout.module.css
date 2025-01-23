@@ -10,6 +10,8 @@
 }
 
 .dashboard main {
+  overflow: hidden;
+  container: main / inline-size;
   @media only screen and (min-width: 60rem) {
     position: relative;
     box-shadow: -0.25rem 0 0.5rem

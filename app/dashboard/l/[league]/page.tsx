@@ -1,7 +1,7 @@
 import { getLeagueData } from "@/actions/leagues";
 import Button from "@/components/ui/Button/Button";
 import Container from "@/components/ui/Container/Container";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export default async function Page({
   params,
@@ -12,18 +12,19 @@ export default async function Page({
 
   const { data: league } = await getLeagueData(slug);
 
-  if (!league) return null;
+  if (!league) notFound();
 
   if (league.seasons && league.seasons.length > 0) {
     // redirect to first season that has a start_date before today and an end_date after today.
-    const currentSeasons = league.seasons.filter((s) => {
+    const currentSeasons = league.seasons.filter((s, i) => {
       if (!s.start_date || !s.end_date) {
-        return;
+        return false;
       }
 
       const now = new Date(Date.now());
       const start_date = new Date(s.start_date);
       const end_date = new Date(s.end_date);
+
       return start_date < now && now < end_date;
     });
 

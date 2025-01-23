@@ -1,0 +1,69 @@
+.switch {
+  --s-size: 1.375rem;
+  --s-gap: calc(var(--s-size) / 11);
+  --s-width: calc((var(--s-size) + var(--s-gap)) * 2);
+  --s-height: calc(var(--s-size) + (var(--s-gap) * 3));
+}
+
+.switch input {
+  appearance: none;
+  position: absolute;
+}
+
+.switch input:focus {
+  outline: 0;
+}
+
+.switch_label {
+  --switch-color: var(--color-grey-dark);
+  --switch-bg: transparent;
+  display: flex;
+  gap: var(--spacer-m);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.switch_label_no_spread {
+  justify-content: start;
+}
+
+.switch_label:where(:hover) {
+  --switch-color: var(--color-grey-darker);
+}
+
+.switch_label:has(+ input:focus-visible) {
+  outline: 0.125rem solid var(--color-accent);
+}
+
+.switch_wrap {
+  width: var(--s-width);
+  height: var(--s-height);
+  display: inline-flex;
+  position: relative;
+  border: 0.0625rem solid var(--switch-color);
+  background-color: var(--switch-bg);
+  border-radius: 3rem;
+  transition: border-color var(--transition), background-color var(--transition);
+}
+
+.switch_toggle {
+  display: inline-block;
+  width: var(--s-size);
+  height: var(--s-size);
+  border-radius: 50%;
+  background-color: var(--switch-color);
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: var(--s-gap);
+  translate: 0 -50%;
+  transition: all var(--transition);
+}
+
+.switch_checked {
+  --switch-color: var(--color-primary);
+  --switch-bg: var(--color-primary-pale);
+}
+
+.switch_checked .switch_toggle {
+  inset-inline: calc(100% - (var(--s-size) + var(--s-gap)));
+}

@@ -206,48 +206,77 @@ ALTER TABLE league_management.leagues
 ADD CONSTRAINT fk_leagues_sport_id FOREIGN KEY (sport_id)
     REFERENCES admin.sports (sport_id);
 
-CREATE OR REPLACE FUNCTION generate_unique_slug()
+CREATE OR REPLACE FUNCTION generate_league_slug()
 RETURNS TRIGGER AS $$
 DECLARE
     base_slug TEXT;
+    temp_slug TEXT;
     final_slug TEXT;
     slug_rank INT;
+    exact_match INT;
 BEGIN
-    -- Generate the initial slug by processing the name
-    base_slug := lower(
-                      regexp_replace(
-                          regexp_replace(
-                              regexp_replace(NEW.name, '\s+', '-', 'g'),
-                              '[^a-zA-Z0-9\-]', '', 'g'
-                          ),
-                      '-+', '-', 'g')
-                  );
+	IF NEW.name <> OLD.name OR tg_op = 'INSERT' THEN
+	    -- Generate the initial slug by processing the name
+	    base_slug := lower(
+	                      regexp_replace(
+	                          regexp_replace(
+	                              regexp_replace(NEW.name, '\s+', '-', 'g'),
+	                              '[^a-zA-Z0-9\-]', '', 'g'
+	                          ),
+	                      '-+', '-', 'g')
+	                  );
+	
+	    -- Check if this slug already exists and if so, append a number to ensure uniqueness
+	
+		-- this SELECT checks if there are other EXACT slug matches
+	    SELECT COUNT(*) INTO exact_match
+	    FROM league_management.leagues
+	    WHERE slug = base_slug;
+	
+	    IF exact_match = 0 THEN
+	        -- No duplicates found, assign base slug
+	        final_slug := base_slug;
+	    ELSE
+			-- this SELECT checks if there are leagues with slugs starting with the base_slug
+		    SELECT COUNT(*) INTO slug_rank
+		    FROM league_management.leagues
+		    WHERE slug LIKE base_slug || '%';
+			
+	        -- Duplicates found, append the count as a suffix
+	        temp_slug := base_slug || '-' || slug_rank;
+			
+			-- check if exact match of temp_slug found
+			SELECT COUNT(*) INTO exact_match
+		    FROM league_management.leagues
+		    WHERE slug = temp_slug;
+	
+			IF exact_match = 1 THEN
+				-- increase slug_rank by 1 and create final slug
+				final_slug := base_slug || '-' || (slug_rank + 1);
+			ELSE
+				-- change temp slug to final slug
+				final_slug = temp_slug;
+			END IF;
+	    END IF;
+	
+	    -- Assign the final slug to the new record
+	    NEW.slug := final_slug;
 
-    -- Check if this slug already exists and if so, append a number to ensure uniqueness
-    SELECT COUNT(*) INTO slug_rank
-    FROM league_management.leagues
-    WHERE slug LIKE base_slug || '%';
-
-    IF slug_rank = 0 THEN
-        -- No duplicates found, assign base slug
-        final_slug := base_slug;
-    ELSE
-        -- Duplicates found, append the count as a suffix
-        final_slug := base_slug || '-' || slug_rank;
-    END IF;
-
-    -- Assign the final slug to the new record
-    NEW.slug := final_slug;
+	END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER set_leagues_slug
-BEFORE INSERT ON league_management.leagues
-FOR EACH ROW
-WHEN (NEW.slug IS NULL)
-EXECUTE FUNCTION generate_unique_slug();
+CREATE OR REPLACE TRIGGER set_leagues_slug
+    BEFORE INSERT ON league_management.leagues
+	FOR EACH ROW
+	EXECUTE FUNCTION generate_league_slug();
+
+CREATE OR REPLACE TRIGGER update_leagues_slug
+    BEFORE UPDATE OF name ON league_management.leagues
+	FOR EACH ROW
+	EXECUTE FUNCTION generate_league_slug();
 
 -- Create league_management.league_admins
 -- A joiner table that connects a user with a league and assigns them a specific role
@@ -292,6 +321,80 @@ ADD CONSTRAINT fk_seasons_league_id FOREIGN KEY (league_id)
 ALTER TABLE IF EXISTS league_management.seasons
     ADD CONSTRAINT season_status_enum CHECK (status IN ('draft', 'public', 'archived'));
 
+CREATE OR REPLACE FUNCTION generate_season_slug()
+RETURNS TRIGGER AS $$
+DECLARE
+    base_slug TEXT;
+    temp_slug TEXT;
+    final_slug TEXT;
+    slug_rank INT;
+    exact_match INT;
+BEGIN
+
+	IF NEW.name <> OLD.name OR tg_op = 'INSERT' THEN
+	
+	    -- Generate the initial slug by processing the name
+	    base_slug := lower(
+	                      regexp_replace(
+	                          regexp_replace(
+	                              regexp_replace(NEW.name, '\s+', '-', 'g'),
+	                              '[^a-zA-Z0-9\-]', '', 'g'
+	                          ),
+	                      '-+', '-', 'g')
+	                  );
+	
+	    -- Check if this slug already exists and if so, append a number to ensure uniqueness
+	
+		-- this SELECT checks if there are other EXACT slug matches
+	    SELECT COUNT(*) INTO exact_match
+	    FROM league_management.seasons
+	    WHERE slug = base_slug AND league_id = NEW.league_id;
+	
+	    IF exact_match = 0 THEN
+	        -- No duplicates found, assign base slug
+	        final_slug := base_slug;
+	    ELSE
+			-- this SELECT checks if there are seasons with slugs starting with the base_slug
+		    SELECT COUNT(*) INTO slug_rank
+		    FROM league_management.seasons
+		    WHERE slug LIKE base_slug || '%' AND league_id = NEW.league_id;
+			
+	        -- Duplicates found, append the count as a suffix
+	        temp_slug := base_slug || '-' || slug_rank;
+			
+			-- check if exact match of temp_slug found
+			SELECT COUNT(*) INTO exact_match
+		    FROM league_management.seasons
+		    WHERE slug = temp_slug AND league_id = NEW.league_id;
+	
+			IF exact_match = 1 THEN
+				-- increase slug_rank by 1 and create final slug
+				final_slug := base_slug || '-' || (slug_rank + 1);
+			ELSE
+				-- change temp slug to final slug
+				final_slug = temp_slug;
+			END IF;
+	    END IF;
+	
+	    -- Assign the final slug to the new record
+	    NEW.slug := final_slug;
+	
+	END IF;
+	
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER set_seasons_slug
+    BEFORE INSERT ON league_management.seasons
+	FOR EACH ROW
+	EXECUTE FUNCTION generate_season_slug();
+
+CREATE OR REPLACE TRIGGER update_seasons_slug
+    BEFORE UPDATE OF name ON league_management.seasons
+	FOR EACH ROW
+	EXECUTE FUNCTION generate_season_slug();
+
 -- Create league_management.season_admins
 -- A joiner table that connects a user with a season and assigns them a specific role
 CREATE TABLE league_management.season_admins (
@@ -334,10 +437,84 @@ ADD CONSTRAINT fk_divisions_season_id FOREIGN KEY (season_id)
     REFERENCES league_management.seasons (season_id) ON DELETE CASCADE;
 
 ALTER TABLE IF EXISTS league_management.divisions
-    ADD CONSTRAINT division_gender_enum CHECK (gender IN ('All', 'Men', 'Women'));
+    ADD CONSTRAINT division_gender_enum CHECK (gender IN ('all', 'men', 'women'));
 
 ALTER TABLE IF EXISTS league_management.divisions
     ADD CONSTRAINT division_status_enum CHECK (status IN ('draft', 'public', 'archived'));
+
+CREATE OR REPLACE FUNCTION generate_division_slug()
+RETURNS TRIGGER AS $$
+DECLARE
+    base_slug TEXT;
+    temp_slug TEXT;
+    final_slug TEXT;
+    slug_rank INT;
+    exact_match INT;
+BEGIN
+
+	IF NEW.name <> OLD.name OR tg_op = 'INSERT' THEN
+	
+	    -- Generate the initial slug by processing the name
+	    base_slug := lower(
+	                      regexp_replace(
+	                          regexp_replace(
+	                              regexp_replace(NEW.name, '\s+', '-', 'g'),
+	                              '[^a-zA-Z0-9\-]', '', 'g'
+	                          ),
+	                      '-+', '-', 'g')
+	                  );
+	
+	    -- Check if this slug already exists and if so, append a number to ensure uniqueness
+	
+		-- this SELECT checks if there are other EXACT slug matches
+	    SELECT COUNT(*) INTO exact_match
+	    FROM league_management.divisions
+	    WHERE slug = base_slug AND season_id = NEW.season_id;
+	
+	    IF exact_match = 0 THEN
+	        -- No duplicates found, assign base slug
+	        final_slug := base_slug;
+	    ELSE
+			-- this SELECT checks if there are divisions with slugs starting with the base_slug
+		    SELECT COUNT(*) INTO slug_rank
+		    FROM league_management.divisions
+		    WHERE slug LIKE base_slug || '%' AND season_id = NEW.season_id;
+			
+	        -- Duplicates found, append the count as a suffix
+	        temp_slug := base_slug || '-' || slug_rank;
+			
+			-- check if exact match of temp_slug found
+			SELECT COUNT(*) INTO exact_match
+		    FROM league_management.divisions
+		    WHERE slug = temp_slug AND season_id = NEW.season_id;
+	
+			IF exact_match = 1 THEN
+				-- increase slug_rank by 1 and create final slug
+				final_slug := base_slug || '-' || (slug_rank + 1);
+			ELSE
+				-- change temp slug to final slug
+				final_slug = temp_slug;
+			END IF;
+	    END IF;
+	
+	    -- Assign the final slug to the new record
+	    NEW.slug := final_slug;
+	
+	END IF;
+	
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER set_divisions_slug
+    BEFORE INSERT ON league_management.divisions
+	FOR EACH ROW
+	EXECUTE FUNCTION generate_division_slug();
+
+CREATE OR REPLACE TRIGGER update_divisions_slug
+    BEFORE UPDATE OF name ON league_management.divisions
+	FOR EACH ROW
+	EXECUTE FUNCTION generate_division_slug();
 
 -- Create league_management.division_teams
 -- Joiner table connecting teams with divisions
@@ -1007,17 +1184,19 @@ VALUES
   (1, 1, 10), -- Jayce
   (1, 1, 11), -- Britt
   (1, 2, 4), -- Caleb
-  (1, 3, 1) -- Adam
+  (1, 3, 1), -- Adam
+  (2, 1, 1) -- Adam
 ;
 
 -- Default seasons
 INSERT INTO league_management.seasons
-  (slug, name, league_id, start_date, end_date)
+  (name, league_id, start_date, end_date)
 VALUES
-  ('winter-2024-2025', 'Winter 2024/2025', 1, '2024-09-01', '2025-03-31'),
-  ('2023-2024-season', '2023-2024 Season', 2, '2023-09-01', '2024-03-31'),
-  ('2024-2025-season', '2024-2025 Season', 2, '2024-09-01', '2025-03-31'),
-  ('2024-2025-season', '2024-2025 Season', 3, '2024-09-01', '2025-03-31')
+  ('Winter 2024/2025', 1, '2024-09-01', '2025-03-31'),
+  ('2023-2024 Season', 2, '2023-09-01', '2024-03-31'),
+  ('2024-2025 Season', 2, '2024-09-01', '2025-03-31'),
+  ('2024-2025 Season', 3, '2024-09-01', '2025-03-31'),
+  ('2025 Spring', 3, '2025-04-01', '2025-06-30')
 ;
 
 -- Default season_admins
@@ -1030,18 +1209,30 @@ VALUES
 
 -- Default divisions
 INSERT INTO league_management.divisions
-  (slug, name, tier, season_id, gender)
+  (name, tier, season_id, gender)
 VALUES
-  ('div-inc', 'Div Inc', 1, 1, 'All'),
-  ('div-1', 'Div 1', 1, 3, 'All'),
-  ('div-2', 'Div 2', 1, 3, 'All'),
-  ('div-1', 'Div 1', 1, 4, 'All'),
-  ('div-2', 'Div 2', 2, 4, 'All'),
-  ('div-3', 'Div 3', 3, 4, 'All'),
-  ('div-4', 'Div 4', 4, 4, 'All'),
-  ('div-5', 'Div 5', 5, 4, 'All'),
-  ('men-35', 'Men 35+', 6, 4, 'Men'),
-  ('women-35', 'Women 35+', 6, 4, 'Women')
+  ('Div Inc', 1, 1, 'all'),
+  ('Div 1', 1, 3, 'all'),
+  ('Div 2', 1, 3, 'all'),
+  ('Div 1', 1, 4, 'all'),
+  ('Div 2', 2, 4, 'all'),
+  ('Div 3', 3, 4, 'all'),
+  ('Div 4', 4, 4, 'all'),
+  ('Div 5', 5, 4, 'all'),
+  ('Men 35+', 6, 4, 'men'),
+  ('Women 35+', 6, 4, 'women'),
+  ('Coed 1', 1, 5, 'all'),
+  ('Coed 2', 2, 5, 'all'),
+  ('Coed 3', 3, 5, 'all'),
+  ('Coed 4', 4, 5, 'all'),
+  ('Coed 5', 5, 5, 'all'),
+  ('Coed 6', 6, 5, 'all'),
+  ('Men 1', 1, 5, 'men'),
+  ('Men 2', 2, 5, 'men'),
+  ('Men 3', 3, 5, 'men'),
+  ('Women 1', 1, 5, 'women'),
+  ('Women 2', 2, 5, 'women'),
+  ('Women 3', 3, 5, 'women')
 ;
 
 -- Default division_teams
@@ -1100,92 +1291,39 @@ VALUES
 
 -- List of OPH games
 INSERT INTO league_management.games
-  (home_team_id, away_team_id, division_id, date_time, arena_id)
+  (home_team_id, home_team_score, away_team_id, away_team_score, division_id, date_time, arena_id, status)
 VALUES
-  (1, 4, 1, '2024-09-08 17:45:00', 10),
-  (2, 3, 1, '2024-09-08 18:45:00', 10),
-  (3, 1, 1, '2024-09-16 22:00:00', 9),
-  (4, 2, 1, '2024-09-16 23:00:00', 9),
-  (1, 2, 1, '2024-09-25 21:00:00', 9),
-  (3, 4, 1, '2024-09-25 22:00:00', 9),
-  (1, 4, 1, '2024-10-03 19:30:00', 10),
-  (2, 3, 1, '2024-10-03 20:30:00', 10),
-  (3, 1, 1, '2024-10-14 19:00:00', 9),
-  (4, 2, 1, '2024-10-14 20:00:00', 9),
-  (1, 4, 1, '2024-10-19 20:00:00', 9),
-  (2, 3, 1, '2024-10-19 21:00:00', 9),
-  (1, 2, 1, '2024-10-30 21:30:00', 10),
-  (3, 4, 1, '2024-10-30 22:30:00', 10),
-  (1, 4, 1, '2024-11-08 20:30:00', 10),
-  (2, 3, 1, '2024-11-08 21:30:00', 10),
-  (3, 1, 1, '2024-11-18 20:00:00', 9),
-  (4, 2, 1, '2024-11-18 21:00:00', 9),
-  (1, 2, 1, '2024-11-27 18:30:00', 10),
-  (3, 4, 1, '2024-11-27 19:30:00', 10),
-  (1, 4, 1, '2024-12-05 20:30:00', 10),
-  (2, 3, 1, '2024-12-05 21:30:00', 10),
-  (3, 1, 1, '2024-12-14 18:00:00', 9),
-  (4, 2, 1, '2024-12-14 19:00:00', 9),
-  (1, 2, 1, '2024-12-23 19:00:00', 9),
-  (3, 4, 1, '2024-12-23 20:00:00', 9),
-  (3, 4, 1, '2025-01-23 20:00:00', 9),
-  (1, 2, 1, '2025-01-23 19:00:00', 9),
-  (4, 2, 1, '2025-01-11 20:45:00', 10),
-  (3, 1, 1, '2025-01-11 19:45:00', 10),
-  (2, 3, 1, '2025-01-02 21:30:00', 10),
-  (1, 4, 1, '2025-01-02 20:30:00', 10)
+  (1, 3, 4, 0, 1, '2024-09-08 17:45:00', 10, 'completed'),
+  (2, 3, 3, 4, 1, '2024-09-08 18:45:00', 10, 'completed'),
+  (3, 0, 1, 2, 1, '2024-09-16 22:00:00', 9, 'completed'),
+  (4, 1, 2, 4, 1, '2024-09-16 23:00:00', 9, 'completed'),
+  (1, 4, 2, 1, 1, '2024-09-25 21:00:00', 9, 'completed'),
+  (3, 3, 4, 4, 1, '2024-09-25 22:00:00', 9, 'completed'),
+  (1, 2, 4, 2, 1, '2024-10-03 19:30:00', 10, 'completed'),
+  (2, 2, 3, 1, 1, '2024-10-03 20:30:00', 10, 'completed'),
+  (3, 3, 1, 4, 1, '2024-10-14 19:00:00', 9, 'completed'),
+  (4, 2, 2, 3, 1, '2024-10-14 20:00:00', 9, 'completed'),
+  (1, 1, 4, 2, 1, '2024-10-19 20:00:00', 9, 'completed'),
+  (2, 2, 3, 0, 1, '2024-10-19 21:00:00', 9, 'completed'),
+  (1, 2, 2, 2, 1, '2024-10-30 21:30:00', 10, 'completed'),
+  (3, 2, 4, 4, 1, '2024-10-30 22:30:00', 10, 'completed'),
+  (1, 0, 4, 2, 1, '2024-11-08 20:30:00', 10, 'completed'),
+  (2, 4, 3, 0, 1, '2024-11-08 21:30:00', 10, 'completed'),
+  (3, 3, 1, 5, 1, '2024-11-18 20:00:00', 9, 'completed'),
+  (4, 2, 2, 5, 1, '2024-11-18 21:00:00', 9, 'completed'),
+  (1, 2, 2, 3, 1, '2024-11-27 18:30:00', 10, 'completed'),
+  (3, 1, 4, 2, 1, '2024-11-27 19:30:00', 10, 'completed'),
+  (1, 1, 4, 3, 1, '2024-12-05 20:30:00', 10, 'completed'),
+  (2, 2, 3, 1, 1, '2024-12-05 21:30:00', 10, 'completed'),
+  (3, 2, 1, 0, 1, '2024-12-14 18:00:00', 9, 'completed'),
+  (4, 0, 2, 4, 1, '2024-12-14 19:00:00', 9, 'completed'),
+  (1, 1, 2, 4, 1, '2024-12-23 19:00:00', 9, 'completed'),
+  (3, 5, 4, 6, 1, '2024-12-23 20:00:00', 9, 'completed'),
+  (2, 5, 3, 3, 1, '2025-01-02 21:30:00', 10, 'completed'),
+  (1, 7, 4, 2, 1, '2025-01-02 20:30:00', 10, 'completed'),
+  -- new additions
+  (1, 0, 2, 0, 1, '2025-01-23 19:00:00', 10, 'public'),
+  (3, 0, 4, 0, 1, '2025-01-23 20:00:00', 10, 'public'),
+  (3, 0, 1, 0, 1, '2025-01-26 21:45:00', 10, 'public'),
+  (4, 0, 2, 0, 1, '2025-01-26 22:45:00', 10, 'public')
 ;
-
--- GOALS
-INSERT INTO stats.goals
-  (game_id, user_id, team_id, period, period_time)
-VALUES
-  (2, 3, 2, 1, '05:27'),
-  (2, 10, 2, 1, '15:33'),
-  (2, 11, 3, 2, '03:19'),
-  (2, 3, 2, 2, '18:27')
-;
-
--- Assists
-INSERT INTO stats.assists
-  (game_id, goal_id, user_id, team_id, primary_assist)
-VALUES
-  (2, 1, 29, 2, 'true'),
-  (2, 1, 3, 2, 'false'),
-  (2, 2, 10, 2, 'true'),
-  (2, 3, 48, 3, 'true')
-;
-
---  user_id |      player      |       team       |       role        
--- ---------+------------------+------------------+-------------------
---       32 | Eline Fransen    | Otterwa Senators | Player
---       29 | Adrian Garcia    | Otterwa Senators | Player
---       37 | Marta Kalinski   | Otterwa Senators | Player
---       33 | Andrea Kovacs    | Otterwa Senators | Player
---       10 | Jayce LeClaire   | Otterwa Senators | Captain
---       30 | Amelia LeRoux    | Otterwa Senators | Player
---       38 | Tomas Marquez    | Otterwa Senators | Player
---       27 | Sebastien Martin | Otterwa Senators | Player
---       35 | Janina Nowak     | Otterwa Senators | Player
---       36 | Niklas Petersen  | Otterwa Senators | Player
---        3 | Aida Robillard   | Otterwa Senators | Alternate Captain
---       31 | Kasper Skov      | Otterwa Senators | Player
---       34 | Peter Smith      | Otterwa Senators | Player
---       28 | Elisa Volkova    | Otterwa Senators | Player
-
---  user_id |        player        |    team     |       role        
--- ---------+----------------------+-------------+-------------------
---       40 | Maximilian Bauer     | Otter Chaos | Player
---       46 | Pietro Capello       | Otter Chaos | Player
---       45 | Noemie Caron         | Otter Chaos | Player
---        8 | Cheryl Chaos         | Otter Chaos | Captain
---       43 | Sofia Costa          | Otter Chaos | Player
---       47 | Elisabeth Jensen     | Otter Chaos | Player
---       50 | Valerie Keller       | Otter Chaos | Player
---       11 | Britt Neron          | Otter Chaos | Alternate Captain
---       48 | Dimitri Papadopoulos | Otter Chaos | Player
---       49 | Mariela Ramos        | Otter Chaos | Player
---       44 | Alexander Ricci      | Otter Chaos | Player
---       41 | Anna Schaefer        | Otter Chaos | Player
---       39 | Irene Schneider      | Otter Chaos | Player
---       42 | Lucas Vargas         | Otter Chaos | Player

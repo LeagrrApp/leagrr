@@ -122,17 +122,22 @@ export const sports_options = [
   },
 ];
 
-export const status_options = [
-  {
-    value: "draft",
-    label: "Draft",
-  },
-  {
-    value: "public",
-    label: "Public",
-  },
-  {
-    value: "archived",
-    label: "Archived",
-  },
+export const status_options: readonly [string, ...string[]] = [
+  "draft",
+  "public",
+  "archived",
 ];
+
+export const gender_options: readonly [string, ...string[]] = [
+  "all",
+  "men",
+  "women",
+];
+
+export const league_roles = new Map<
+  number,
+  { league_role_id: number; name: string }
+>();
+
+league_roles.set(1, { league_role_id: 1, name: "Commissioner" });
+league_roles.set(2, { league_role_id: 2, name: "Manager" });

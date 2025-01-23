@@ -5,9 +5,9 @@
   /* margin-block-start: var(--spacer-m); */
   flex-wrap: wrap;
 
-  @container (min-width: 60rem) {
+  /* @container (min-width: 60rem) {
     justify-content: flex-end;
-  }
+  } */
 }
 
 .season_modal {

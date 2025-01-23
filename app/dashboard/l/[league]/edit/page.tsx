@@ -1,9 +1,7 @@
-import { deleteLeague, getLeagueData } from "@/actions/leagues";
-import { verifyUserRole } from "@/actions/users";
+import { canEditLeague, deleteLeague, getLeagueData } from "@/actions/leagues";
 import EditLeague from "@/components/dashboard/leagues/EditLeague";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
 import Container from "@/components/ui/Container/Container";
-import Grid from "@/components/ui/layout/Grid";
 import { verifySession } from "@/lib/session";
 import { notFound, redirect } from "next/navigation";
 
@@ -14,31 +12,31 @@ export default async function Page({
 }) {
   await verifySession();
 
-  const { league: slug } = await params;
+  const { league } = await params;
 
   // check user is has permission to access league settings
-  const { data: league } = await getLeagueData(slug);
+  const { data: leagueData } = await getLeagueData(league);
 
   // if league data not found, redirect
-  if (!league) notFound();
+  if (!leagueData) notFound();
 
-  const isAdmin = await verifyUserRole(1);
-  const isCommissioner = league?.league_role_id === 1;
-  const isManager = league?.league_role_id === 2;
+  const { canEdit, role: league_role } = await canEditLeague(league);
 
-  const backLink = `/dashboard/l/${slug}`;
+  const canDelete = league_role === "admin" || league_role === "commissioner";
 
-  if (isCommissioner || isManager || isAdmin)
+  const backLink = `/dashboard/l/${league}`;
+
+  if (canEdit)
     return (
       <Container>
-        <EditLeague league={league} backLink={backLink} />
-        {(isCommissioner || isAdmin) && (
+        <EditLeague league={leagueData} backLink={backLink} />
+        {canDelete && (
           <ModalConfirmAction
             defaultState={{
-              league_id: league.league_id,
+              league_id: leagueData.league_id,
             }}
             actionFunction={deleteLeague}
-            confirmationHeading={`Are you sure you want to delete ${league.name}?`}
+            confirmationHeading={`Are you sure you want to delete ${leagueData.name}?`}
             confirmationByline={`This action is permanent cannot be undone. Consider setting the league's status to "Archived" instead.`}
             trigger={{
               icon: "delete",

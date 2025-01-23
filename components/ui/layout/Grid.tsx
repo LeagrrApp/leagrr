@@ -1,11 +1,13 @@
 import { CSSProperties, PropsWithChildren } from "react";
 import layout from "./layout.module.css";
+import { apply_classes } from "@/utils/helpers/html-attributes";
 
 // TODO: improve grids so that they are more easily nestable & add subgrid
 
 interface GridProps {
   gap?: SizeOptions;
   cols?: number | ResponsiveColumns;
+  className?: string | string[];
 }
 
 type ResponsiveColumns = {
@@ -30,6 +32,7 @@ export default function Grid({
   children,
   gap,
   cols,
+  className,
 }: PropsWithChildren<GridProps>) {
   const styles: GridStyles = {};
 
@@ -47,7 +50,7 @@ export default function Grid({
   }
 
   return (
-    <div style={styles} className={layout.grid}>
+    <div style={styles} className={apply_classes(layout.grid, className)}>
       {children}
     </div>
   );

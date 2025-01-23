@@ -1,7 +1,8 @@
-import { getDivisions } from "@/actions/divisions";
+import { canEditLeague } from "@/actions/leagues";
 import { getSeason } from "@/actions/seasons";
+import Button from "@/components/ui/Button/Button";
 import Container from "@/components/ui/Container/Container";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export default async function Page({
   params,
@@ -12,13 +13,25 @@ export default async function Page({
 
   const { data } = await getSeason(season, league, true);
 
-  console.log(data);
-
   if (!data) notFound();
+
+  // check if there are any divisions, redirect to first division
+  if (data.divisions && data.divisions[0]) {
+    redirect(`/dashboard/l/${league}/s/${season}/d/${data.divisions[0].slug}`);
+  }
+
+  const { canEdit } = await canEditLeague(league);
 
   return (
     <Container>
-      <h2>{data.name}</h2>
+      <h2 className="push">
+        It looks like this season does not have any divisions yet.
+      </h2>
+      {canEdit && (
+        <Button href={`/dashboard/l/${league}/s/${season}/d/`}>
+          Create division
+        </Button>
+      )}
     </Container>
   );
 }

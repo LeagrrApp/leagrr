@@ -7,7 +7,7 @@
   justify-content: center;
   gap: var(--spacer-em-base);
 
-  padding: var(--spacer-em-m) var(--spacer-em-base);
+  padding: var(--btn-padding, var(--spacer-em-m) var(--spacer-em-base));
   border-radius: var(--spacer-em-s);
 
   background-color: var(--btn-bg-color);

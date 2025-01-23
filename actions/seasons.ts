@@ -9,8 +9,7 @@ import {
 import { verifySession } from "@/lib/session";
 import { isObjectEmpty } from "@/utils/helpers/objects";
 import { redirect } from "next/navigation";
-import { verifyLeagueAdminRole } from "./leagues";
-import { verifyUserRole } from "./users";
+import { canEditLeague, verifyLeagueAdminRole } from "./leagues";
 
 export async function createSeason(
   state: SeasonFormState,
@@ -53,7 +52,15 @@ export async function createSeason(
   // if there are any validation errors, return errors
   if (!isObjectEmpty(errors)) return { errors };
 
-  // TODO: add check to see if the user is allowed to create a season for this league
+  // Check to see if the user is allowed to create a season for this league
+  const { canEdit } = await canEditLeague(seasonData.league_id);
+
+  if (!canEdit) {
+    return {
+      message: "You do not have permission to create a season for this league",
+      status: 400,
+    };
+  }
 
   // build insert sql for season
   const sql = `
@@ -151,6 +158,7 @@ export async function getSeason(
   if (includeDivisions) {
     const divisionSql = `
       SELECT
+        division_id,
         name,
         description,
         tier,
@@ -195,7 +203,7 @@ export async function editSeason(
   formData: FormData
 ): Promise<SeasonFormState> {
   // Verify user session
-  const { user_role } = await verifySession();
+  await verifySession();
 
   // insert data from form into object to check for errors
   const seasonData = {
@@ -236,18 +244,7 @@ export async function editSeason(
   // Check to see if the user is allowed to edit a season for this league
 
   // check for site wide admin privileges
-  let canEdit = user_role === 1;
-
-  // skip additional database query if we already know user has permission
-  if (!canEdit) {
-    // check for league admin privileges
-    const leagueAdminResult: ResultProps<AdminRole> | boolean =
-      await verifyLeagueAdminRole(seasonData.league_id);
-
-    if (typeof leagueAdminResult === "object") {
-      canEdit = leagueAdminResult.data?.league_role_id === (1 || 2);
-    }
-  }
+  const { canEdit } = await canEditLeague(seasonData.league_id);
 
   if (!canEdit) {
     return {
@@ -314,20 +311,7 @@ export async function deleteSeason(state: {
   await verifySession();
 
   // set check for whether user has permission to delete
-  let canDelete = false;
-
-  // Check user role to see if they have admin privileges
-  const isAdmin = await verifyUserRole(1);
-  // if so, they can delete the league
-  if (isAdmin) canDelete = true;
-
-  // skip league admin check if already confirmed the user is a site wide admin
-  if (!canDelete) {
-    // do a check if user is the league commissioner
-    const isCommissioner = await verifyLeagueAdminRole(state.league_id, 1);
-
-    if (isCommissioner) canDelete = true;
-  }
+  const { canEdit: canDelete } = await canEditLeague(state.league_id);
 
   if (!canDelete) {
     // failed both user role check and league role check, shortcut out
@@ -344,7 +328,7 @@ export async function deleteSeason(state: {
   `;
 
   // query the database
-  const deleteResult = db
+  const deleteResult = await db
     .query(sql, [state.season_id])
     .then((res) => {
       return {
@@ -359,6 +343,8 @@ export async function deleteSeason(state: {
         status: 400,
       };
     });
+
+  // TODO: improve error handling if there is an issue deleting season
 
   redirect(state.backLink);
 }

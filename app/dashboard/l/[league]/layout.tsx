@@ -1,40 +1,33 @@
-import { getLeagueData } from "@/actions/leagues";
-import { verifyUserRole } from "@/actions/users";
-import LeagueHeader from "@/components/dashboard/LeagueHeader/LeagueHeader";
-import SeasonSelector from "@/components/dashboard/SeasonSelector/SeasonSelector";
+import { canEditLeague, getLeagueData } from "@/actions/leagues";
+import LeagueHeader from "@/components/dashboard/leagues/LeagueHeader/LeagueHeader";
 import { verifySession } from "@/lib/session";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PropsWithChildren } from "react";
 
 export default async function Layout({
   children,
   params,
-}: {
-  children: React.ReactNode;
+}: PropsWithChildren<{
   params: Promise<{ league: string }>;
-}) {
+}>) {
   // confirm user is logged in, if not, redirect
   await verifySession();
 
   // get league slug
-  const { league: slug } = await params;
+  const { league } = await params;
 
   // load league data
-  const { data: league } = await getLeagueData(slug);
+  const { data: leagueData } = await getLeagueData(league);
 
   // if league data is unavailable, redirect to notfound
-  if (!league) notFound();
+  if (!leagueData) notFound();
 
-  // verify user role to allow site admin to also edit league
-  const isAdmin = await verifyUserRole(1);
-
-  // check league role or site admin role to verify can edit league
-  const canEditLeague =
-    league.league_role_id === (1 || 2) || (isAdmin as boolean);
+  // Check whether user has permission to edit league
+  const { canEdit } = await canEditLeague(league);
 
   return (
     <>
-      <LeagueHeader league={league} canEdit={canEditLeague}></LeagueHeader>
+      <LeagueHeader league={leagueData} canEdit={canEdit} />
 
       {children}
     </>

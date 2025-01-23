@@ -48,5 +48,6 @@ type ColorOptions =
   | "accent"
   | "success"
   | "warning"
+  | "caution"
   | "danger"
   | "grey";

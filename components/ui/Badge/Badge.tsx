@@ -3,7 +3,7 @@ import css from "./badge.module.css";
 
 interface BadgeProps {
   text: string;
-  type?: string;
+  type?: ColorOptions;
   fontSize?: FontSizeOptions;
 }
 
