@@ -1,5 +1,5 @@
 import { canEditLeague, getLeagueData } from "@/actions/leagues";
-import LeagueHeader from "@/components/dashboard/LeagueHeader/LeagueHeader";
+import LeagueHeader from "@/components/dashboard/leagues/LeagueHeader/LeagueHeader";
 import { verifySession } from "@/lib/session";
 import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
@@ -14,20 +14,20 @@ export default async function Layout({
   await verifySession();
 
   // get league slug
-  const { league: slug } = await params;
+  const { league } = await params;
 
   // load league data
-  const { data: league } = await getLeagueData(slug);
+  const { data: leagueData } = await getLeagueData(league);
 
   // if league data is unavailable, redirect to notfound
-  if (!league) notFound();
+  if (!leagueData) notFound();
 
-  // set check for whether user has permission to edit league
-  const { canEdit } = await canEditLeague(league.league_id);
+  // Check whether user has permission to edit league
+  const { canEdit } = await canEditLeague(league);
 
   return (
     <>
-      <LeagueHeader league={league} canEdit={canEdit} />
+      <LeagueHeader league={leagueData} canEdit={canEdit} />
 
       {children}
     </>

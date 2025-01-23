@@ -1,6 +1,6 @@
 .league_header {
   margin-block-end: var(--spacer-l);
-  @container (min-width: 60rem) {
+  /* @container (min-width: 60rem) {
     .league_header_headline {
       grid-column: span 8;
     }
@@ -9,7 +9,7 @@
       grid-column: span 6;
       align-self: end;
     }
-  }
+  } */
 }
 
 .league_header_container {
@@ -24,6 +24,12 @@
 }
 
 .league_header_admin_bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacer-base);
+}
+
+.league_header_headline {
   display: flex;
   align-items: center;
   gap: var(--spacer-base);

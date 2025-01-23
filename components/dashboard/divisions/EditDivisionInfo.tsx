@@ -1,5 +1,5 @@
 "use client";
-import { createDivision } from "@/actions/divisions";
+import { editDivision } from "@/actions/divisions";
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/forms/Input";
 import Select from "@/components/ui/forms/Select";
@@ -8,16 +8,22 @@ import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { gender_options, status_options } from "@/lib/definitions";
-import { useRouter } from "next/navigation";
 import { useActionState, useEffect } from "react";
 
-interface CreateDivisionProps {
-  season: SeasonData;
+interface EditDivisionProps {
+  division: DivisionData;
+  divisionLink: string;
 }
 
-export default function CreateDivision({ season }: CreateDivisionProps) {
-  const [state, action, pending] = useActionState(createDivision, undefined);
-  const router = useRouter();
+export default function EditDivisionInfo({
+  division,
+  divisionLink,
+}: EditDivisionProps) {
+  const [state, action, pending] = useActionState(editDivision, {
+    link: divisionLink,
+  });
+
+  console.log(divisionLink);
 
   useEffect(() => {
     console.log(state);
@@ -31,7 +37,7 @@ export default function CreateDivision({ season }: CreateDivisionProps) {
             name="name"
             label="Name"
             errors={{ errs: state?.errors?.name, type: "danger" }}
-            defaultValue="Div 1"
+            value={division.name}
             required
           />
         </Col>
@@ -40,7 +46,7 @@ export default function CreateDivision({ season }: CreateDivisionProps) {
             name="description"
             label="Description"
             errors={{ errs: state?.errors?.description, type: "danger" }}
-            defaultValue="For those elites!"
+            value={division.description}
             optional
           />
         </Col>
@@ -49,7 +55,7 @@ export default function CreateDivision({ season }: CreateDivisionProps) {
           name="tier"
           label="Tier"
           min="1"
-          defaultValue="1"
+          value={division.tier?.toString()}
           errors={{ errs: state?.errors?.tier, type: "danger" }}
           required
         />
@@ -57,6 +63,7 @@ export default function CreateDivision({ season }: CreateDivisionProps) {
           name="gender"
           label="Gender"
           choices={gender_options}
+          value={division.gender}
           errors={{ errs: state?.errors?.gender, type: "danger" }}
           required
         />
@@ -65,6 +72,7 @@ export default function CreateDivision({ season }: CreateDivisionProps) {
           name="join_code"
           label="Join Code"
           errors={{ errs: state?.errors?.join_code, type: "danger" }}
+          value={division.join_code}
           optional
         />
         <Select
@@ -72,21 +80,17 @@ export default function CreateDivision({ season }: CreateDivisionProps) {
           label="Status"
           choices={status_options}
           errors={{ errs: state?.errors?.status, type: "danger" }}
+          value={division.status}
         />
-        <input type="hidden" name="season_id" value={season.season_id} />
-        <input type="hidden" name="league_id" value={season.league_id} />
+        <input type="hidden" value={division.division_id} name="division_id" />
+        <input type="hidden" value={division.league_id} name="league_id" />
         <Col>
           <Button type="submit" fullWidth disabled={pending}>
-            Create Division
+            <Icon icon="save" label="Save Division" />
           </Button>
         </Col>
         <Col>
-          <Button
-            onClick={() => router.back()}
-            type="button"
-            variant="grey"
-            fullWidth
-          >
+          <Button href={divisionLink} type="button" variant="grey" fullWidth>
             <Icon icon="cancel" label="Cancel" />
           </Button>
         </Col>

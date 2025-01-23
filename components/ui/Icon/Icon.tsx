@@ -10,6 +10,7 @@ interface IconProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   hideLabel?: boolean;
   size?: FontSizeOptions;
   padding?: SizeOptions[];
+  labelFirst?: boolean;
 }
 
 interface IconStyles extends CSSProperties {
@@ -18,7 +19,8 @@ interface IconStyles extends CSSProperties {
 }
 
 export default function Icon(props: IconProps) {
-  const { icon, label, hideLabel, href, className, size, padding } = props;
+  const { icon, label, hideLabel, href, className, size, padding, labelFirst } =
+    props;
 
   const styles: IconStyles = {};
   let classes: string[] = [css.icon];
@@ -44,20 +46,40 @@ export default function Icon(props: IconProps) {
         className={apply_classes(classes)}
         aria-current={props["aria-current"]}
       >
-        <i className="material-symbols-outlined">{icon}</i>
-        <span className={hideLabel ? `${css.icon_label} srt` : css.icon_label}>
-          {label}
-        </span>
+        {labelFirst && (
+          <span
+            className={hideLabel ? `${css.icon_label} srt` : css.icon_label}
+          >
+            {label}
+          </span>
+        )}
+        <i className="material-symbols-outlined" aria-hidden="true">
+          {icon}
+        </i>
+        {!labelFirst && (
+          <span
+            className={hideLabel ? `${css.icon_label} srt` : css.icon_label}
+          >
+            {label}
+          </span>
+        )}
       </Link>
     );
   }
 
   return (
     <div style={styles} className={apply_classes(classes)}>
+      {labelFirst && (
+        <span className={hideLabel ? `${css.icon_label} srt` : css.icon_label}>
+          {label}
+        </span>
+      )}
       <i className="material-symbols-outlined">{icon}</i>
-      <span className={hideLabel ? `${css.icon_label} srt` : css.icon_label}>
-        {label}
-      </span>
+      {!labelFirst && (
+        <span className={hideLabel ? `${css.icon_label} srt` : css.icon_label}>
+          {label}
+        </span>
+      )}
     </div>
   );
 }

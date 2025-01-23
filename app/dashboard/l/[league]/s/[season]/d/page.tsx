@@ -1,5 +1,3 @@
-import { getDivisions } from "@/actions/divisions";
-import { getLeagueData } from "@/actions/leagues";
 import { getSeason } from "@/actions/seasons";
 import CreateDivision from "@/components/dashboard/divisions/CreateDivision";
 import Container from "@/components/ui/Container/Container";
@@ -22,7 +20,7 @@ export default async function Page({
   return (
     <Container>
       <h2 className="push">New division</h2>
-      <CreateDivision season_id={seasonData?.season_id} />
+      <CreateDivision season={seasonData} />
     </Container>
   );
 }

@@ -1,0 +1,9 @@
+.division_header {
+  margin-block-end: var(--spacer-base);
+}
+
+.division_name {
+  display: flex;
+  align-items: center;
+  gap: var(--spacer-ml);
+}

@@ -122,19 +122,16 @@ export const sports_options = [
   },
 ];
 
-export const status_options = [
-  {
-    value: "draft",
-    label: "Draft",
-  },
-  {
-    value: "public",
-    label: "Public",
-  },
-  {
-    value: "archived",
-    label: "Archived",
-  },
+export const status_options: readonly [string, ...string[]] = [
+  "draft",
+  "public",
+  "archived",
+];
+
+export const gender_options: readonly [string, ...string[]] = [
+  "all",
+  "men",
+  "women",
 ];
 
 export const league_roles = new Map<

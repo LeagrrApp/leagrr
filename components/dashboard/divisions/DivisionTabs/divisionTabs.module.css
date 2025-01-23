@@ -1,4 +1,5 @@
 .division_tabs {
+  --end-spacing: var(--spacer-xl);
   border-bottom: 0.125rem solid var(--color-primary-dark);
   position: relative;
   &::before,
@@ -11,14 +12,27 @@
   }
   &::before {
     width: var(--spacer-base);
-    background-image: linear-gradient(to right, #fff, #fff0);
+    background-image: linear-gradient(
+      to right,
+      var(--color-background),
+      transparent
+    );
     inset: 0 auto 0 0;
   }
   &::after {
-    width: var(--spacer-xl);
-    background-image: linear-gradient(to left, #fff, #fff0);
+    width: var(--end-spacing);
+    background-image: linear-gradient(
+      to left,
+      var(--color-background),
+      var(--color-background),
+      transparent
+    );
     inset: 0 0 0 auto;
   }
+}
+
+.division_tabs_can_add {
+  --end-spacing: 5rem;
 }
 
 .division_tabs_list {
@@ -28,8 +42,8 @@
   margin: 0;
   list-style-type: none;
   gap: var(--spacer-m);
-  padding-inline: var(--spacer-base) var(--spacer-xl);
-  width: calc(100%);
+  padding-inline: var(--spacer-base) var(--end-spacing);
+  width: 100%;
   overflow-y: scroll;
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
@@ -68,5 +82,24 @@
     color: var(--color-white);
     border-color: var(--color-primary-dark);
     /* font-size: var(--type-scale-h5); */
+  }
+}
+
+.division_tabs_add {
+  display: inline-flex;
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  z-index: 1;
+  width: 1.75rem;
+  height: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border-radius: 50%;
+  color: var(--color-primary-dark);
+  &:where(:hover, :focus-visible) {
+    background-color: var(--color-grey);
   }
 }

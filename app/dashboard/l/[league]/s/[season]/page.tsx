@@ -1,3 +1,4 @@
+import { canEditLeague } from "@/actions/leagues";
 import { getSeason } from "@/actions/seasons";
 import Button from "@/components/ui/Button/Button";
 import Container from "@/components/ui/Container/Container";
@@ -19,14 +20,18 @@ export default async function Page({
     redirect(`/dashboard/l/${league}/s/${season}/d/${data.divisions[0].slug}`);
   }
 
+  const { canEdit } = await canEditLeague(league);
+
   return (
     <Container>
       <h2 className="push">
         It looks like this season does not have any divisions yet.
       </h2>
-      <Button href={`/dashboard/l/${league}/s/${season}/d/`}>
-        Create division
-      </Button>
+      {canEdit && (
+        <Button href={`/dashboard/l/${league}/s/${season}/d/`}>
+          Create division
+        </Button>
+      )}
     </Container>
   );
 }

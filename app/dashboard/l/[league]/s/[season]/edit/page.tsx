@@ -20,7 +20,7 @@ export default async function Page({
   const backLink = `/dashboard/l/${league}/s/${season}`;
 
   // check to see if user can edit this league
-  const { canEdit } = await canEditLeague(seasonData.league_id, true);
+  const { canEdit } = await canEditLeague(seasonData.league_id);
 
   if (!canEdit) redirect(backLink);
 

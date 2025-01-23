@@ -81,13 +81,17 @@ export default function EditSeason({ backLink, season }: EditSeasonProps) {
         <input type="hidden" name="season_id" value={season.season_id} />
         <Col>
           <Button type="submit" fullWidth disabled={pending}>
-            <i className="material-symbols-outlined">save</i>
+            <i className="material-symbols-outlined" aria-hidden="true">
+              save
+            </i>
             Save Season
           </Button>
         </Col>
         <Col>
           <Button href={backLink} type="button" variant="grey" fullWidth>
-            <i className="material-symbols-outlined">cancel</i>
+            <i className="material-symbols-outlined" aria-hidden="true">
+              cancel
+            </i>
             Cancel
           </Button>
         </Col>

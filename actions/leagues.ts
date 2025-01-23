@@ -107,7 +107,9 @@ export async function createLeague(
   redirect(`/dashboard/l/${slug}`);
 }
 
-export async function getLeagueAdminRole(league_id: number): Promise<number> {
+export async function getLeagueAdminRole(
+  league: number | string
+): Promise<number> {
   // Verify user session
   const { user_id } = await verifySession();
 
@@ -118,12 +120,12 @@ export async function getLeagueAdminRole(league_id: number): Promise<number> {
     FROM
       league_management.league_admins
     WHERE
-      league_id = $1 AND user_id = $2
+      ${typeof league === "number" ? `league_id` : `slug`} = $1 AND user_id = $2
   `;
 
   // query database for any matching both league and user
   const adminsResult: ResultProps<AdminRole> = await db
-    .query(adminsSql, [league_id, user_id])
+    .query(adminsSql, [league, user_id])
     .then((res) => {
       if (res.rowCount) {
         return {
@@ -169,7 +171,7 @@ export async function verifyLeagueAdminRole(
 }
 
 export async function canEditLeague(
-  league_id: number,
+  league: number | string,
   commissionerOnly?: boolean
 ): Promise<{ canEdit: boolean; role: string | undefined }> {
   // check if they are a site wide admin
@@ -184,15 +186,14 @@ export async function canEditLeague(
   // skip additional database query if we already know user has permission
   if (!canEdit) {
     // check for league admin privileges
-    const leagueAdminResult: number = await getLeagueAdminRole(league_id);
+    const leagueAdminResult: number = await getLeagueAdminRole(league);
 
     // verify which role the user has
     if (leagueAdminResult !== 0) {
       // set canEdit based on whether it is a commissionerOnly check or not
       canEdit = commissionerOnly
         ? leagueAdminResult === 1
-        : leagueAdminResult === (1 || 2);
-
+        : leagueAdminResult === 1 || leagueAdminResult === 2;
       // set name of role
       role = league_roles.get(leagueAdminResult)?.name;
     }

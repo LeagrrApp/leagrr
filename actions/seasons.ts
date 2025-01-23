@@ -52,7 +52,15 @@ export async function createSeason(
   // if there are any validation errors, return errors
   if (!isObjectEmpty(errors)) return { errors };
 
-  // TODO: add check to see if the user is allowed to create a season for this league
+  // Check to see if the user is allowed to create a season for this league
+  const { canEdit } = await canEditLeague(seasonData.league_id);
+
+  if (!canEdit) {
+    return {
+      message: "You do not have permission to create a season for this league",
+      status: 400,
+    };
+  }
 
   // build insert sql for season
   const sql = `
@@ -150,6 +158,7 @@ export async function getSeason(
   if (includeDivisions) {
     const divisionSql = `
       SELECT
+        division_id,
         name,
         description,
         tier,

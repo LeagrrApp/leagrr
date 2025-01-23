@@ -3,6 +3,9 @@
   --color-primary-pale: hsl(
     from var(--color-primary) h calc(s - 40) calc(l + 45)
   );
+  --color-primary-paler: hsl(
+    from var(--color-primary) h calc(s - 40) calc(l + 50)
+  );
   --color-primary-dark: hsl(from var(--color-primary) h s calc(l - 20));
   --color-primary-darker: hsl(from var(--color-primary) h s calc(l - 30));
   --color-secondary: #daa0f2;
@@ -36,9 +39,10 @@
   --color-black: #000;
 
   --color-foreground: var(--color-black);
-  --color-background: var(--color-white);
+  /* --color-background: var(--color-white); */
+  --color-background: var(--color-primary-paler);
 
-  --container: 65rem;
+  --container: 75rem;
   --container-narrow: 35rem;
 
   --spacer: 1;

@@ -16,6 +16,28 @@ type UserData = {
   password_hash?: string;
 };
 
+type TeamData = {
+  team_id: number;
+  slug: string;
+  name: string;
+  description?: string;
+  join_code?: string;
+  status?: string;
+};
+
+type TeamStandingsData = Pick<
+  TeamData,
+  "team_id" | "slug" | "name" | "status"
+> & {
+  games_played: number;
+  wins: number;
+  losses: number;
+  ties: number;
+  points: number;
+  goals_for: number;
+  goals_against: number;
+};
+
 type LeagueData = {
   league_id: number;
   slug: string;
@@ -42,15 +64,27 @@ type SeasonData = {
 };
 
 type DivisionData = {
+  division_id: string;
   name: string;
   description?: string;
   slug: string;
   gender?: string;
   tier?: number;
   join_code?: string;
-  season_id?: number;
   status?: string;
+  season_slug: string;
+  season_id: number;
+  league_slug: string;
+  league_id: number;
+  teams?: TeamStandingsData[];
 };
+
+type DivisionPreview = Required<
+  Pick<
+    DivisionData,
+    "division_id" | "name" | "slug" | "gender" | "tier" | "status"
+  >
+>;
 
 type AdminRole = {
   league_role_id: number | undefined;
