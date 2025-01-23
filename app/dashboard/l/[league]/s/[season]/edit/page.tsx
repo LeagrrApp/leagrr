@@ -35,26 +35,25 @@ export default async function Page({
       />
       <h2 className="push">Edit Season</h2>
       <EditSeason backLink={backLink} season={seasonData} />
-      {canEdit && (
-        <ModalConfirmAction
-          defaultState={{
-            season_id: seasonData.season_id,
-            league_id: seasonData.league_id,
-            backLink: `/dashboard/l/${league}/`,
-          }}
-          actionFunction={deleteSeason}
-          confirmationHeading={`Are you sure you want to delete ${seasonData.name}?`}
-          confirmationByline={`This action is permanent cannot be undone. Consider setting the season's status to "Archived" instead.`}
-          trigger={{
-            icon: "delete",
-            label: "Delete Season",
-            buttonStyles: {
-              variant: "danger",
-              fullWidth: true,
-            },
-          }}
-        />
-      )}
+
+      <ModalConfirmAction
+        defaultState={{
+          season_id: seasonData.season_id,
+          league_id: seasonData.league_id,
+          backLink: `/dashboard/l/${league}/`,
+        }}
+        actionFunction={deleteSeason}
+        confirmationHeading={`Are you sure you want to delete ${seasonData.name}?`}
+        confirmationByline={`This action is permanent cannot be undone. Consider setting the season's status to "Archived" instead.`}
+        trigger={{
+          icon: "delete",
+          label: "Delete Season",
+          buttonStyles: {
+            variant: "danger",
+            fullWidth: true,
+          },
+        }}
+      />
     </Container>
   );
 }

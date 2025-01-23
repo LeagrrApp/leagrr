@@ -311,7 +311,7 @@ export async function deleteSeason(state: {
   await verifySession();
 
   // set check for whether user has permission to delete
-  const { canEdit: canDelete } = await canEditLeague(state.league_id, true);
+  const { canEdit: canDelete } = await canEditLeague(state.league_id);
 
   if (!canDelete) {
     // failed both user role check and league role check, shortcut out
@@ -328,7 +328,7 @@ export async function deleteSeason(state: {
   `;
 
   // query the database
-  const deleteResult = db
+  const deleteResult = await db
     .query(sql, [state.season_id])
     .then((res) => {
       return {

@@ -417,7 +417,7 @@ export async function deleteLeague(state: { league_id: number }) {
   `;
 
   // query the database
-  const deleteResult = db
+  const deleteResult = await db
     .query(sql, [state.league_id])
     .then((res) => {
       return {

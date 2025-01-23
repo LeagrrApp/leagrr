@@ -1,7 +1,7 @@
-import { getDivision } from "@/actions/divisions";
+import { deleteDivision, getDivision } from "@/actions/divisions";
 import { canEditLeague } from "@/actions/leagues";
-import { getSeason } from "@/actions/seasons";
 import EditDivisionInfo from "@/components/dashboard/divisions/EditDivisionInfo";
+import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
 import { notFound, redirect } from "next/navigation";
 
 export default async function Page({
@@ -26,6 +26,24 @@ export default async function Page({
     <>
       <h3>Division Information</h3>
       <EditDivisionInfo division={divisionData} divisionLink={backLink} />
+      <ModalConfirmAction
+        defaultState={{
+          division_id: divisionData.division_id,
+          league_id: divisionData.league_id,
+          backLink: `/dashboard/l/${league}/s/${season}`,
+        }}
+        actionFunction={deleteDivision}
+        confirmationHeading={`Are you sure you want to delete ${divisionData.name}?`}
+        confirmationByline={`This action is permanent cannot be undone. Consider setting the division's status to "Archived" instead.`}
+        trigger={{
+          icon: "delete",
+          label: "Delete Season",
+          buttonStyles: {
+            variant: "danger",
+            fullWidth: true,
+          },
+        }}
+      />
     </>
   );
 }

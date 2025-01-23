@@ -1,5 +1,4 @@
 import DHeader from "@/components/dashboard/DHeader/DHeader";
-import LeagueHeader from "@/components/dashboard/leagues/LeagueHeader/LeagueHeader";
 import CreateLeague from "@/components/dashboard/leagues/CreateLeague";
 import Container from "@/components/ui/Container/Container";
 import { verifySession } from "@/lib/session";

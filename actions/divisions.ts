@@ -535,3 +535,51 @@ export async function editDivision(
 
   return { ...updateResult };
 }
+
+export async function deleteDivision(state: {
+  division_id: number;
+  league_id: number;
+  backLink: string;
+}) {
+  // Verify user session
+  await verifySession();
+
+  // set check for whether user has permission to delete
+  const { canEdit: canDelete } = await canEditLeague(state.league_id);
+
+  if (!canDelete) {
+    console.log("can't delete");
+    // failed both user role check and league role check, shortcut out
+    return {
+      message: "You do not have permission to delete this division.",
+      status: 401,
+    };
+  }
+
+  // create delete sql statement
+  const sql = `
+    DELETE FROM league_management.divisions
+    WHERE division_id = $1
+  `;
+
+  // query the database
+  const deleteResult = await db
+    .query(sql, [state.division_id])
+    .then((res) => {
+      return {
+        message: "Division deleted",
+        data: res.rows[0],
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  // TODO: improve error handling if there is an issue deleting season
+
+  redirect(state.backLink);
+}
