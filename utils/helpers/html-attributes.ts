@@ -19,7 +19,9 @@ export function apply_classes(
   return combinedArray.join(" ");
 }
 
-export function paddingString(paddings: SizeOptions[]): string {
+export function paddingString(
+  paddings: [SizeOptions, SizeOptions?, SizeOptions?, SizeOptions?]
+): string {
   const paddingVariableArray: string[] = [];
 
   paddings.forEach((p) => {

@@ -7,6 +7,7 @@ import Icon from "@/components/ui/Icon/Icon";
 import Card from "@/components/ui/Card/Card";
 import { canEditLeague } from "@/actions/leagues";
 import Button from "@/components/ui/Button/Button";
+import DivisionSchedule from "@/components/dashboard/divisions/DivisionSchedule/DivisionSchedule";
 
 export default async function Page({
   params,
@@ -21,7 +22,7 @@ export default async function Page({
 
   const { canEdit } = await canEditLeague(league);
 
-  const { teams } = divisionData;
+  const { teams, games } = divisionData;
 
   return (
     <div className={css.division_grid}>
@@ -46,6 +47,14 @@ export default async function Page({
         <h3>
           <Icon icon="calendar_month" label="Schedule" labelFirst />
         </h3>
+        {games && games.length > 0 ? (
+          <DivisionSchedule games={games} />
+        ) : (
+          <Card padding="base">
+            <p className="push">There are no upcoming games schedule!</p>
+            {canEdit && <Button href="#">Add games</Button>}
+          </Card>
+        )}
       </div>
       <div className={apply_classes([css.division_unit, css.division_stats])}>
         <h3>

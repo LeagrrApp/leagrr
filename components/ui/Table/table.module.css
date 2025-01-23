@@ -1,6 +1,7 @@
 .table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
   font-size: var(--type-scale-s);
 
   & thead {
@@ -14,12 +15,12 @@
     transition: background-color var(--transition);
   }
 
-  & th:first-child {
-    text-align: left;
-  }
-
-  & td {
+  & th {
     width: var(--col-width, auto);
+    &:first-child {
+      text-align: left;
+      width: var(--h-col-width, auto);
+    }
   }
 
   & tbody {
@@ -33,17 +34,6 @@
       &:has(a:is(:hover, :focus-visible)) {
         --tr-color: var(--color-secondary-pale);
       }
-
-      /* &:is(:hover) {
-        & th,
-        & td {
-          background-color: var(--color-secondary);
-        }
-      } */
-    }
-
-    & th {
-      width: 50%;
     }
 
     & td {
@@ -65,7 +55,6 @@
 
     & a {
       text-decoration: none;
-      /* color: var(--color-primary-); */
       &::before {
         content: " ";
         display: inline-block;

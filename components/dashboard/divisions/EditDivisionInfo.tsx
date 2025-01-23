@@ -30,7 +30,7 @@ export default function EditDivisionInfo({
   }, [state]);
 
   return (
-    <form action={action}>
+    <form action={action} className="push">
       <Grid cols={{ xs: 1, m: 2 }} gap="base">
         <Col fullSpan>
           <Input

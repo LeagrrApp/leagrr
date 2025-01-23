@@ -1,7 +1,7 @@
 import { ButtonHTMLAttributes, CSSProperties } from "react";
 import button from "./button.module.css";
 import Link from "next/link";
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import { apply_classes, paddingString } from "@/utils/helpers/html-attributes";
 import { Url } from "next/dist/shared/lib/router/router";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -11,10 +11,12 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: "h1" | "h2" | "h3" | "h4" | "h5" | "s" | "xs";
   fullWidth?: boolean;
   asSpan?: boolean;
+  padding?: [SizeOptions, SizeOptions?];
 }
 
 interface ButtonStyles extends CSSProperties {
   "--btn-size"?: string;
+  "--btn-padding"?: string;
 }
 
 export default function Button({
@@ -29,6 +31,7 @@ export default function Button({
   fullWidth,
   asSpan,
   className,
+  padding,
 }: ButtonProps) {
   const classes = [button.button];
 
@@ -51,6 +54,8 @@ export default function Button({
   if (fullWidth) {
     classes.push(button.button_full_width);
   }
+
+  if (padding) styles["--btn-padding"] = paddingString(padding);
 
   if (href)
     return (

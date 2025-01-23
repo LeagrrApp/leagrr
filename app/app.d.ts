@@ -77,6 +77,7 @@ type DivisionData = {
   league_slug: string;
   league_id: number;
   teams?: TeamStandingsData[];
+  games?: GameData[];
 };
 
 type DivisionPreview = Required<
@@ -85,6 +86,30 @@ type DivisionPreview = Required<
     "division_id" | "name" | "slug" | "gender" | "tier" | "status"
   >
 >;
+
+type GameData = {
+  game_id: number;
+  home_team_id: number;
+  home_team: string;
+  home_team_score: number;
+  away_team_id: number;
+  away_team: string;
+  away_team_score: number;
+  division_id: number;
+  playoff_id?: number;
+  date_time: Date | string;
+  arena_id: number;
+  status:
+    | "draft"
+    | "public"
+    | "completed"
+    | "cancelled"
+    | "postponed"
+    | "archived";
+  arena: string;
+  arena_id: number;
+  venue: string;
+};
 
 type AdminRole = {
   league_role_id: number | undefined;

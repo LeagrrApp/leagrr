@@ -9,18 +9,29 @@ interface IconProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   label: string;
   hideLabel?: boolean;
   size?: FontSizeOptions;
-  padding?: SizeOptions[];
+  padding?: [SizeOptions, SizeOptions?];
   labelFirst?: boolean;
+  gap?: SizeOptions;
 }
 
 interface IconStyles extends CSSProperties {
   "--icon-size"?: string;
   "--icon-padding"?: string;
+  "--icon-gap"?: string;
 }
 
 export default function Icon(props: IconProps) {
-  const { icon, label, hideLabel, href, className, size, padding, labelFirst } =
-    props;
+  const {
+    icon,
+    label,
+    hideLabel,
+    href,
+    className,
+    size,
+    padding,
+    labelFirst,
+    gap,
+  } = props;
 
   const styles: IconStyles = {};
   let classes: string[] = [css.icon];
@@ -37,6 +48,7 @@ export default function Icon(props: IconProps) {
 
   if (size) styles["--icon-size"] = `var(--type-scale-${size})`;
   if (padding) styles["--icon-padding"] = paddingString(padding);
+  if (gap) styles["--icon-gap"] = `var(--spacer-${gap})`;
 
   if (href) {
     return (

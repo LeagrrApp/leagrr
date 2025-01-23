@@ -437,6 +437,53 @@ export async function getDivision(
       };
     });
 
+  const { canEdit } = await canEditLeague(league_slug);
+
+  let divisionGamesSql = `
+    SELECT
+      game_id,
+      home_team_id,
+      (SELECT name FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team,
+      home_team_score,
+      away_team_id,
+      (SELECT name FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team,
+      away_team_score,
+      date_time,
+      arena_id,
+      (SELECT name FROM league_management.arenas WHERE arena_id = g.arena_id) AS arena,
+      (SELECT name FROM league_management.venues WHERE venue_id = (
+        SELECT venue_id FROM league_management.arenas WHERE arena_id = g.arena_id
+      )) AS venue,
+      status
+    FROM league_management.games AS g
+    WHERE
+      division_id = $1
+  `;
+
+  if (!canEdit) {
+    divisionGamesSql = `
+      ${divisionGamesSql}
+      AND
+      status = 'public'
+    `;
+  }
+
+  const divisionGamesResult: ResultProps<GameData[]> = await db
+    .query(divisionGamesSql, [divisionResult.data.division_id])
+    .then((res) => {
+      return {
+        message: "Division teams loaded",
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
   const fullDivisionData = {
     message: divisionResult.message,
     status: divisionResult.status,
@@ -449,6 +496,10 @@ export async function getDivision(
 
   if (divisionTeamsResult.data) {
     fullDivisionData.data.teams = divisionTeamsResult.data;
+  }
+
+  if (divisionGamesResult.data) {
+    fullDivisionData.data.games = divisionGamesResult.data;
   }
 
   return fullDivisionData;

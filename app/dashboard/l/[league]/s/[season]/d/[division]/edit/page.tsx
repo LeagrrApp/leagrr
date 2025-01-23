@@ -37,7 +37,7 @@ export default async function Page({
         confirmationByline={`This action is permanent cannot be undone. Consider setting the division's status to "Archived" instead.`}
         trigger={{
           icon: "delete",
-          label: "Delete Season",
+          label: "Delete Division",
           buttonStyles: {
             variant: "danger",
             fullWidth: true,

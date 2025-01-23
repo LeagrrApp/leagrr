@@ -7,8 +7,6 @@ type DivisionStandingsProps = {
 };
 
 export default function DivisionStandings({ teams }: DivisionStandingsProps) {
-  console.log(teams);
-
   const table_headings = [
     { title: "Team", shorthand: "Team" },
     { title: "Games Played", shorthand: "GP" },
@@ -22,14 +20,14 @@ export default function DivisionStandings({ teams }: DivisionStandingsProps) {
   ];
 
   // heading column width as percentage of the total table width
-  const hColWidth = 30;
+  const hColWidth = 40;
 
   // divide remaining percentage by number of columns not including heading column
   const colWidth = `${(100 - hColWidth) / table_headings.length - 1}%`;
 
   return (
     <Card padding="ml">
-      <Table colWidth={colWidth}>
+      <Table hColWidth={`${hColWidth}%`} colWidth={colWidth}>
         <thead>
           <tr>
             {table_headings.map((th) => (

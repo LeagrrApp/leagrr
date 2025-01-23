@@ -4,10 +4,11 @@
     "standings"
     "schedule"
     "stats";
-  gap: var(--spacer-base);
+  gap: var(--spacer-l) var(--spacer-base);
 
   @container main (min-width: 70rem) {
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr;
     grid-template-areas:
       "standings schedule"
       "stats schedule";
