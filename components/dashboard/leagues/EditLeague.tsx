@@ -45,13 +45,13 @@ export default function EditLeague({ league, backLink }: EditLeagueProps) {
           label="Sport"
           name="sport_id"
           choices={sports_options}
-          value={league.sport_id.toString()}
+          selected={league.sport_id}
         />
         <Select
           label="status"
           name="status"
           choices={status_options}
-          value={league.status}
+          selected={league.status}
           errors={{ errs: state?.errors?.status, type: "danger" }}
         />
         <input type="hidden" name="league_id" value={league.league_id} />

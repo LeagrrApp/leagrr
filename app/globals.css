@@ -28,6 +28,10 @@
   --color-warning-pale: hsl(from var(--color-warning) h s calc(l + 23));
   --color-warning-dark: hsl(from var(--color-warning) h s calc(l - 20));
   --color-warning-darker: hsl(from var(--color-warning) h s calc(l - 40));
+  --color-caution: #f2bd88;
+  --color-caution-pale: hsl(from var(--color-caution) h s calc(l + 23));
+  --color-caution-dark: hsl(from var(--color-caution) h s calc(l - 20));
+  --color-caution-darker: hsl(from var(--color-caution) h s calc(l - 40));
   --color-danger: #f28d88;
   --color-danger-pale: hsl(from var(--color-danger) h s calc(l + 20));
   --color-danger-dark: hsl(from var(--color-danger) h s calc(l - 20));

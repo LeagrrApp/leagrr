@@ -60,7 +60,7 @@ export async function createDivision(
     join_code: formData.get("join_code"),
   };
 
-  // Check to see if the user is allowed to create a season for this league
+  // Check to see if the user is allowed to create a division for this season
   const { canEdit } = await canEditLeague(divisionData.league_id);
 
   if (!canEdit) {

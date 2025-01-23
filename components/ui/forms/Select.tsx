@@ -14,10 +14,8 @@ interface SelectProps extends Partial<HTMLSelectElement> {
     errs?: string[];
     type?: string;
   };
-  choices:
-    | string[]
-    | { label: string; value: string | number }[]
-    | readonly [string, ...string[]];
+  choices: string[] | SelectOption[] | readonly [string, ...string[]];
+  selected?: string | number;
 }
 
 export default function Select({
@@ -25,17 +23,19 @@ export default function Select({
   name,
   labelAfter,
   choices,
-  value,
+  selected,
   required,
   autocapitalize,
   onChange,
   errors,
 }: SelectProps) {
-  const [selectValue, setSelectValue] = useState(value || "");
+  const [selectValue, setSelectValue] = useState<string | number | undefined>(
+    selected || ""
+  );
 
   useEffect(() => {
-    setSelectValue(value || "");
-  }, [value]);
+    setSelectValue(selected || "");
+  }, [selected]);
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     setSelectValue(e.currentTarget.value);
@@ -55,9 +55,9 @@ export default function Select({
         name={name}
         id={name}
         onChange={handleChange}
-        value={selectValue}
         required={required}
         autoCapitalize={autocapitalize}
+        value={selectValue}
       >
         {choices?.map((choice) => {
           if (typeof choice === "object") {
@@ -68,7 +68,7 @@ export default function Select({
             );
           }
           return (
-            <option key={choice} value={choice}>
+            <option key={`${name}-${choice}`} value={choice}>
               {capitalize(choice)}
             </option>
           );

@@ -48,7 +48,7 @@ export default function EditSeason({ backLink, season }: EditSeasonProps) {
             label="Status"
             errors={{ errs: state?.errors?.name, type: "danger" }}
             choices={status_options}
-            value={season.status}
+            selected={season.status}
             required
           />
         </Col>

@@ -38,6 +38,8 @@ type TeamStandingsData = Pick<
   goals_against: number;
 };
 
+type QuickTeam = Pick<TeamData, "team_id" | "name">;
+
 type LeagueData = {
   league_id: number;
   slug: string;
@@ -64,7 +66,7 @@ type SeasonData = {
 };
 
 type DivisionData = {
-  division_id: string;
+  division_id: number;
   name: string;
   description?: string;
   slug: string;
@@ -99,6 +101,8 @@ type GameData = {
   playoff_id?: number;
   date_time: Date | string;
   arena_id: number;
+  arena: string;
+  venue: string;
   status:
     | "draft"
     | "public"
@@ -106,9 +110,11 @@ type GameData = {
     | "cancelled"
     | "postponed"
     | "archived";
-  arena: string;
-  arena_id: number;
-  venue: string;
+};
+
+type AddGameData = {
+  teams: QuickTeam[];
+  locations: LocationData[];
 };
 
 type AdminRole = {
@@ -119,4 +125,11 @@ type MenuItemData = {
   slug: string;
   name: string;
   img?: string;
+};
+
+type LocationData = {
+  venue_slug: string;
+  venue: string;
+  arena: string;
+  arena_id: number;
 };

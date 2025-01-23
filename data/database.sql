@@ -1221,12 +1221,12 @@ VALUES
   ('Div 5', 5, 4, 'all'),
   ('Men 35+', 6, 4, 'men'),
   ('Women 35+', 6, 4, 'women'),
-  ('Coed 1', 1, 5, 'all'),
-  ('Coed 2', 2, 5, 'all'),
-  ('Coed 3', 3, 5, 'all'),
-  ('Coed 4', 4, 5, 'all'),
-  ('Coed 5', 5, 5, 'all'),
-  ('Coed 6', 6, 5, 'all'),
+  ('Div 1', 1, 5, 'all'),
+  ('Div 2', 2, 5, 'all'),
+  ('Div 3', 3, 5, 'all'),
+  ('Div 4', 4, 5, 'all'),
+  ('Div 5', 5, 5, 'all'),
+  ('Div 6', 6, 5, 'all'),
   ('Men 1', 1, 5, 'men'),
   ('Men 2', 2, 5, 'men'),
   ('Men 3', 3, 5, 'men'),
@@ -1247,7 +1247,12 @@ VALUES
   (4, 6),
   (4, 7),
   (4, 8),
-  (4, 9)
+  (4, 9),
+  (11, 10),
+  (11, 11),
+  (11, 12),
+  (11, 13),
+  (11, 14)
 ;
 
 -- Default list of venues
@@ -1289,6 +1294,16 @@ VALUES
   (17, 'arena', 'Arena', 10)
 ;
 
+-- Default venues attached to leagues
+INSERT INTO league_management.league_venues
+  (venue_id, league_id)
+VALUES
+  (5, 1),
+  (7, 3),
+  (6, 3),
+  (10, 3)
+;
+
 -- List of OPH games
 INSERT INTO league_management.games
   (home_team_id, home_team_score, away_team_id, away_team_score, division_id, date_time, arena_id, status)
@@ -1319,11 +1334,17 @@ VALUES
   (4, 0, 2, 4, 1, '2024-12-14 19:00:00', 9, 'completed'),
   (1, 1, 2, 4, 1, '2024-12-23 19:00:00', 9, 'completed'),
   (3, 5, 4, 6, 1, '2024-12-23 20:00:00', 9, 'completed'),
-  (2, 5, 3, 3, 1, '2025-01-02 21:30:00', 10, 'completed'),
-  (1, 7, 4, 2, 1, '2025-01-02 20:30:00', 10, 'completed'),
+  (1, 5, 4, 3, 1, '2025-01-02 20:30:00', 10, 'completed'),
+  (2, 7, 3, 2, 1, '2025-01-02 21:30:00', 10, 'completed'),
   -- new additions
+  (4, 0, 1, 0, 1, '2025-01-11 19:45:00', 10, 'cancelled'),
+  (2, 0, 3, 0, 1, '2025-01-11 20:45:00', 10, 'cancelled'),
   (1, 0, 2, 0, 1, '2025-01-23 19:00:00', 10, 'public'),
   (3, 0, 4, 0, 1, '2025-01-23 20:00:00', 10, 'public'),
-  (3, 0, 1, 0, 1, '2025-01-26 21:45:00', 10, 'public'),
-  (4, 0, 2, 0, 1, '2025-01-26 22:45:00', 10, 'public')
+  (3, 0, 1, 0, 1, '2025-01-26 21:45:00', 10, 'archived'),
+  (4, 0, 2, 0, 1, '2025-01-26 22:45:00', 10, 'archived'),
+  (1, 0, 4, 0, 1, '2025-02-05 20:30:00', 9, 'postponed'),
+  (3, 0, 2, 0, 1, '2025-02-05 21:30:00', 9, 'postponed'),
+  (4, 0, 1, 0, 1, '2025-02-10 20:45:00', 10, 'draft'),
+  (2, 0, 3, 0, 1, '2025-02-10 21:45:00', 10, 'draft')
 ;
