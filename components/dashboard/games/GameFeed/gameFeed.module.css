@@ -1,3 +1,131 @@
 .game_feed {
   grid-column: 1 / -1;
 }
+
+.game_feed ol {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.game_feed_periods {
+  display: grid;
+  gap: var(--spacer-l);
+}
+
+.game_feed_period {
+  &::after {
+    content: " ";
+    margin-block-start: var(--spacer-l);
+    display: block;
+    /* border-block-end: 0.0625rem solid var(--color-primary); */
+    margin-inline: auto;
+    width: min(50%, 25rem);
+    height: 0.125rem;
+    background-image: linear-gradient(
+      to right,
+      transparent,
+      var(--color-grey),
+      var(--color-grey),
+      transparent
+    );
+  }
+}
+
+.game_feed_period_heading {
+  margin-block-end: var(--spacer-ml);
+  text-transform: uppercase;
+  /* font-size: var(--type-scale-h5); */
+}
+
+.game_feed_feed {
+  display: grid;
+  gap: var(--spacer-s) var(--spacer-base);
+  grid-template-columns: auto auto 1fr auto;
+  @container (min-width: 45rem) {
+    grid-template-columns: auto auto 1fr 4rem 1fr auto auto;
+  }
+}
+
+.game_feed_item {
+  /* padding: var(--spacer-ml); */
+  border: 0.0625rem solid var(--color-grey);
+  border-radius: var(--spacer-s);
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-template-areas: "time team player type";
+  /* grid-template-columns: 3.5rem auto 1fr auto; */
+  align-items: center;
+  gap: var(--spacer-base);
+  @container (min-width: 45rem) {
+    grid-column: span 4;
+  }
+  /* &:nth-child(even) {
+    background-color: var(--color-grey-light);
+  } */
+}
+
+.game_feed_home {
+  @container (min-width: 45rem) {
+    text-align: right;
+    grid-template-areas: "type player team time";
+    grid-column: 4 / span 4;
+  }
+}
+
+.game_feed_item_time {
+  grid-area: time;
+  padding: var(--spacer-ml);
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.game_feed_item_period_time {
+  font-weight: bold;
+  font-size: var(--type-scale-h5);
+}
+
+.game_feed_item_period {
+  font-size: var(--type-scale-s);
+}
+
+.game_feed_item_team {
+  grid-area: team;
+}
+
+.game_feed_item_player_info {
+  padding-block: var(--spacer-ml);
+  grid-area: player;
+
+  & a {
+    font-weight: bold;
+    text-decoration: none;
+  }
+}
+
+.game_feed_item_type {
+  grid-area: type;
+  padding: var(--spacer-ml);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game_feed_item_type_goal {
+  color: var(--color-danger-dark);
+}
+
+.game_feed_completed {
+  text-align: center;
+  padding-block-start: var(--spacer-ml);
+}
+
+.game_feed_completed_heading {
+  text-transform: uppercase;
+}
+
+.game_feed_winner {
+  color: var(--color-primary);
+}

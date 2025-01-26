@@ -141,6 +141,7 @@ type PlayerStats = {
 type BaseStatsData = {
   type: string;
   user_id: number;
+  username: string;
   user_last_name: string;
   team_id: number;
   team: string;

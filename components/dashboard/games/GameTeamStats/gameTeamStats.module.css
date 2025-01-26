@@ -2,7 +2,7 @@
 }
 
 .team_stats_heading {
-  padding-inline-start: var(--spacer-s);
+  margin-block-end: var(--spacer-ml);
   font-size: var(--type-scale-h5);
 
   table + & {

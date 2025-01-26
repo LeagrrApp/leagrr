@@ -103,3 +103,29 @@ export function nameDisplay(
       return `${first_name} ${last_name}`;
   }
 }
+
+export function formatTimePeriod(time_period: {
+  minutes: number;
+  seconds: number;
+}): string {
+  return `${time_period.minutes}:${
+    time_period.seconds > 9 ? time_period.seconds : `0${time_period.seconds}`
+  }`;
+}
+
+export function addNumberOrdinals(number: number) {
+  const cleanedNumberToCheck = parseInt(
+    number.toString().substring(number.toString().length - 1)
+  );
+
+  switch (cleanedNumberToCheck) {
+    case 1:
+      return `${number}st`;
+    case 2:
+      return `${number}nd`;
+    case 3:
+      return `${number}rd`;
+    default:
+      return `${number}th`;
+  }
+}

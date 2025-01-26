@@ -493,6 +493,7 @@ export async function getGameFeed(game_id: number): Promise<
     period1: GameFeedItemData[];
     period2: GameFeedItemData[];
     period3: GameFeedItemData[];
+    [key: string]: GameFeedItemData[];
   }>
 > {
   // verify user is signed in
@@ -509,6 +510,7 @@ export async function getGameFeed(game_id: number): Promise<
       tableoid::regclass AS type,
       s.shot_id,
       s.user_id,
+      (SELECT username FROM admin.users AS u WHERE u.user_id = s.user_id) AS username,
       (SELECT last_name FROM admin.users AS u WHERE u.user_id = s.user_id) AS user_last_name,
       s.team_id,
       (SELECT name FROM league_management.teams AS t WHERE t.team_id = s.team_id) AS team,
@@ -551,6 +553,7 @@ export async function getGameFeed(game_id: number): Promise<
       tableoid::regclass AS type,
       g.goal_id,
       g.user_id,
+      (SELECT username FROM admin.users AS u WHERE u.user_id = g.user_id) AS username,
       (SELECT last_name FROM admin.users AS u WHERE u.user_id = g.user_id) AS user_last_name,
       g.team_id,
       (SELECT name FROM league_management.teams AS t WHERE t.team_id = g.team_id) AS team,
@@ -594,6 +597,7 @@ export async function getGameFeed(game_id: number): Promise<
       a.assist_id,
       a.goal_id,
       a.user_id,
+      (SELECT username FROM admin.users AS u WHERE u.user_id = a.user_id) AS username,
       (SELECT last_name FROM admin.users AS u WHERE u.user_id = a.user_id) AS user_last_name,
       a.team_id,
       (SELECT name FROM league_management.teams AS t WHERE t.team_id = a.team_id) AS team,
@@ -632,6 +636,7 @@ export async function getGameFeed(game_id: number): Promise<
       tableoid::regclass AS type,
       s.save_id,
       s.user_id,
+      (SELECT username FROM admin.users AS u WHERE u.user_id = s.user_id) AS username,
       (SELECT last_name FROM admin.users AS u WHERE u.user_id = s.user_id) AS user_last_name,
       s.team_id,
       (SELECT name FROM league_management.teams AS t WHERE t.team_id = s.team_id) AS team,
@@ -673,6 +678,7 @@ export async function getGameFeed(game_id: number): Promise<
       tableoid::regclass AS type,
       p.penalty_id,
       p.user_id,
+      (SELECT username FROM admin.users AS u WHERE u.user_id = p.user_id) AS username,
       (SELECT last_name FROM admin.users AS u WHERE u.user_id = p.user_id) AS user_last_name,
       p.team_id,
       (SELECT name FROM league_management.teams AS t WHERE t.team_id = p.team_id) AS team,
@@ -721,8 +727,10 @@ export async function getGameFeed(game_id: number): Promise<
     });
   });
 
-  // combine into single array, order by period & time
-  const typeOrder = {
+  // Object used as reference to order feed items
+  const typeOrder: {
+    [key: string]: number;
+  } = {
     "stats.shots": 1,
     "stats.goals": 2,
     "stats.save": 3,
@@ -730,6 +738,9 @@ export async function getGameFeed(game_id: number): Promise<
     default: Number.MAX_VALUE,
   };
 
+  // combine into single array, order by period & time
+  // when multiple different types share same period & time,
+  // put in this order: shot, goal, save, penalty
   const gameFeedItems = [
     ...shotsResult.data,
     ...goalsWithAssists,
@@ -745,14 +756,17 @@ export async function getGameFeed(game_id: number): Promise<
         (typeOrder[b.type] || typeOrder.default)
   );
 
-  const gameFeed = {
+  const gameFeed: {
+    period1: GameFeedItemData[];
+    period2: GameFeedItemData[];
+    period3: GameFeedItemData[];
+    [key: string]: GameFeedItemData[];
+  } = {
     period1: gameFeedItems.filter((g) => g.period === 1),
     period2: gameFeedItems.filter((g) => g.period === 2),
     period3: gameFeedItems.filter((g) => g.period === 3),
   };
 
-  // when multiple different types share same period & time,
-  // put in this order: shot, goal, save, penalty
   return {
     message: "Game feed data loaded!",
     status: 200,

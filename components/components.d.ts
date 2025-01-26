@@ -50,6 +50,8 @@ type ColorOptions =
   | "warning"
   | "caution"
   | "danger"
+  | "white"
+  | "black"
   | "grey";
 
 type SelectOption = {
