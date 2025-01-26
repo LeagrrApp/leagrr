@@ -487,3 +487,275 @@ export async function getTeamGameStats(game_id: number, team_id: number) {
 
   return teamGameStatsResult;
 }
+
+export async function getGameFeed(game_id: number): Promise<
+  ResultProps<{
+    period1: GameFeedItemData[];
+    period2: GameFeedItemData[];
+    period3: GameFeedItemData[];
+  }>
+> {
+  // verify user is signed in
+  await verifySession();
+
+  const errorResponse = {
+    message: "There was a problem loading the game feed.",
+    status: 400,
+  };
+
+  // get all shots
+  const shotsSql = `
+    SELECT
+      tableoid::regclass AS type,
+      s.shot_id,
+      s.user_id,
+      (SELECT last_name FROM admin.users AS u WHERE u.user_id = s.user_id) AS user_last_name,
+      s.team_id,
+      (SELECT name FROM league_management.teams AS t WHERE t.team_id = s.team_id) AS team,
+      s.period,
+      s.period_time
+    FROM
+      stats.shots AS s
+    WHERE
+      game_id = $1
+    ORDER BY
+      period ASC, period_time ASC
+  `;
+
+  const shotsResult: ResultProps<ShotStatData[]> = await db
+    .query(shotsSql, [game_id])
+    .then((res) => {
+      return {
+        message: "Shot stats loaded",
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (!shotsResult.data) {
+    return {
+      message: "There was a problem loading the game feed.",
+      status: 400,
+    };
+  }
+
+  // get all goals
+  const goalsSql = `
+    SELECT
+      tableoid::regclass AS type,
+      g.goal_id,
+      g.user_id,
+      (SELECT last_name FROM admin.users AS u WHERE u.user_id = g.user_id) AS user_last_name,
+      g.team_id,
+      (SELECT name FROM league_management.teams AS t WHERE t.team_id = g.team_id) AS team,
+      g.period,
+      g.period_time,
+      g.shorthanded,
+      g.power_play,
+      g.empty_net
+    FROM
+      stats.goals AS g
+    WHERE
+      game_id = $1
+    ORDER BY
+      period ASC, period_time ASC
+  `;
+
+  const goalsResult: ResultProps<GoalStatData[]> = await db
+    .query(goalsSql, [game_id])
+    .then((res) => {
+      return {
+        message: "Goals stats loaded",
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (!goalsResult.data) {
+    return errorResponse;
+  }
+
+  // get all assists
+  const assistsSql = `
+    SELECT
+      tableoid::regclass AS type,
+      a.assist_id,
+      a.goal_id,
+      a.user_id,
+      (SELECT last_name FROM admin.users AS u WHERE u.user_id = a.user_id) AS user_last_name,
+      a.team_id,
+      (SELECT name FROM league_management.teams AS t WHERE t.team_id = a.team_id) AS team,
+      a.primary_assist
+    FROM
+      stats.assists AS a
+    WHERE
+      game_id = $1
+    ORDER BY
+      goal_id ASC, primary_assist DESC
+  `;
+
+  const assistsResult: ResultProps<AssistStatData[]> = await db
+    .query(assistsSql, [game_id])
+    .then((res) => {
+      return {
+        message: "Assist stats loaded",
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (!assistsResult.data) {
+    return errorResponse;
+  }
+
+  // get all saves
+  const savesSql = `
+    SELECT
+      tableoid::regclass AS type,
+      s.save_id,
+      s.user_id,
+      (SELECT last_name FROM admin.users AS u WHERE u.user_id = s.user_id) AS user_last_name,
+      s.team_id,
+      (SELECT name FROM league_management.teams AS t WHERE t.team_id = s.team_id) AS team,
+      s.period,
+      s.period_time,
+      s.penalty_kill,
+      s.rebound
+    FROM
+      stats.saves AS s
+    WHERE
+      game_id = $1
+    ORDER BY
+      period ASC, period_time ASC
+  `;
+
+  const savesResult: ResultProps<SaveStatData[]> = await db
+    .query(savesSql, [game_id])
+    .then((res) => {
+      return {
+        message: "Saves stats loaded",
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (!savesResult.data) {
+    return errorResponse;
+  }
+
+  // get all penalties
+  const penaltiesSql = `
+    SELECT
+      tableoid::regclass AS type,
+      p.penalty_id,
+      p.user_id,
+      (SELECT last_name FROM admin.users AS u WHERE u.user_id = p.user_id) AS user_last_name,
+      p.team_id,
+      (SELECT name FROM league_management.teams AS t WHERE t.team_id = p.team_id) AS team,
+      p.period,
+      p.period_time,
+      p.infraction,
+      p.minutes
+    FROM
+      stats.penalties AS p
+    WHERE
+      game_id = $1
+    ORDER BY
+      period ASC, period_time ASC
+  `;
+
+  const penaltiesResult: ResultProps<PenaltyStatData[]> = await db
+    .query(penaltiesSql, [game_id])
+    .then((res) => {
+      return {
+        message: "Penalties stats loaded",
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (!penaltiesResult.data) {
+    console.log(penaltiesResult);
+    return errorResponse;
+  }
+
+  // attach assists to goals
+  const goalsWithAssists: GoalStatData[] = [];
+  const goals = goalsResult.data;
+  const assists = assistsResult.data;
+
+  goals.forEach((g) => {
+    goalsWithAssists.push({
+      ...g,
+      assists: assists.filter((a) => a.goal_id === g.goal_id),
+    });
+  });
+
+  // combine into single array, order by period & time
+  const typeOrder = {
+    "stats.shots": 1,
+    "stats.goals": 2,
+    "stats.save": 3,
+    "stats.penalties": 4,
+    default: Number.MAX_VALUE,
+  };
+
+  const gameFeedItems = [
+    ...shotsResult.data,
+    ...goalsWithAssists,
+    ...savesResult.data,
+    ...penaltiesResult.data,
+  ].sort(
+    (a, b) =>
+      a.period - b.period ||
+      a.period_time.minutes * 60 +
+        a.period_time.seconds -
+        (b.period_time.minutes * 60 + b.period_time.seconds) ||
+      (typeOrder[a.type] || typeOrder.default) -
+        (typeOrder[b.type] || typeOrder.default)
+  );
+
+  const gameFeed = {
+    period1: gameFeedItems.filter((g) => g.period === 1),
+    period2: gameFeedItems.filter((g) => g.period === 2),
+    period3: gameFeedItems.filter((g) => g.period === 3),
+  };
+
+  // when multiple different types share same period & time,
+  // put in this order: shot, goal, save, penalty
+  return {
+    message: "Game feed data loaded!",
+    status: 200,
+    data: gameFeed,
+  };
+}

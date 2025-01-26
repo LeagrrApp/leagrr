@@ -73,7 +73,7 @@ export default async function GameTeamStats({
   return (
     <div className={apply_classes(classes)}>
       <Card className="push" padding="ml">
-        <h4 className={css.team_stats_heading}>Player Stats</h4>
+        <h3 className={css.team_stats_heading}>Player Stats</h3>
         <Table hColWidth={`${playerHColWidth}%`} colWidth={playerColWidth}>
           <thead>
             <tr>
@@ -110,7 +110,7 @@ export default async function GameTeamStats({
         </Table>
       </Card>
       <Card padding="ml">
-        <h4 className={css.team_stats_heading}>Goalie Stats</h4>
+        <h3 className={css.team_stats_heading}>Goalie Stats</h3>
         <Table hColWidth={`${goalieHColWidth}%`} colWidth={goalieColWidth}>
           <thead>
             <tr>

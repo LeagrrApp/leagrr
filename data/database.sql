@@ -1372,11 +1372,11 @@ VALUES
 INSERT INTO stats.goals
   (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net)
 VALUES
-  (1, 31, 3, 2, 1, '11:20', false, false, false),
-  (2, 31, 10, 2, 1, '15:37', false, true, false),
-  (3, 31, 6, 1, 2, '05:40', false, false, false),
-  (4, 31, 3, 2, 2, '18:10', false, false, false),
-  (5, 31, 28, 2, 3, '18:20', false, false, true)
+  (1, 31, 3, 2, 1, '00:11:20', false, false, false),
+  (2, 31, 10, 2, 1, '00:15:37', false, true, false),
+  (3, 31, 6, 1, 2, '00:05:40', false, false, false),
+  (4, 31, 3, 2, 2, '00:18:10', false, false, false),
+  (5, 31, 28, 2, 3, '00:18:20', false, false, true)
 ;
 
 -- Assist samples
@@ -1394,46 +1394,46 @@ VALUES
 INSERT INTO stats.penalties
   (penalty_id, game_id, user_id, team_id, period, period_time, infraction, minutes)
 VALUES
-  (1, 31, 7, 1, 1, '15:02', 'Tripping', 2),
-  (2, 31, 32, 2, 2, '08:22', 'Hooking', 2),
-  (3, 31, 32, 2, 3, '11:31', 'Interference', 2)
+  (1, 31, 7, 1, 1, '00:15:02', 'Tripping', 2),
+  (2, 31, 32, 2, 2, '00:08:22', 'Hooking', 2),
+  (3, 31, 32, 2, 3, '00:11:31', 'Interference', 2)
 ;
 
 -- Shots
 INSERT INTO stats.shots
   (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play)
 VALUES 
-  (1, 31, 3, 2, 1, '05:15', null, false, false),
-  (2, 31, 6, 1, 1, '07:35', null, false, false),
-  (3, 31, 31, 2, 1, '09:05', null, false, false),
-  (4, 31, 18, 1, 1, '10:03', null, false, false),
-  (5, 31, 3, 2, 1, '11:20', 1, false, false),
-  (6, 31, 10, 2, 1, '15:37', 2, false, true),
-  (7, 31, 3, 2, 1, '17:43', null, false, false),
-  (8, 31, 10, 2, 2, '01:11', null, false, false),
-  (9, 31, 6, 1, 2, '05:40', 3, false, false),
-  (10, 31, 21, 1, 2, '07:15', null, false, false),
-  (11, 31, 34, 2, 2, '11:15', null, false, false),
-  (12, 31, 3, 2, 2, '18:10', 4, false, false),
-  (13, 31, 27, 2, 3, '07:12', null, false, false),
-  (14, 31, 22, 1, 3, '11:56', null, false, false),
-  (15, 31, 36, 2, 3, '15:15', null, false, false),
-  (16, 31, 28, 2, 3, '18:20', 5, false, false)
+  (1, 31, 3, 2, 1, '00:05:15', null, false, false),
+  (2, 31, 6, 1, 1, '00:07:35', null, false, false),
+  (3, 31, 31, 2, 1, '00:09:05', null, false, false),
+  (4, 31, 18, 1, 1, '00:10:03', null, false, false),
+  (5, 31, 3, 2, 1, '00:11:20', 1, false, false),
+  (6, 31, 10, 2, 1, '00:15:37', 2, false, true),
+  (7, 31, 3, 2, 1, '00:17:43', null, false, false),
+  (8, 31, 10, 2, 2, '00:01:11', null, false, false),
+  (9, 31, 6, 1, 2, '00:05:40', 3, false, false),
+  (10, 31, 21, 1, 2, '00:07:15', null, false, false),
+  (11, 31, 34, 2, 2, '00:11:15', null, false, false),
+  (12, 31, 3, 2, 2, '00:18:10', 4, false, false),
+  (13, 31, 27, 2, 3, '00:07:12', null, false, false),
+  (14, 31, 22, 1, 3, '00:11:56', null, false, false),
+  (15, 31, 36, 2, 3, '00:15:15', null, false, false),
+  (16, 31, 28, 2, 3, '00:18:20', 5, false, false)
 ;
 
 -- Saves
 INSERT INTO stats.saves
   (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound)
 VALUES 
-  (1, 31, 26, 1, 1, 1, '05:15', false, false),
-  (2, 31, 38, 2, 2, 1, '07:35', false, true),
-  (3, 31, 26, 1, 3, 1, '09:05', false, true),
-  (4, 31, 38, 2, 4, 1, '10:03', false, false),
-  (5, 31, 26, 1, 7, 1, '17:43', false, true),
-  (6, 31, 26, 1, 8, 2, '01:11', false, false),
-  (7, 31, 38, 2, 10, 1, '07:15', false, true),
-  (8, 31, 26, 1, 11, 2, '11:15', false, true),
-  (9, 31, 26, 1, 13, 3, '07:12', false, true),
-  (10, 31, 38, 2, 14, 3, '11:56', true, false),
-  (11, 31, 26, 1, 15, 3, '15:15', false, true)
+  (1, 31, 26, 1, 1, 1, '00:05:15', false, false),
+  (2, 31, 38, 2, 2, 1, '00:07:35', false, true),
+  (3, 31, 26, 1, 3, 1, '00:09:05', false, true),
+  (4, 31, 38, 2, 4, 1, '00:10:03', false, false),
+  (5, 31, 26, 1, 7, 1, '00:17:43', false, true),
+  (6, 31, 26, 1, 8, 2, '00:01:11', false, false),
+  (7, 31, 38, 2, 10, 1, '00:07:15', false, true),
+  (8, 31, 26, 1, 11, 2, '00:11:15', false, true),
+  (9, 31, 26, 1, 13, 3, '00:07:12', false, true),
+  (10, 31, 38, 2, 14, 3, '00:11:56', true, false),
+  (11, 31, 26, 1, 15, 3, '00:15:15', false, true)
 ;

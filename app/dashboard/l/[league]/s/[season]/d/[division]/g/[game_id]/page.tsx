@@ -6,6 +6,7 @@ import Icon from "@/components/ui/Icon/Icon";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
+import GameFeed from "@/components/dashboard/games/GameFeed/GameFeed";
 
 export default async function Page({
   params,
@@ -23,7 +24,7 @@ export default async function Page({
 
   if (!gameData) notFound();
 
-  console.log(gameData);
+  // console.log(gameData);
 
   const backLink = createDashboardUrl({ l: league, s: season, d: division });
 
@@ -56,6 +57,7 @@ export default async function Page({
         <GameHeader game={gameData} canEdit={canEdit} />
         <GameTeamStats game={gameData} team={awayTeam} />
         <GameTeamStats game={gameData} team={homeTeam} isHome />
+        <GameFeed game={gameData} />
       </article>
     </>
   );
