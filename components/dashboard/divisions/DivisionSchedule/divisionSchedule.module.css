@@ -19,6 +19,10 @@
   }
 }
 
+.division_schedule_add {
+  margin-inline-end: auto;
+}
+
 .division_schedule .division_schedule_narrow {
   width: 20%;
 

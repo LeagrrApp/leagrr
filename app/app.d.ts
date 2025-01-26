@@ -93,10 +93,16 @@ type GameData = {
   game_id: number;
   home_team_id: number;
   home_team: string;
+  home_team_slug: string;
   home_team_score: number;
+  home_team_stats_goals: number;
+  home_team_shots: number;
   away_team_id: number;
   away_team: string;
+  away_team_slug: string;
   away_team_score: number;
+  away_team_stats_goals: number;
+  away_team_shots: number;
   division_id: number;
   playoff_id?: number;
   date_time: Date | string;
@@ -115,6 +121,21 @@ type GameData = {
 type AddGameData = {
   teams: QuickTeam[];
   locations: LocationData[];
+};
+
+type PlayerStats = {
+  user_id: number;
+  username: string;
+  first_name: string;
+  last_name: string;
+  number?: number;
+  position?: string;
+  goals: number;
+  assists: number;
+  points: number;
+  shots: number;
+  saves: number;
+  penalties_in_minutes: number;
 };
 
 type AdminRole = {

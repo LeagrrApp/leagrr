@@ -64,3 +64,16 @@
     }
   }
 }
+
+.table_flipped {
+  & th {
+    &:first-child {
+      text-align: center;
+      width: var(--col-width, auto);
+    }
+    &:last-child {
+      text-align: end;
+      width: var(--h-col-width, auto);
+    }
+  }
+}

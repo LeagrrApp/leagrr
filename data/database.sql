@@ -172,6 +172,8 @@ CREATE TABLE league_management.team_memberships (
   user_id               INT NOT NULL,
   team_id               INT NOT NULL,
   team_role_id          INT DEFAULT 1,
+  position              VARCHAR(50),
+  number                INT,
   created_on            TIMESTAMP DEFAULT NOW()
 );
 
@@ -682,7 +684,7 @@ CREATE TABLE stats.assists (
   game_id         INT NOT NULL,
   user_id         INT NOT NULL,
   team_id         INT NOT NULL,
-  primary_assist  BOOLEAN DEFAULT false,
+  primary_assist  BOOLEAN DEFAULT true,
   created_on      TIMESTAMP DEFAULT NOW()
 );
 
@@ -737,6 +739,7 @@ CREATE TABLE stats.shots (
   team_id         INT NOT NULL,
   period          INT,
   period_time     INTERVAL,
+  goal_id         INT,
   shorthanded     BOOLEAN DEFAULT false,
   power_play      BOOLEAN DEFAULT false,
   created_on      TIMESTAMP DEFAULT NOW()
@@ -754,6 +757,10 @@ ALTER TABLE stats.shots
 ADD CONSTRAINT fk_shots_team_id FOREIGN KEY (team_id)
     REFERENCES league_management.teams (team_id);
 
+ALTER TABLE stats.shots
+ADD CONSTRAINT fk_shots_goal_id FOREIGN KEY (goal_id)
+    REFERENCES stats.goals (goal_id);
+
 -- Create saves
 -- Track saves and connect the saves to a game and a player
 CREATE TABLE stats.saves (
@@ -761,6 +768,7 @@ CREATE TABLE stats.saves (
   game_id         INT NOT NULL,
   user_id         INT NOT NULL,
   team_id         INT NOT NULL,
+  shot_id         INT NOT NULL,
   period          INT,
   period_time     INTERVAL,
   penalty_kill    BOOLEAN DEFAULT false,
@@ -779,6 +787,10 @@ ADD CONSTRAINT fk_saves_user_id FOREIGN KEY (user_id)
 ALTER TABLE stats.saves
 ADD CONSTRAINT fk_saves_team_id FOREIGN KEY (team_id)
     REFERENCES league_management.teams (team_id);
+
+ALTER TABLE stats.saves
+ADD CONSTRAINT fk_saves_shot_id FOREIGN KEY (shot_id)
+    REFERENCES stats.shots (shot_id);
 
 -- Create shutout
 -- Track shoutouts and connect the shutout to a game and a player
@@ -914,7 +926,7 @@ VALUES
   ('lukasbauer', 'lukas.bauer@example.com', 'Lukas', 'Bauer', 2, 'he/him', 'heyLukas123'),
   ('emmaschmidt', 'emma.schmidt@example.com', 'Emma', 'Schmidt', 1, 'she/her', 'heyEmma123'),
   ('liammüller', 'liam.mueller@example.com', 'Liam', 'Müller', 2, 'he/him', 'heyLiam123'),
-  ('hannafischer', 'hanna.fischer@example.com', 'Hanna', 'Fischer', 1, 'she/her', 'heyHanna123'),
+  ('hannahfischer', 'hannah.fischer@example.com', 'Hannah', 'Fischer', 1, 'she/her', 'heyHanna123'),
   ('oliverkoch', 'oliver.koch@example.com', 'Oliver', 'Koch', 2, 'he/him', 'heyOliver123'),
   ('clararichter', 'clara.richter@example.com', 'Clara', 'Richter', 1, 'she/her', 'heyClara123'),
   ('noahtaylor', 'noah.taylor@example.com', 'Noah', 'Taylor', 2, 'he/him', 'heyNoah123'),
@@ -1035,70 +1047,73 @@ VALUES
 
 -- Add captains to OPH teams
 INSERT INTO league_management.team_memberships
-  (user_id, team_id, team_role_id)
+  (user_id, team_id, team_role_id, position, number)
 VALUES
-  (6, 1, 4), -- Stephen
-  (7, 1, 5), -- Levi
-  (10, 2, 4), -- Jayce
-  (3, 2, 5), -- Aida
-  (8, 3, 4), -- Cheryl
-  (11, 3, 5), -- Britt
-  (9, 4, 4), -- Mason
-  (5, 4, 5)  -- Kat
+  (6, 1, 4, 'Center', 30), -- Stephen
+  (7, 1, 5, 'Defense', 25), -- Levi
+  (10, 2, 4, 'Defense', 18), -- Jayce
+  (3, 2, 5, 'Defense', 47), -- Aida
+  (8, 3, 4, 'Center', 12), -- Cheryl
+  (11, 3, 5, 'Left Wing', 9), -- Britt
+  (9, 4, 4, 'Right Wing', 8), -- Mason
+  (5, 4, 5, 'Defense', 10)  -- Kat
 ;
 
 -- Add sample players to OPH teams as players
 INSERT INTO league_management.team_memberships
-  (user_id, team_id)
+  (user_id, team_id, position, number)
 VALUES
-  (15, 1),
-  (16, 1),
-  (17, 1),
-  (18, 1),
-  (19, 1),
-  (20, 1),
-  (21, 1),
-  (22, 1),
-  (23, 1),
-  (24, 1),
-  (25, 1),
-  (26, 1),
-  (27, 2),
-  (28, 2),
-  (29, 2),
-  (30, 2),
-  (31, 2),
-  (32, 2),
-  (33, 2),
-  (34, 2),
-  (35, 2),
-  (36, 2),
-  (37, 2),
-  (38, 2),
-  (39, 3),
-  (40, 3),
-  (41, 3),
-  (42, 3),
-  (43, 3),
-  (44, 3),
-  (45, 3),
-  (46, 3),
-  (47, 3),
-  (48, 3),
-  (49, 3),
-  (50, 3),
-  (51, 4),
-  (52, 4),
-  (53, 4),
-  (54, 4),
-  (55, 4),
-  (56, 4),
-  (57, 4),
-  (58, 4),
-  (59, 4),
-  (60, 4),
-  (61, 4),
-  (62, 4)
+  (15, 1, 'Center', 8),
+  (16, 1, 'Center', 9),
+  (17, 1, 'Left Wing', 10),
+  (18, 1, 'Left Wing', 11),
+  (19, 1, 'Right Wing', 12),
+  (20, 1, 'Right Wing', 13),
+  (21, 1, 'Center', 14),
+  (22, 1, 'Defense', 15),
+  (23, 1, 'Defense', 16),
+  (24, 1, 'Defense', 17),
+  (25, 1, 'Defense', 18),
+  (26, 1, 'Goalie', 33),
+
+  (27, 2, 'Center', 20),
+  (28, 2, 'Center', 21),
+  (29, 2, 'Center', 22),
+  (30, 2, 'Left Wing', 23),
+  (31, 2, 'Left Wing', 24),
+  (32, 2, 'Right Wing', 25),
+  (33, 2, 'Right Wing', 26),
+  (34, 2, 'Left Wing', 27),
+  (35, 2, 'Right Wing', 28),
+  (36, 2, 'Defense', 29),
+  (37, 2, 'Defense', 30),
+  (38, 2, 'Goalie', 31),
+
+  (39, 3, 'Center', 40),
+  (40, 3, 'Center', 41),
+  (41, 3, 'Left Wing', 42),
+  (42, 3, 'Left Wing', 43),
+  (43, 3, 'Right Wing', 44),
+  (44, 3, 'Right Wing', 45),
+  (45, 3, 'Center', 46),
+  (46, 3, 'Defense', 47),
+  (47, 3, 'Defense', 48),
+  (48, 3, 'Defense', 49),
+  (49, 3, 'Defense', 50),
+  (50, 3, 'Goalie', 51),
+  
+  (51, 4, 'Center', 26),
+  (52, 4, 'Center', 27),
+  (53, 4, 'Left Wing', 28),
+  (54, 4, 'Left Wing', 29),
+  (55, 4, 'Right Wing', 30),
+  (56, 4, 'Right Wing', 31),
+  (57, 4, 'Center', 32),
+  (58, 4, 'Defense', 33),
+  (59, 4, 'Defense', 34),
+  (60, 4, 'Defense', 35),
+  (61, 4, 'Defense', 36),
+  (62, 4, 'Goalie', 37)
 ;
 
 -- Add captains to Hometown Hockey
@@ -1308,43 +1323,117 @@ VALUES
 INSERT INTO league_management.games
   (home_team_id, home_team_score, away_team_id, away_team_score, division_id, date_time, arena_id, status)
 VALUES
-  (1, 3, 4, 0, 1, '2024-09-08 17:45:00', 10, 'completed'),
-  (2, 3, 3, 4, 1, '2024-09-08 18:45:00', 10, 'completed'),
-  (3, 0, 1, 2, 1, '2024-09-16 22:00:00', 9, 'completed'),
-  (4, 1, 2, 4, 1, '2024-09-16 23:00:00', 9, 'completed'),
-  (1, 4, 2, 1, 1, '2024-09-25 21:00:00', 9, 'completed'),
-  (3, 3, 4, 4, 1, '2024-09-25 22:00:00', 9, 'completed'),
-  (1, 2, 4, 2, 1, '2024-10-03 19:30:00', 10, 'completed'),
-  (2, 2, 3, 1, 1, '2024-10-03 20:30:00', 10, 'completed'),
-  (3, 3, 1, 4, 1, '2024-10-14 19:00:00', 9, 'completed'),
-  (4, 2, 2, 3, 1, '2024-10-14 20:00:00', 9, 'completed'),
-  (1, 1, 4, 2, 1, '2024-10-19 20:00:00', 9, 'completed'),
-  (2, 2, 3, 0, 1, '2024-10-19 21:00:00', 9, 'completed'),
-  (1, 2, 2, 2, 1, '2024-10-30 21:30:00', 10, 'completed'),
-  (3, 2, 4, 4, 1, '2024-10-30 22:30:00', 10, 'completed'),
-  (1, 0, 4, 2, 1, '2024-11-08 20:30:00', 10, 'completed'),
-  (2, 4, 3, 0, 1, '2024-11-08 21:30:00', 10, 'completed'),
-  (3, 3, 1, 5, 1, '2024-11-18 20:00:00', 9, 'completed'),
-  (4, 2, 2, 5, 1, '2024-11-18 21:00:00', 9, 'completed'),
-  (1, 2, 2, 3, 1, '2024-11-27 18:30:00', 10, 'completed'),
-  (3, 1, 4, 2, 1, '2024-11-27 19:30:00', 10, 'completed'),
-  (1, 1, 4, 3, 1, '2024-12-05 20:30:00', 10, 'completed'),
-  (2, 2, 3, 1, 1, '2024-12-05 21:30:00', 10, 'completed'),
-  (3, 2, 1, 0, 1, '2024-12-14 18:00:00', 9, 'completed'),
-  (4, 0, 2, 4, 1, '2024-12-14 19:00:00', 9, 'completed'),
-  (1, 1, 2, 4, 1, '2024-12-23 19:00:00', 9, 'completed'),
-  (3, 5, 4, 6, 1, '2024-12-23 20:00:00', 9, 'completed'),
-  (1, 5, 4, 3, 1, '2025-01-02 20:30:00', 10, 'completed'),
-  (2, 7, 3, 2, 1, '2025-01-02 21:30:00', 10, 'completed'),
+  (1, 3, 4, 0, 1, '2024-09-08 17:45:00', 10, 'completed'), -- 1
+  (2, 3, 3, 4, 1, '2024-09-08 18:45:00', 10, 'completed'), -- 2
+  (3, 0, 1, 2, 1, '2024-09-16 22:00:00', 9, 'completed'), -- 3
+  (4, 1, 2, 4, 1, '2024-09-16 23:00:00', 9, 'completed'), -- 4
+  (1, 4, 2, 1, 1, '2024-09-25 21:00:00', 9, 'completed'), -- 5
+  (3, 3, 4, 4, 1, '2024-09-25 22:00:00', 9, 'completed'), -- 6
+  (1, 2, 4, 2, 1, '2024-10-03 19:30:00', 10, 'completed'), -- 7
+  (2, 2, 3, 1, 1, '2024-10-03 20:30:00', 10, 'completed'), -- 8
+  (3, 3, 1, 4, 1, '2024-10-14 19:00:00', 9, 'completed'), -- 9
+  (4, 2, 2, 3, 1, '2024-10-14 20:00:00', 9, 'completed'), -- 10
+  (1, 1, 4, 2, 1, '2024-10-19 20:00:00', 9, 'completed'), -- 11
+  (2, 2, 3, 0, 1, '2024-10-19 21:00:00', 9, 'completed'), -- 12
+  (1, 2, 2, 2, 1, '2024-10-30 21:30:00', 10, 'completed'), -- 13
+  (3, 2, 4, 4, 1, '2024-10-30 22:30:00', 10, 'completed'), -- 14
+  (1, 0, 4, 2, 1, '2024-11-08 20:30:00', 10, 'completed'), -- 15
+  (2, 4, 3, 0, 1, '2024-11-08 21:30:00', 10, 'completed'), -- 16
+  (3, 3, 1, 5, 1, '2024-11-18 20:00:00', 9, 'completed'), -- 17
+  (4, 2, 2, 5, 1, '2024-11-18 21:00:00', 9, 'completed'), -- 18
+  (1, 2, 2, 3, 1, '2024-11-27 18:30:00', 10, 'completed'), -- 19
+  (3, 1, 4, 2, 1, '2024-11-27 19:30:00', 10, 'completed'), -- 20
+  (1, 1, 4, 3, 1, '2024-12-05 20:30:00', 10, 'completed'), -- 21
+  (2, 2, 3, 1, 1, '2024-12-05 21:30:00', 10, 'completed'), -- 22
+  (3, 2, 1, 0, 1, '2024-12-14 18:00:00', 9, 'completed'), -- 23
+  (4, 0, 2, 4, 1, '2024-12-14 19:00:00', 9, 'completed'), -- 24
+  (1, 1, 2, 4, 1, '2024-12-23 19:00:00', 9, 'completed'), -- 25
+  (3, 5, 4, 6, 1, '2024-12-23 20:00:00', 9, 'completed'), -- 26
+  (1, 5, 4, 3, 1, '2025-01-02 20:30:00', 10, 'completed'), -- 27
+  (2, 7, 3, 2, 1, '2025-01-02 21:30:00', 10, 'completed'), -- 28
   -- new additions
-  (4, 0, 1, 0, 1, '2025-01-11 19:45:00', 10, 'cancelled'),
-  (2, 0, 3, 0, 1, '2025-01-11 20:45:00', 10, 'cancelled'),
-  (1, 0, 2, 0, 1, '2025-01-23 19:00:00', 10, 'public'),
-  (3, 0, 4, 0, 1, '2025-01-23 20:00:00', 10, 'public'),
-  (3, 0, 1, 0, 1, '2025-01-26 21:45:00', 10, 'archived'),
-  (4, 0, 2, 0, 1, '2025-01-26 22:45:00', 10, 'archived'),
-  (1, 0, 4, 0, 1, '2025-02-05 20:30:00', 9, 'postponed'),
-  (3, 0, 2, 0, 1, '2025-02-05 21:30:00', 9, 'postponed'),
-  (4, 0, 1, 0, 1, '2025-02-10 20:45:00', 10, 'draft'),
-  (2, 0, 3, 0, 1, '2025-02-10 21:45:00', 10, 'draft')
+  (4, 0, 1, 0, 1, '2025-01-11 19:45:00', 10, 'cancelled'), -- 29
+  (2, 0, 3, 0, 1, '2025-01-11 20:45:00', 10, 'cancelled'), -- 30
+  (1, 1, 2, 4, 1, '2025-01-23 19:00:00', 10, 'completed'), -- 31
+  (3, 4, 4, 1, 1, '2025-01-23 20:00:00', 10, 'completed'), -- 32
+  (3, 0, 1, 0, 1, '2025-01-26 21:45:00', 10, 'public'), -- 33
+  (4, 0, 2, 0, 1, '2025-01-26 22:45:00', 10, 'public'), -- 34
+  (1, 0, 4, 0, 1, '2025-02-05 22:00:00', 9, 'public'), -- 35
+  (2, 0, 3, 0, 1, '2025-02-05 23:00:00', 9, 'public'), -- 36
+  (3, 0, 1, 0, 1, '2025-02-14 22:00:00', 9, 'public'), -- 37
+  (4, 0, 2, 0, 1, '2025-02-14 23:00:00', 9, 'public'), -- 38
+  (1, 0, 2, 0, 1, '2025-02-23 19:00:00', 9, 'public'), -- 39
+  (3, 0, 4, 0, 1, '2025-02-23 20:00:00', 9, 'public'), -- 40
+  (1, 0, 4, 0, 1, '2025-03-03 18:30:00', 10, 'public'), -- 41
+  (2, 0, 3, 0, 1, '2025-03-03 19:30:00', 10, 'public') -- 42
+;
+
+-- Goal samples
+INSERT INTO stats.goals
+  (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net)
+VALUES
+  (1, 31, 3, 2, 1, '11:20', false, false, false),
+  (2, 31, 10, 2, 1, '15:37', false, true, false),
+  (3, 31, 6, 1, 2, '05:40', false, false, false),
+  (4, 31, 3, 2, 2, '18:10', false, false, false),
+  (5, 31, 28, 2, 3, '18:20', false, false, true)
+;
+
+-- Assist samples
+INSERT INTO stats.assists
+  (assist_id, goal_id, game_id, user_id, team_id, primary_assist)
+VALUES
+  (1, 1, 31, 33, 2, true),
+  (2, 1, 31, 30, 2, false),
+  (3, 2, 31, 3, 2, true),
+  (4, 3, 31, 16, 1, true),
+  (5, 4, 31, 30, 2, true)
+;
+
+-- Penalties
+INSERT INTO stats.penalties
+  (penalty_id, game_id, user_id, team_id, period, period_time, infraction, minutes)
+VALUES
+  (1, 31, 7, 1, 1, '15:02', 'Tripping', 2),
+  (2, 31, 32, 2, 2, '08:22', 'Hooking', 2),
+  (3, 31, 32, 2, 3, '11:31', 'Interference', 2)
+;
+
+-- Shots
+INSERT INTO stats.shots
+  (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play)
+VALUES 
+  (1, 31, 3, 2, 1, '05:15', null, false, false),
+  (2, 31, 6, 1, 1, '07:35', null, false, false),
+  (3, 31, 31, 2, 1, '09:05', null, false, false),
+  (4, 31, 18, 1, 1, '10:03', null, false, false),
+  (5, 31, 3, 2, 1, '11:20', 1, false, false),
+  (6, 31, 10, 2, 1, '15:37', 2, false, true),
+  (7, 31, 3, 2, 1, '17:43', null, false, false),
+  (8, 31, 10, 2, 2, '01:11', null, false, false),
+  (9, 31, 6, 1, 2, '05:40', 3, false, false),
+  (10, 31, 21, 1, 2, '07:15', null, false, false),
+  (11, 31, 34, 2, 2, '11:15', null, false, false),
+  (12, 31, 3, 2, 2, '18:10', 4, false, false),
+  (13, 31, 27, 2, 3, '07:12', null, false, false),
+  (14, 31, 22, 1, 3, '11:56', null, false, false),
+  (15, 31, 36, 2, 3, '15:15', null, false, false),
+  (16, 31, 28, 2, 3, '18:20', 5, false, false)
+;
+
+-- Saves
+INSERT INTO stats.saves
+  (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound)
+VALUES 
+  (1, 31, 26, 1, 1, 1, '05:15', false, false),
+  (2, 31, 38, 2, 2, 1, '07:35', false, true),
+  (3, 31, 26, 1, 3, 1, '09:05', false, true),
+  (4, 31, 38, 2, 4, 1, '10:03', false, false),
+  (5, 31, 26, 1, 7, 1, '17:43', false, true),
+  (6, 31, 26, 1, 8, 2, '01:11', false, false),
+  (7, 31, 38, 2, 10, 1, '07:15', false, true),
+  (8, 31, 26, 1, 11, 2, '11:15', false, true),
+  (9, 31, 26, 1, 13, 3, '07:12', false, true),
+  (10, 31, 38, 2, 14, 3, '11:56', true, false),
+  (11, 31, 26, 1, 15, 3, '15:15', false, true)
 ;

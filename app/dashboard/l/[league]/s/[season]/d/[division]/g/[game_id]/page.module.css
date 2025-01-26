@@ -1,0 +1,10 @@
+.game {
+  display: grid;
+  gap: var(--spacer-base);
+
+  container: game / inline-size;
+
+  @container (min-width: 50rem) {
+    grid-template-columns: 1fr 1fr;
+  }
+}

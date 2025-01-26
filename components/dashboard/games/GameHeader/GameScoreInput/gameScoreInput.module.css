@@ -1,0 +1,43 @@
+.game_score_input {
+}
+
+.game_score_input_team {
+  margin-block-end: var(--spacer-base);
+  & label {
+    display: block;
+    width: 100%;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.0625rem;
+    margin-block-end: var(--spacer-ml);
+  }
+  & input {
+    width: 4rem;
+    aspect-ratio: 1;
+    text-align: center;
+    font-size: var(--type-scale-h2);
+    background-color: #fff;
+    border: 0.0625rem solid var(--color-grey-dark);
+    border-radius: var(--spacer-xs);
+    font-weight: bold;
+
+    &:valid {
+      border-color: var(--color-primary);
+    }
+
+    &:user-invalid {
+      border-color: var(--color-danger);
+      background-color: hsla(from var(--color-danger) h s l / 20%);
+    }
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* Firefox */
+    &[type="number"] {
+      -moz-appearance: textfield;
+    }
+  }
+}

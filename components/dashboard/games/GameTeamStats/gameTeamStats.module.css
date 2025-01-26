@@ -1,0 +1,11 @@
+.team_stats {
+}
+
+.team_stats_heading {
+  padding-inline-start: var(--spacer-s);
+  font-size: var(--type-scale-h5);
+
+  table + & {
+    margin-block-start: var(--spacer-m);
+  }
+}

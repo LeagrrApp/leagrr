@@ -12,12 +12,13 @@
   @media only screen and (min-width: 60rem) {
     flex-direction: column;
     border-inline-end: 0.125rem solid var(--color-primary-dark);
-    position: static;
+    position: sticky;
+    inset-block-start: 0;
     isolation: unset;
-    inset-block-start: unset;
     z-index: auto;
     padding: 0;
     align-items: unset;
+    height: 100dvh;
   }
 }
 

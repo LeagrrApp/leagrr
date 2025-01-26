@@ -303,10 +303,16 @@ export async function getGame(game_id: number) {
       game_id,
       home_team_id,
       (SELECT name FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team,
+      (SELECT slug FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team_slug,
       home_team_score,
+      (SELECT COUNT(*) FROM stats.goals AS goal WHERE goal.team_id = g.home_team_id AND g.game_id = $1)::int AS home_team_stats_goals,
+      (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id = g.home_team_id AND sh.game_id = $1)::int AS home_team_shots,
       away_team_id,
       (SELECT name FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team,
+      (SELECT slug FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team_slug,
       away_team_score,
+      (SELECT COUNT(*) FROM stats.goals AS goal WHERE goal.team_id = g.away_team_id AND g.game_id = $1)::int AS away_team_stats_goals,
+      (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id = g.away_team_id AND sh.game_id = $1)::int AS away_team_shots,
       division_id,
       date_time,
       arena_id,
@@ -337,4 +343,147 @@ export async function getGame(game_id: number) {
     });
 
   return gameResult;
+}
+
+const GameScoreSchema = z.object({
+  home_team_score: z.number().min(0),
+  away_team_score: z.number().min(0),
+});
+
+type GameScoreState =
+  | {
+      errors?: {
+        home_team_score?: string[] | undefined;
+        away_team_score?: string[] | undefined;
+      };
+      message?: string;
+      status?: number;
+      link?: string;
+      game?: GameData;
+      league?: string;
+    }
+  | undefined;
+
+export async function setGameScore(
+  state: GameScoreState,
+  formData: FormData
+): Promise<GameScoreState> {
+  if (!state || !state.league || !state.game || !state.link)
+    return {
+      message: "Missing necessary data to set the score!",
+      status: 400,
+    };
+
+  // verify user is signed in
+  await verifySession();
+
+  const { canEdit } = await canEditLeague(state.league);
+
+  if (!canEdit) {
+    return {
+      ...state,
+      message: "You do not have permission to create games for this division",
+      status: 400,
+    };
+  }
+
+  const gameScoreData = {
+    home_team_score: parseInt(formData.get("home_team_score") as string),
+    away_team_score: parseInt(formData.get("away_team_score") as string),
+  };
+
+  // Validate form fields
+  const validatedFields = GameScoreSchema.safeParse(gameScoreData);
+
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    return {
+      ...state,
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const sql = `
+    UPDATE league_management.games
+    SET 
+      home_team_score = $1,
+      away_team_score = $2,
+      status = 'completed'
+    WHERE
+      game_id = $3
+  `;
+
+  const gameScoreResult = await db
+    .query(sql, [
+      gameScoreData.home_team_score,
+      gameScoreData.away_team_score,
+      state.game.game_id,
+    ])
+    .then((res) => {
+      return {
+        message: "Game score updated",
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (gameScoreResult.status === 400) return gameScoreResult;
+
+  redirect(state.link);
+}
+
+export async function getTeamGameStats(game_id: number, team_id: number) {
+  // verify user is signed in
+  await verifySession();
+
+  const sql = `
+    SELECT
+      u.user_id,
+      u.username,
+      u.first_name,
+      u.last_name,
+      tm.number,
+      tm.position,
+      (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = tm.user_id AND g.game_id = $1)::int AS goals,
+      (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = tm.user_id AND a.game_id = $1)::int AS assists,
+      (
+        (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = tm.user_id AND g.game_id = $1) +
+        (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = tm.user_id AND a.game_id = $1)	
+      )::int AS points,
+      (SELECT COUNT(*) FROM stats.shots AS s WHERE s.user_id = tm.user_id AND s.game_id = $1)::int AS shots,
+      (SELECT COUNT(*) FROM stats.saves AS sa WHERE sa.user_id = tm.user_id AND sa.game_id = $1)::int AS saves,
+      (SELECT SUM(minutes) FROM stats.penalties AS p WHERE p.user_id = tm.user_id AND p.game_id = $1)::int AS penalties_in_minutes
+    FROM
+      league_management.team_memberships AS tm
+    JOIN
+      admin.users AS u
+    ON
+      u.user_id = tm.user_id
+    WHERE
+      tm.team_id = $2
+    ORDER BY points DESC, goals DESC, assists DESC, shots DESC, last_name ASC, first_name ASC
+  `;
+
+  const teamGameStatsResult: ResultProps<PlayerStats[]> = await db
+    .query(sql, [game_id, team_id])
+    .then((res) => {
+      return {
+        message: "Player stats loaded",
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  return teamGameStatsResult;
 }
