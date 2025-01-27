@@ -1,10 +1,50 @@
 .game_header_card {
   grid-column: 1 / -1;
+  position: relative;
+  isolation: isolate;
 }
 
 .game_header {
   display: grid;
   gap: var(--spacer-base) var(--spacer-l);
+
+  &::before {
+    content: " ";
+    position: absolute;
+    display: inline-block;
+    inset: 0;
+    border-radius: var(--spacer-m);
+    background: linear-gradient(
+      180deg,
+      var(--color-away),
+      var(--color-away) 30%,
+      var(--color-white) 30%,
+      var(--color-white) 70%,
+      var(--color-home) 70%,
+      var(--color-home)
+    );
+    z-index: -1;
+    @container (min-width: 45rem) {
+      background: linear-gradient(
+        135deg,
+        var(--color-away),
+        var(--color-away) 20%,
+        var(--color-white) 20%,
+        var(--color-white) 80%,
+        var(--color-home) 80%,
+        var(--color-home)
+      );
+    }
+  }
+  &::after {
+    content: " ";
+    position: absolute;
+    display: inline-block;
+    inset: 0.1875rem;
+    border-radius: var(--spacer-s);
+    background: white;
+    z-index: -1;
+  }
 
   @container (min-width: 45rem) {
     grid-template-columns: 1fr 1fr 1fr;
@@ -15,6 +55,12 @@
 .game_header_team_info {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: var(--spacer-base);
+}
+
+.game_header_team_wrap {
+  display: flex;
   align-items: center;
   gap: var(--spacer-base);
 }
@@ -45,6 +91,9 @@
     flex-direction: row-reverse;
     & .game_header_sog {
       text-align: end;
+    }
+    & .game_header_team_wrap {
+      flex-direction: row-reverse;
     }
   }
 }

@@ -8,13 +8,17 @@ import InitialsCircle from "@/components/ui/InitialsCircle/InitialsCircle";
 import Icon from "@/components/ui/Icon/Icon";
 import Link from "next/link";
 
+interface GameFeedPenaltyProps {
+  item: GameFeedItemData;
+  isHome: boolean;
+  teamColor: string;
+}
+
 export default function GameFeedPenalty({
   item,
   isHome,
-}: {
-  item: GameFeedItemData;
-  isHome: boolean;
-}) {
+  teamColor,
+}: GameFeedPenaltyProps) {
   const {
     period,
     period_time,
@@ -40,17 +44,11 @@ export default function GameFeedPenalty({
       </div>
       <div className={css.game_feed_item_team}>
         <InitialsCircle
-          color={
-            isHome
-              ? {
-                  bg: "grey",
-                  text: "black",
-                }
-              : {
-                  bg: "black",
-                  text: "white",
-                }
-          }
+          color={{
+            bg: teamColor,
+            text: teamColor === "white" ? "black" : "white",
+          }}
+          fontSize="h5"
           label={team}
           initialsStyle="first_word"
           hideLabel

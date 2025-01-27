@@ -129,3 +129,23 @@ export function addNumberOrdinals(number: number) {
       return `${number}th`;
   }
 }
+
+export const color_options = [
+  "primary",
+  "secondary",
+  "accent",
+  "success",
+  "warning",
+  "caution",
+  "danger",
+  "white",
+  "black",
+  "grey",
+];
+
+export function applyColor(color: string): string {
+  if (color_options.includes(color)) {
+    return `var(--color-${color})`;
+  }
+  return color;
+}

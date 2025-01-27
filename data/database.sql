@@ -157,6 +157,7 @@ CREATE TABLE league_management.teams (
   slug            VARCHAR(50) NOT NULL UNIQUE,
   name            VARCHAR(50) NOT NULL,
   description     TEXT,
+  color           VARCHAR(50),
   join_code       VARCHAR(50) NOT NULL DEFAULT gen_random_uuid(),
   status          VARCHAR(20) NOT NULL DEFAULT 'active',
   created_on      TIMESTAMP DEFAULT NOW()
@@ -1027,22 +1028,22 @@ VALUES
 
 -- Add OPH teams
 INSERT INTO league_management.teams
-  (team_id, slug, name, description)
+  (team_id, slug, name, description, color)
 VALUES
-  (1, 'significant-otters', 'Significant Otters', null),
-  (2, 'otterwa-senators', 'Otterwa Senators', null),
-  (3, 'otter-chaos', 'Otter Chaos', null),
-  (4, 'otter-nonsense', 'Otter Nonsense', null),
-  (5, 'frostbiters', 'Frostbiters', 'An icy team known for their chilling defense.'),
-  (6, 'blazing-blizzards', 'Blazing Blizzards', 'A team that combines fiery offense with frosty precision.'),
-  (7, 'polar-puckers', 'Polar Puckers', 'Masters of the north, specializing in swift plays.'),
-  (8, 'arctic-avengers', 'Arctic Avengers', 'A cold-blooded team with a knack for thrilling comebacks.'),
-  (9, 'glacial-guardians', 'Glacial Guardians', 'Defensive titans who freeze their opponents in their tracks.'),
-  (10, 'tundra-titans', 'Tundra Titans', 'A powerhouse team dominating the ice with strength and speed.'),
-  (11, 'permafrost-predators', 'Permafrost Predators', 'Known for their unrelenting pressure and icy precision.'),
-  (12, 'snowstorm-scorchers', 'Snowstorm Scorchers', 'A team with a fiery spirit and unstoppable energy.'),
-  (13, 'frozen-flames', 'Frozen Flames', 'Bringing the heat to the ice with blazing fast attacks.'),
-  (14, 'chill-crushers', 'Chill Crushers', 'Breaking the ice with powerful plays and intense rivalries.')
+  (1, 'significant-otters', 'Significant Otters', null, '#942f2f'),
+  (2, 'otterwa-senators', 'Otterwa Senators', null, '#8d45a3'),
+  (3, 'otter-chaos', 'Otter Chaos', null, '#2f945b'),
+  (4, 'otter-nonsense', 'Otter Nonsense', null, '#2f3794'),
+  (5, 'frostbiters', 'Frostbiters', 'An icy team known for their chilling defense.', 'green'),
+  (6, 'blazing-blizzards', 'Blazing Blizzards', 'A team that combines fiery offense with frosty precision.', 'purple'),
+  (7, 'polar-puckers', 'Polar Puckers', 'Masters of the north, specializing in swift plays.', '#285fa2'),
+  (8, 'arctic-avengers', 'Arctic Avengers', 'A cold-blooded team with a knack for thrilling comebacks.', 'yellow'),
+  (9, 'glacial-guardians', 'Glacial Guardians', 'Defensive titans who freeze their opponents in their tracks.', 'pink'),
+  (10, 'tundra-titans', 'Tundra Titans', 'A powerhouse team dominating the ice with strength and speed.', 'orange'),
+  (11, 'permafrost-predators', 'Permafrost Predators', 'Known for their unrelenting pressure and icy precision.', '#bc83d4'),
+  (12, 'snowstorm-scorchers', 'Snowstorm Scorchers', 'A team with a fiery spirit and unstoppable energy.', 'rebeccapurple'),
+  (13, 'frozen-flames', 'Frozen Flames', 'Bringing the heat to the ice with blazing fast attacks.', 'cyan'),
+  (14, 'chill-crushers', 'Chill Crushers', 'Breaking the ice with powerful plays and intense rivalries.', 'lime')
 ;
 
 -- Add captains to OPH teams

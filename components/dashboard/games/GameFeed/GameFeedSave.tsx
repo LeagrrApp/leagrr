@@ -8,13 +8,17 @@ import InitialsCircle from "@/components/ui/InitialsCircle/InitialsCircle";
 import Icon from "@/components/ui/Icon/Icon";
 import Link from "next/link";
 
+interface GameFeedSaveProps {
+  item: GameFeedItemData;
+  isHome: boolean;
+  teamColor: string;
+}
+
 export default function GameFeedSave({
   item,
   isHome,
-}: {
-  item: GameFeedItemData;
-  isHome: boolean;
-}) {
+  teamColor,
+}: GameFeedSaveProps) {
   const { period, period_time, user_last_name, username, team, rebound } = item;
 
   const classes: string[] = [css.game_feed_item, css.game_feed_item_penalty];
@@ -33,17 +37,11 @@ export default function GameFeedSave({
       </div>
       <div className={css.game_feed_item_team}>
         <InitialsCircle
-          color={
-            isHome
-              ? {
-                  bg: "grey",
-                  text: "black",
-                }
-              : {
-                  bg: "black",
-                  text: "white",
-                }
-          }
+          color={{
+            bg: teamColor,
+            text: teamColor === "white" ? "black" : "white",
+          }}
+          fontSize="h5"
           label={team}
           initialsStyle="first_word"
           hideLabel

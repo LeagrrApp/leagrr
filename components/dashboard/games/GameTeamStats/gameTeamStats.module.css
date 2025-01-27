@@ -9,3 +9,7 @@
     margin-block-start: var(--spacer-m);
   }
 }
+
+.team_stats_row_highlight {
+  --tr-color: var(--color-secondary);
+}

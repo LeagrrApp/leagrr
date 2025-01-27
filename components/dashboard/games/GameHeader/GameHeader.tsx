@@ -1,10 +1,10 @@
 import Card from "@/components/ui/Card/Card";
-import css from "./gameHeader.module.css";
-import { apply_classes } from "@/utils/helpers/html-attributes";
-import Button from "@/components/ui/Button/Button";
-import GameScoreInput from "./GameScoreInput/GameScoreInput";
-import Link from "next/link";
+import InitialsCircle from "@/components/ui/InitialsCircle/InitialsCircle";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { apply_classes } from "@/utils/helpers/html-attributes";
+import Link from "next/link";
+import css from "./gameHeader.module.css";
+import GameScoreInput from "./GameScoreInput/GameScoreInput";
 
 interface GameHeaderProps {
   game: GameData;
@@ -36,18 +36,32 @@ export default function GameHeader({ game, canEdit }: GameHeaderProps) {
           )}
         >
           <div className={css.game_header_team_wrap}>
-            <h3 className={css.game_header_team}>
-              <Link href={createDashboardUrl({ t: game.away_team_slug })}>
-                {game.away_team}
-              </Link>
-            </h3>
-            {gameCompleted && (
+            <InitialsCircle
+              label={game.away_team}
+              initialsStyle="first_word"
+              hideLabel
+              fontSize="h3"
+              color={{
+                bg: game.away_team_color,
+                text: game.away_team_color === "white" ? "black" : "white",
+                border:
+                  game.away_team_color === "white"
+                    ? "grey"
+                    : game.away_team_color,
+              }}
+            />
+            <div>
+              <h3 className={css.game_header_team}>
+                <Link href={createDashboardUrl({ t: game.away_team_slug })}>
+                  {game.away_team}
+                </Link>
+              </h3>
               <p className={css.game_header_sog}>
                 <span className="srt">Away team shots on goal:</span>
                 <span aria-hidden="true">SOG: </span>
                 {game.away_team_shots}
               </p>
-            )}
+            </div>
           </div>
           <p className={css.game_header_team_score}>{game.away_team_score}</p>
         </div>
@@ -59,7 +73,7 @@ export default function GameHeader({ game, canEdit }: GameHeaderProps) {
             {gameDate}
           </time>
           <p>{game.venue}</p>
-          {canEdit && <GameScoreInput game={game} />}
+          {/* {canEdit && <GameScoreInput game={game} />} */}
         </div>
 
         <div
@@ -71,18 +85,32 @@ export default function GameHeader({ game, canEdit }: GameHeaderProps) {
           )}
         >
           <div className={css.game_header_team_wrap}>
-            <h3 className={css.game_header_team}>
-              <Link href={createDashboardUrl({ t: game.home_team_slug })}>
-                {game.home_team}
-              </Link>
-            </h3>
-            {gameCompleted && (
+            <InitialsCircle
+              label={game.home_team}
+              initialsStyle="first_word"
+              hideLabel
+              fontSize="h3"
+              color={{
+                bg: game.home_team_color,
+                text: game.home_team_color === "white" ? "black" : "white",
+                border:
+                  game.home_team_color === "white"
+                    ? "grey"
+                    : game.home_team_color,
+              }}
+            />
+            <div>
+              <h3 className={css.game_header_team}>
+                <Link href={createDashboardUrl({ t: game.home_team_slug })}>
+                  {game.home_team}
+                </Link>
+              </h3>
               <p className={css.game_header_sog}>
                 <span className="srt">Home team shots on goal:</span>
                 <span aria-hidden="true">SOG: </span>
                 {game.home_team_shots}
               </p>
-            )}
+            </div>
           </div>
           <p className={css.game_header_team_score}>{game.home_team_score}</p>
         </div>

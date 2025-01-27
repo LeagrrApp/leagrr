@@ -7,6 +7,12 @@ import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
 import GameFeed from "@/components/dashboard/games/GameFeed/GameFeed";
+import { CSSProperties } from "react";
+
+interface GameStyles extends CSSProperties {
+  "--color-home": string;
+  "--color-away": string;
+}
 
 export default async function Page({
   params,
@@ -44,6 +50,11 @@ export default async function Page({
     score: gameData.away_team_score,
   };
 
+  const styles: GameStyles = {
+    "--color-home": gameData.home_team_color || "",
+    "--color-away": gameData.away_team_color || "",
+  };
+
   return (
     <>
       <Icon
@@ -53,7 +64,7 @@ export default async function Page({
         label="Return to division"
       />
 
-      <article className={css.game}>
+      <article style={styles} className={css.game}>
         <GameHeader game={gameData} canEdit={canEdit} />
         <GameTeamStats game={gameData} team={awayTeam} />
         <GameTeamStats game={gameData} team={homeTeam} isHome />

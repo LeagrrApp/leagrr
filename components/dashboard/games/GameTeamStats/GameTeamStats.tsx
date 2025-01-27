@@ -5,6 +5,7 @@ import { apply_classes } from "@/utils/helpers/html-attributes";
 import { getTeamGameStats } from "@/actions/games";
 import Link from "next/link";
 import { makeAcronym, nameDisplay } from "@/utils/helpers/formatting";
+import { verifySession } from "@/lib/session";
 
 interface GameTeamStatsProps {
   game: GameData;
@@ -19,6 +20,8 @@ export default async function GameTeamStats({
   team,
   isHome,
 }: GameTeamStatsProps) {
+  const { user_id } = await verifySession();
+
   const classes = [css.team_stats];
   if (isHome) classes.push(css.team_stats_home);
 
@@ -86,9 +89,14 @@ export default async function GameTeamStats({
           </thead>
           <tbody>
             {players.map((p) => {
-              if (p.position !== "Goalie")
+              if (p.position !== "Goalie") {
+                const isUser = user_id === p.user_id;
+
                 return (
-                  <tr key={p.user_id}>
+                  <tr
+                    key={p.user_id}
+                    data-highlighted={isUser ? true : undefined}
+                  >
                     <th scope="row">
                       <Link href={`/dashboard/u/${p.username}`}>
                         {nameDisplay(p.first_name, p.last_name, "last_initial")}
@@ -103,6 +111,7 @@ export default async function GameTeamStats({
                     <td>{p.penalties_in_minutes || 0}</td>
                   </tr>
                 );
+              }
 
               return null;
             })}

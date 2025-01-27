@@ -58,13 +58,19 @@ export default async function GameFeed({ game }: GameFeedProps) {
                 </h4>
                 <ol className={css.game_feed_feed}>
                   {gameFeed[p].map((item: GameFeedItemData) => {
+                    const isHome = game.home_team_id === item.team_id;
                     switch (item.type) {
                       case "stats.shots":
                         return (
                           <GameFeedShot
                             key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
                             item={item}
-                            isHome={game.home_team_id === item.team_id}
+                            isHome={isHome}
+                            teamColor={
+                              isHome
+                                ? game.home_team_color
+                                : game.away_team_color
+                            }
                           />
                         );
                       case "stats.goals":
@@ -72,7 +78,12 @@ export default async function GameFeed({ game }: GameFeedProps) {
                           <GameFeedGoal
                             key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
                             item={item}
-                            isHome={game.home_team_id === item.team_id}
+                            isHome={isHome}
+                            teamColor={
+                              isHome
+                                ? game.home_team_color
+                                : game.away_team_color
+                            }
                           />
                         );
                       case "stats.saves":
@@ -80,7 +91,12 @@ export default async function GameFeed({ game }: GameFeedProps) {
                           <GameFeedSave
                             key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
                             item={item}
-                            isHome={game.home_team_id === item.team_id}
+                            isHome={isHome}
+                            teamColor={
+                              isHome
+                                ? game.home_team_color
+                                : game.away_team_color
+                            }
                           />
                         );
                       case "stats.penalties":
@@ -88,7 +104,12 @@ export default async function GameFeed({ game }: GameFeedProps) {
                           <GameFeedPenalty
                             key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
                             item={item}
-                            isHome={game.home_team_id === item.team_id}
+                            isHome={isHome}
+                            teamColor={
+                              isHome
+                                ? game.home_team_color
+                                : game.away_team_color
+                            }
                           />
                         );
                       default:

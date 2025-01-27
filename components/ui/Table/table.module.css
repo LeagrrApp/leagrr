@@ -26,13 +26,20 @@
   & tbody {
     & tr {
       position: relative;
-      --tr-color: transparent;
+      /* --tr-color: transparent; */
       &:nth-child(even) {
         --tr-color: var(--color-grey-light);
       }
 
       &:has(a:is(:hover, :focus-visible)) {
         --tr-color: var(--color-secondary-pale);
+      }
+
+      &[data-highlighted="true"] {
+        & a::before {
+          border: 0.125rem solid var(--color-secondary);
+          border-radius: var(--spacer-s);
+        }
       }
     }
 
