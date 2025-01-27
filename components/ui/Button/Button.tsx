@@ -32,6 +32,7 @@ export default function Button({
   asSpan,
   className,
   padding,
+  disabled,
 }: ButtonProps) {
   const classes = [button.button];
 
@@ -77,6 +78,7 @@ export default function Button({
       className={apply_classes(classes)}
       type={type}
       onClick={onClick}
+      disabled={disabled}
     >
       {children}
     </button>

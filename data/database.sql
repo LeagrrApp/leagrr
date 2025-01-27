@@ -620,17 +620,18 @@ ADD CONSTRAINT fk_league_venue_league_id FOREIGN KEY (league_id)
 
 -- Create league_management.games
 CREATE TABLE league_management.games (
-  game_id           SERIAL NOT NULL PRIMARY KEY,
-  home_team_id      INT,
-  home_team_score   INT DEFAULT 0,
-  away_team_id      INT,
-  away_team_score   INT DEFAULT 0,
-  division_id       INT,
-  playoff_id        INT,
-  date_time         TIMESTAMP,
-  arena_id          INT,
-  status            VARCHAR(20) NOT NULL DEFAULT 'draft',
-  created_on        TIMESTAMP DEFAULT NOW()
+  game_id               SERIAL NOT NULL PRIMARY KEY,
+  home_team_id          INT,
+  home_team_score       INT DEFAULT 0,
+  away_team_id          INT,
+  away_team_score       INT DEFAULT 0,
+  division_id           INT,
+  playoff_id            INT,
+  date_time             TIMESTAMP,
+  arena_id              INT,
+  status                VARCHAR(20) NOT NULL DEFAULT 'draft',
+  has_been_published    BOOLEAN DEFAULT false,
+  created_on            TIMESTAMP DEFAULT NOW()
 );
 
 ALTER TABLE league_management.games
@@ -648,6 +649,28 @@ ADD CONSTRAINT fk_game_arena_id FOREIGN KEY (arena_id)
 ALTER TABLE IF EXISTS league_management.games
     ADD CONSTRAINT game_status_enum CHECK (status IN ('draft', 'public', 'completed', 'cancelled', 'postponed', 'archived'));
 
+CREATE OR REPLACE FUNCTION mark_game_as_published()
+RETURNS TRIGGER AS $$
+BEGIN
+
+	IF NEW.status <> OLD.status AND NEW.status != 'draft' THEN
+		NEW.has_been_published = true;
+	END IF;
+	
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER insert_game_status_check
+    BEFORE INSERT ON league_management.games
+	FOR EACH ROW
+	EXECUTE FUNCTION mark_game_as_published();
+
+CREATE OR REPLACE TRIGGER update_game_status_check
+    BEFORE UPDATE OF status ON league_management.games
+	FOR EACH ROW
+	EXECUTE FUNCTION mark_game_as_published();
+  
 -- Stats
 
 -- Create goals
@@ -1322,51 +1345,51 @@ VALUES
 
 -- List of OPH games
 INSERT INTO league_management.games
-  (home_team_id, home_team_score, away_team_id, away_team_score, division_id, date_time, arena_id, status)
+  (home_team_id, home_team_score, away_team_id, away_team_score, division_id, date_time, arena_id, status, has_been_published)
 VALUES
-  (1, 3, 4, 0, 1, '2024-09-08 17:45:00', 10, 'completed'), -- 1
-  (2, 3, 3, 4, 1, '2024-09-08 18:45:00', 10, 'completed'), -- 2
-  (3, 0, 1, 2, 1, '2024-09-16 22:00:00', 9, 'completed'), -- 3
-  (4, 1, 2, 4, 1, '2024-09-16 23:00:00', 9, 'completed'), -- 4
-  (1, 4, 2, 1, 1, '2024-09-25 21:00:00', 9, 'completed'), -- 5
-  (3, 3, 4, 4, 1, '2024-09-25 22:00:00', 9, 'completed'), -- 6
-  (1, 2, 4, 2, 1, '2024-10-03 19:30:00', 10, 'completed'), -- 7
-  (2, 2, 3, 1, 1, '2024-10-03 20:30:00', 10, 'completed'), -- 8
-  (3, 3, 1, 4, 1, '2024-10-14 19:00:00', 9, 'completed'), -- 9
-  (4, 2, 2, 3, 1, '2024-10-14 20:00:00', 9, 'completed'), -- 10
-  (1, 1, 4, 2, 1, '2024-10-19 20:00:00', 9, 'completed'), -- 11
-  (2, 2, 3, 0, 1, '2024-10-19 21:00:00', 9, 'completed'), -- 12
-  (1, 2, 2, 2, 1, '2024-10-30 21:30:00', 10, 'completed'), -- 13
-  (3, 2, 4, 4, 1, '2024-10-30 22:30:00', 10, 'completed'), -- 14
-  (1, 0, 4, 2, 1, '2024-11-08 20:30:00', 10, 'completed'), -- 15
-  (2, 4, 3, 0, 1, '2024-11-08 21:30:00', 10, 'completed'), -- 16
-  (3, 3, 1, 5, 1, '2024-11-18 20:00:00', 9, 'completed'), -- 17
-  (4, 2, 2, 5, 1, '2024-11-18 21:00:00', 9, 'completed'), -- 18
-  (1, 2, 2, 3, 1, '2024-11-27 18:30:00', 10, 'completed'), -- 19
-  (3, 1, 4, 2, 1, '2024-11-27 19:30:00', 10, 'completed'), -- 20
-  (1, 1, 4, 3, 1, '2024-12-05 20:30:00', 10, 'completed'), -- 21
-  (2, 2, 3, 1, 1, '2024-12-05 21:30:00', 10, 'completed'), -- 22
-  (3, 2, 1, 0, 1, '2024-12-14 18:00:00', 9, 'completed'), -- 23
-  (4, 0, 2, 4, 1, '2024-12-14 19:00:00', 9, 'completed'), -- 24
-  (1, 1, 2, 4, 1, '2024-12-23 19:00:00', 9, 'completed'), -- 25
-  (3, 5, 4, 6, 1, '2024-12-23 20:00:00', 9, 'completed'), -- 26
-  (1, 5, 4, 3, 1, '2025-01-02 20:30:00', 10, 'completed'), -- 27
-  (2, 7, 3, 2, 1, '2025-01-02 21:30:00', 10, 'completed'), -- 28
+  (1, 3, 4, 0, 1, '2024-09-08 17:45:00', 10, 'completed', true), -- 1
+  (2, 3, 3, 4, 1, '2024-09-08 18:45:00', 10, 'completed', true), -- 2
+  (3, 0, 1, 2, 1, '2024-09-16 22:00:00', 9, 'completed', true), -- 3
+  (4, 1, 2, 4, 1, '2024-09-16 23:00:00', 9, 'completed', true), -- 4
+  (1, 4, 2, 1, 1, '2024-09-25 21:00:00', 9, 'completed', true), -- 5
+  (3, 3, 4, 4, 1, '2024-09-25 22:00:00', 9, 'completed', true), -- 6
+  (1, 2, 4, 2, 1, '2024-10-03 19:30:00', 10, 'completed', true), -- 7
+  (2, 2, 3, 1, 1, '2024-10-03 20:30:00', 10, 'completed', true), -- 8
+  (3, 3, 1, 4, 1, '2024-10-14 19:00:00', 9, 'completed', true), -- 9
+  (4, 2, 2, 3, 1, '2024-10-14 20:00:00', 9, 'completed', true), -- 10
+  (1, 1, 4, 2, 1, '2024-10-19 20:00:00', 9, 'completed', true), -- 11
+  (2, 2, 3, 0, 1, '2024-10-19 21:00:00', 9, 'completed', true), -- 12
+  (1, 2, 2, 2, 1, '2024-10-30 21:30:00', 10, 'completed', true), -- 13
+  (3, 2, 4, 4, 1, '2024-10-30 22:30:00', 10, 'completed', true), -- 14
+  (1, 0, 4, 2, 1, '2024-11-08 20:30:00', 10, 'completed', true), -- 15
+  (2, 4, 3, 0, 1, '2024-11-08 21:30:00', 10, 'completed', true), -- 16
+  (3, 3, 1, 5, 1, '2024-11-18 20:00:00', 9, 'completed', true), -- 17
+  (4, 2, 2, 5, 1, '2024-11-18 21:00:00', 9, 'completed', true), -- 18
+  (1, 2, 2, 3, 1, '2024-11-27 18:30:00', 10, 'completed', true), -- 19
+  (3, 1, 4, 2, 1, '2024-11-27 19:30:00', 10, 'completed', true), -- 20
+  (1, 1, 4, 3, 1, '2024-12-05 20:30:00', 10, 'completed', true), -- 21
+  (2, 2, 3, 1, 1, '2024-12-05 21:30:00', 10, 'completed', true), -- 22
+  (3, 2, 1, 0, 1, '2024-12-14 18:00:00', 9, 'completed', true), -- 23
+  (4, 0, 2, 4, 1, '2024-12-14 19:00:00', 9, 'completed', true), -- 24
+  (1, 1, 2, 4, 1, '2024-12-23 19:00:00', 9, 'completed', true), -- 25
+  (3, 5, 4, 6, 1, '2024-12-23 20:00:00', 9, 'completed', true), -- 26
+  (1, 5, 4, 3, 1, '2025-01-02 20:30:00', 10, 'completed', true), -- 27
+  (2, 7, 3, 2, 1, '2025-01-02 21:30:00', 10, 'completed', true), -- 28
   -- new additions
-  (4, 0, 1, 0, 1, '2025-01-11 19:45:00', 10, 'cancelled'), -- 29
-  (2, 0, 3, 0, 1, '2025-01-11 20:45:00', 10, 'cancelled'), -- 30
-  (1, 1, 2, 4, 1, '2025-01-23 19:00:00', 10, 'completed'), -- 31
-  (3, 4, 4, 1, 1, '2025-01-23 20:00:00', 10, 'completed'), -- 32
-  (3, 0, 1, 0, 1, '2025-01-26 21:45:00', 10, 'public'), -- 33
-  (4, 0, 2, 0, 1, '2025-01-26 22:45:00', 10, 'public'), -- 34
-  (1, 0, 4, 0, 1, '2025-02-05 22:00:00', 9, 'public'), -- 35
-  (2, 0, 3, 0, 1, '2025-02-05 23:00:00', 9, 'public'), -- 36
-  (3, 0, 1, 0, 1, '2025-02-14 22:00:00', 9, 'public'), -- 37
-  (4, 0, 2, 0, 1, '2025-02-14 23:00:00', 9, 'public'), -- 38
-  (1, 0, 2, 0, 1, '2025-02-23 19:00:00', 9, 'public'), -- 39
-  (3, 0, 4, 0, 1, '2025-02-23 20:00:00', 9, 'public'), -- 40
-  (1, 0, 4, 0, 1, '2025-03-03 18:30:00', 10, 'public'), -- 41
-  (2, 0, 3, 0, 1, '2025-03-03 19:30:00', 10, 'public') -- 42
+  (4, 0, 1, 0, 1, '2025-01-11 19:45:00', 10, 'cancelled', true), -- 29
+  (2, 0, 3, 0, 1, '2025-01-11 20:45:00', 10, 'cancelled', true), -- 30
+  (1, 1, 2, 4, 1, '2025-01-23 19:00:00', 10, 'completed', true), -- 31
+  (3, 4, 4, 1, 1, '2025-01-23 20:00:00', 10, 'completed', true), -- 32
+  (3, 0, 1, 0, 1, '2025-01-26 21:45:00', 10, 'public', true), -- 33
+  (4, 0, 2, 0, 1, '2025-01-26 22:45:00', 10, 'public', true), -- 34
+  (1, 0, 4, 0, 1, '2025-02-05 22:00:00', 9, 'public', true), -- 35
+  (2, 0, 3, 0, 1, '2025-02-05 23:00:00', 9, 'public', true), -- 36
+  (3, 0, 1, 0, 1, '2025-02-14 22:00:00', 9, 'public', true), -- 37
+  (4, 0, 2, 0, 1, '2025-02-14 23:00:00', 9, 'public', true), -- 38
+  (1, 0, 2, 0, 1, '2025-02-23 19:00:00', 9, 'public', true), -- 39
+  (3, 0, 4, 0, 1, '2025-02-23 20:00:00', 9, 'public', true), -- 40
+  (1, 0, 4, 0, 1, '2025-03-03 18:30:00', 10, 'draft', false), -- 41
+  (2, 0, 3, 0, 1, '2025-03-03 19:30:00', 10, 'draft', false) -- 42
 ;
 
 -- Goal samples

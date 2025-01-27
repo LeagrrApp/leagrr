@@ -5,6 +5,7 @@ import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/forms/Input";
 import Select from "@/components/ui/forms/Select";
 import TextArea from "@/components/ui/forms/TextArea";
+import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { status_options } from "@/lib/definitions";
@@ -81,18 +82,12 @@ export default function EditSeason({ backLink, season }: EditSeasonProps) {
         <input type="hidden" name="season_id" value={season.season_id} />
         <Col>
           <Button type="submit" fullWidth disabled={pending}>
-            <i className="material-symbols-outlined" aria-hidden="true">
-              save
-            </i>
-            Save Season
+            <Icon icon="save" label="Save Season" />
           </Button>
         </Col>
         <Col>
           <Button href={backLink} type="button" variant="grey" fullWidth>
-            <i className="material-symbols-outlined" aria-hidden="true">
-              cancel
-            </i>
-            Cancel
+            <Icon icon="cancel" label="Cancel" />
           </Button>
         </Col>
       </Grid>

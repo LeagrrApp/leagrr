@@ -77,7 +77,7 @@ export default function CreateDivision({ season }: CreateDivisionProps) {
         <input type="hidden" name="league_id" value={season.league_id} />
         <Col>
           <Button type="submit" fullWidth disabled={pending}>
-            Create Division
+            <Icon icon="add_circle" label="Create Division" />
           </Button>
         </Col>
         <Col>

@@ -1,6 +1,6 @@
 "use client";
 
-import { createGame } from "@/actions/games";
+import { editGame } from "@/actions/games";
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/forms/Input";
 import Select from "@/components/ui/forms/Select";
@@ -8,22 +8,25 @@ import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { game_status_options } from "@/lib/definitions";
+import { formatDateForInput } from "@/utils/helpers/formatting";
 import { useActionState, useEffect } from "react";
 
-interface CreateGameProps {
-  division_id: number;
+interface EditGameProps {
+  game_id: number;
   league_id: number;
   addGameData: AddGameData;
+  gameData: GameData;
   backLink: string;
 }
 
-export default function CreateGame({
-  division_id,
+export default function EditGame({
+  game_id,
   league_id,
   addGameData,
+  gameData,
   backLink,
-}: CreateGameProps) {
-  const [state, action, pending] = useActionState(createGame, {
+}: EditGameProps) {
+  const [state, action, pending] = useActionState(editGame, {
     link: backLink,
   });
 
@@ -51,25 +54,52 @@ export default function CreateGame({
     <form action={action}>
       <Grid cols={{ xs: 1, m: 2 }} gap="base">
         <Select
-          name="home_team_id"
-          label="Home Team"
-          choices={team_options}
-          errors={{ errs: state?.errors?.home_team_id, type: "danger" }}
-          selected={state?.data?.home_team_id}
-        />
-        <Select
-          name="away_team_id"
+          name={
+            gameData.has_been_published ? "away_team_id_facade" : "away_team_id"
+          }
           label="Away Team"
           choices={team_options}
           errors={{ errs: state?.errors?.away_team_id, type: "danger" }}
-          selected={state?.data?.away_team_id}
+          selected={state?.data?.away_team_id || gameData.away_team_id}
+          disabled={gameData.has_been_published}
         />
+        <Select
+          name={
+            gameData.has_been_published ? "home_team_id_facade" : "home_team_id"
+          }
+          label="Home Team"
+          choices={team_options}
+          errors={{ errs: state?.errors?.home_team_id, type: "danger" }}
+          selected={state?.data?.home_team_id || gameData.home_team_id}
+          disabled={gameData.has_been_published}
+        />
+        {gameData.has_been_published && (
+          <>
+            <input
+              type="hidden"
+              name="away_team_id"
+              value={gameData.away_team_id}
+            />
+            <input
+              type="hidden"
+              name="home_team_id"
+              value={gameData.home_team_id}
+            />
+          </>
+        )}
+        <Col fullSpan>
+          <small>
+            Note: once the game has been published, the teams cannot be changed.
+          </small>
+        </Col>
         <Input
           type="datetime-local"
           name="date_time"
           label="Date & Time"
           errors={{ errs: state?.errors?.date_time, type: "danger" }}
-          value={state?.data?.date_time}
+          value={
+            state?.data?.date_time || formatDateForInput(gameData.date_time)
+          }
           required
         />
         <Select
@@ -77,7 +107,7 @@ export default function CreateGame({
           label="Location"
           choices={location_options}
           errors={{ errs: state?.errors?.arena_id, type: "danger" }}
-          selected={state?.data?.arena_id}
+          selected={state?.data?.arena_id || gameData.arena_id}
         />
         <Col fullSpan>
           <Select
@@ -85,14 +115,14 @@ export default function CreateGame({
             label="Status"
             choices={game_status_options}
             errors={{ errs: state?.errors?.status, type: "danger" }}
-            selected={state?.data?.status}
+            selected={state?.data?.status || gameData.status}
           />
         </Col>
+        <input type="hidden" name="game_id" value={game_id} />
         <input type="hidden" name="league_id" value={league_id} />
-        <input type="hidden" name="division_id" value={division_id} />
         <Col>
           <Button type="submit" fullWidth disabled={pending}>
-            <Icon icon="add_circle" label="Create Game" />
+            <Icon icon="save" label="Save Game" />
           </Button>
         </Col>
         <Col>

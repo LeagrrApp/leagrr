@@ -7,7 +7,7 @@ export function createDashboardUrl(
     l?: string;
     s?: string;
     d?: string;
-    g?: string;
+    g?: string | number;
     t?: string;
   },
   additional?: string
@@ -111,6 +111,21 @@ export function formatTimePeriod(time_period: {
   return `${time_period.minutes}:${
     time_period.seconds > 9 ? time_period.seconds : `0${time_period.seconds}`
   }`;
+}
+
+export function formatDateForInput(date: string | Date): string {
+  const formattedDate = new Date(date)
+    .toLocaleString("en-CA", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: new Intl.DateTimeFormat().resolvedOptions().timeZone,
+    })
+    .replace(",", "");
+  return formattedDate;
 }
 
 export function addNumberOrdinals(number: number) {

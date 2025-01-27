@@ -4,7 +4,8 @@ import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { apply_classes } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
 import css from "./gameHeader.module.css";
-import GameScoreInput from "./GameScoreInput/GameScoreInput";
+import GameScoreInput from "../GameScoreInput/GameScoreInput";
+import Badge from "@/components/ui/Badge/Badge";
 
 interface GameHeaderProps {
   game: GameData;
@@ -23,6 +24,23 @@ export default function GameHeader({ game, canEdit }: GameHeaderProps) {
   });
 
   const gameCompleted = game.status === "completed";
+
+  const showStatus = game.status !== "public" && game.status !== "completed";
+  let statusColor: ColorOptions = "grey";
+
+  switch (game.status) {
+    case "cancelled":
+      statusColor = "danger";
+      break;
+    case "archived":
+      statusColor = "caution";
+      break;
+    case "postponed":
+      statusColor = "warning";
+      break;
+    default:
+      break;
+  }
 
   return (
     <Card className={css.game_header_card} padding="base">
@@ -73,6 +91,7 @@ export default function GameHeader({ game, canEdit }: GameHeaderProps) {
             {gameDate}
           </time>
           <p>{game.venue}</p>
+          {showStatus && <Badge text={game.status} type={statusColor} />}
           {/* {canEdit && <GameScoreInput game={game} />} */}
         </div>
 

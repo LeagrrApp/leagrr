@@ -6,6 +6,7 @@ import Container from "@/components/ui/Container/Container";
 import Input from "@/components/ui/forms/Input";
 import Select from "@/components/ui/forms/Select";
 import TextArea from "@/components/ui/forms/TextArea";
+import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { sports_options, status_options } from "@/lib/definitions";
@@ -57,14 +58,12 @@ export default function EditLeague({ league, backLink }: EditLeagueProps) {
         <input type="hidden" name="league_id" value={league.league_id} />
         <Col>
           <Button type="submit" fullWidth disabled={pending}>
-            <i className="material-symbols-outlined">save</i>
-            Save League
+            <Icon icon="save" label="Save League" />
           </Button>
         </Col>
         <Col>
           <Button href={backLink} fullWidth variant="grey">
-            <i className="material-symbols-outlined">cancel</i>
-            Cancel
+            <Icon icon="cancel" label="Cancel" />
           </Button>
         </Col>
       </Grid>

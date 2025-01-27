@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import css from "./page.module.css";
 import GameFeed from "@/components/dashboard/games/GameFeed/GameFeed";
 import { CSSProperties } from "react";
+import GameControls from "@/components/dashboard/games/GameControls/GameControls";
 
 interface GameStyles extends CSSProperties {
   "--color-home": string;
@@ -65,6 +66,7 @@ export default async function Page({
       />
 
       <article style={styles} className={css.game}>
+        {canEdit && <GameControls game={gameData} />}
         <GameHeader game={gameData} canEdit={canEdit} />
         <GameTeamStats game={gameData} team={awayTeam} />
         <GameTeamStats game={gameData} team={homeTeam} isHome />

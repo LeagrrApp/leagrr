@@ -28,6 +28,7 @@ export default function Select({
   autocapitalize,
   onChange,
   errors,
+  disabled,
 }: SelectProps) {
   const [selectValue, setSelectValue] = useState<string | number | undefined>(
     selected || ""
@@ -58,6 +59,7 @@ export default function Select({
         required={required}
         autoCapitalize={autocapitalize}
         value={selectValue}
+        disabled={disabled}
       >
         {choices?.map((choice) => {
           if (typeof choice === "object") {

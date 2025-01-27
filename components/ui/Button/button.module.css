@@ -41,7 +41,14 @@
 
   &:is([disabled]) {
     opacity: 0.5;
-    cursor: progress;
+    cursor: not-allowed;
+    --btn-bg-color: var(--color-grey);
+    --btn-border-color: var(--color-grey-dark);
+    --btn-text-color: var(--color-black);
+    &:where(:hover, :focus-visible) {
+      --btn-bg-color: var(--color-grey);
+      --btn-text-color: var(--color-black);
+    }
   }
 }
 

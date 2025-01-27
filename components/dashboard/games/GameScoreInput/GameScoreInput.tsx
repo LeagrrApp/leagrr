@@ -7,12 +7,19 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import css from "./gameScoreInput.module.css";
 import { useParams, usePathname } from "next/navigation";
 import { setGameScore } from "@/actions/games";
+import Icon from "@/components/ui/Icon/Icon";
+import ButtonInvis from "@/components/ui/ButtonInvis/ButtonInvis";
+import Col from "@/components/ui/layout/Col";
 
 interface GameScoreInputProps {
   game: GameData;
+  buttonClassName?: string;
 }
 
-export default function GameScoreInput({ game }: GameScoreInputProps) {
+export default function GameScoreInput({
+  game,
+  buttonClassName,
+}: GameScoreInputProps) {
   const pathname = usePathname();
   const { league } = useParams();
 
@@ -34,32 +41,18 @@ export default function GameScoreInput({ game }: GameScoreInputProps) {
   return (
     <>
       <Button
+        className={buttonClassName}
         onClick={() => dialogRef?.current?.showModal()}
-        size="s"
-        padding={["em-s", "em-m"]}
+        variant="grey"
+        size="h5"
+        disabled={game.status !== "public" && game.status !== "completed"}
       >
-        {game.status === "completed" ? "Update Score" : "Complete Game"}
+        <Icon icon="scoreboard" label="Quick Score" />
       </Button>
-      <Dialog ref={dialogRef} maxWidth="40rem">
+      <Dialog className={css.game_score_input} ref={dialogRef} maxWidth="40rem">
         <form action={action}>
-          <h2>
-            {game.status === "completed" ? "Update Score" : "Complete Game"}
-          </h2>
+          <h2>Quick Score</h2>
           <Grid cols={2} gap="base">
-            <div className={css.game_score_input_team}>
-              <label htmlFor="home_team_score">{game.home_team}</label>
-              <input
-                name="home_team_score"
-                id="home_team_score"
-                type="number"
-                min="0"
-                value={homeTeamScore}
-                onChange={(e) =>
-                  setHomeTeamScore(parseInt(e?.currentTarget?.value))
-                }
-                required
-              />
-            </div>
             <div className={css.game_score_input_team}>
               <label htmlFor="away_team_score">{game.away_team}</label>
               <input
@@ -74,6 +67,20 @@ export default function GameScoreInput({ game }: GameScoreInputProps) {
                 required
               />
             </div>
+            <div className={css.game_score_input_team}>
+              <label htmlFor="home_team_score">{game.home_team}</label>
+              <input
+                name="home_team_score"
+                id="home_team_score"
+                type="number"
+                min="0"
+                value={homeTeamScore}
+                onChange={(e) =>
+                  setHomeTeamScore(parseInt(e?.currentTarget?.value))
+                }
+                required
+              />
+            </div>
             <Button type="submit">Confirm Score</Button>
             <Button
               type="button"
@@ -82,6 +89,13 @@ export default function GameScoreInput({ game }: GameScoreInputProps) {
             >
               Cancel
             </Button>
+            <Col fullSpan>
+              <small>
+                Note: updating the quick score overrides goals recorded in the
+                Game Feed. To re-activate Game Feed scoring, update the goals in
+                the Game Feed.
+              </small>
+            </Col>
           </Grid>
         </form>
       </Dialog>

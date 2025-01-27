@@ -1,8 +1,10 @@
-.game_score_input {
+.game_score_input h2 {
+  text-align: center;
 }
 
 .game_score_input_team {
   margin-block-end: var(--spacer-base);
+  text-align: center;
   & label {
     display: block;
     width: 100%;

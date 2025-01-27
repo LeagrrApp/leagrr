@@ -14,9 +14,6 @@ interface GameFeedProps {
 export default async function GameFeed({ game }: GameFeedProps) {
   const { data: gameFeed, message } = await getGameFeed(game.game_id);
 
-  console.log(message);
-  console.log(gameFeed);
-
   if (!gameFeed) {
     return (
       <div className={css.game_feed}>
@@ -123,26 +120,26 @@ export default async function GameFeed({ game }: GameFeedProps) {
         </ol>
         {game.status === "completed" && (
           <div className={css.game_feed_completed}>
-            <h4 className={css.game_feed_completed_heading}>Final Score:</h4>
+            <h4 className={css.game_feed_completed_heading}>Final Score</h4>
             <p>
               <span
                 className={
-                  game.away_team_stats_goals > game.home_team_stats_goals
+                  game.away_team_score > game.home_team_score
                     ? css.game_feed_winner
                     : undefined
                 }
               >
-                {game.away_team} <strong>{game.away_team_stats_goals}</strong>
+                {game.away_team} <strong>{game.away_team_score}</strong>
               </span>{" "}
-              -{" "}
+              —{" "}
               <span
                 className={
-                  game.home_team_stats_goals > game.away_team_stats_goals
+                  game.home_team_score > game.away_team_score
                     ? css.game_feed_winner
                     : undefined
                 }
               >
-                <strong>{game.home_team_stats_goals}</strong> {game.home_team}
+                <strong>{game.home_team_score}</strong> {game.home_team}
               </span>
             </p>
           </div>

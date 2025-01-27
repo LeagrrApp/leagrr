@@ -8,7 +8,8 @@ import { game_status_options } from "@/lib/definitions";
 import { isObjectEmpty } from "@/utils/helpers/objects";
 import { redirect } from "next/navigation";
 
-export async function getAddGameData(
+// TODO: Rename this function to something clearer
+export async function getLeagueInfoForGames(
   division_slug: string,
   season_slug: string,
   league_slug: string
@@ -156,9 +157,9 @@ export async function getAddGameData(
   };
 }
 
-const GameFormSchema = z.object({
-  game_id: z.number().min(1).optional(),
+const GameCreateFormSchema = z.object({
   division_id: z.number().min(1),
+  league_id: z.number().min(1),
   home_team_id: z.number().min(1),
   away_team_id: z.number().min(1),
   arena_id: z.number().min(1),
@@ -222,7 +223,7 @@ export async function createGame(
   let errors: GameErrorProps = {};
 
   // Validate form fields
-  const validatedFields = GameFormSchema.safeParse(gameData);
+  const validatedFields = GameCreateFormSchema.safeParse(gameData);
 
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
@@ -306,14 +307,12 @@ export async function getGame(game_id: number) {
       (SELECT color FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team_color,
       (SELECT slug FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team_slug,
       home_team_score,
-      (SELECT COUNT(*) FROM stats.goals AS goal WHERE goal.team_id = g.home_team_id AND g.game_id = $1)::int AS home_team_stats_goals,
       (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id = g.home_team_id AND sh.game_id = $1)::int AS home_team_shots,
       away_team_id,
       (SELECT name FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team,
       (SELECT color FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team_color,
       (SELECT slug FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team_slug,
       away_team_score,
-      (SELECT COUNT(*) FROM stats.goals AS goal WHERE goal.team_id = g.away_team_id AND g.game_id = $1)::int AS away_team_stats_goals,
       (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id = g.away_team_id AND sh.game_id = $1)::int AS away_team_shots,
       division_id,
       date_time,
@@ -322,7 +321,8 @@ export async function getGame(game_id: number) {
       (SELECT name FROM league_management.venues WHERE venue_id = (
         SELECT venue_id FROM league_management.arenas WHERE arena_id = g.arena_id
       )) AS venue,
-      status
+      status,
+      has_been_published
     FROM league_management.games AS g
     WHERE
       game_id = $1
@@ -345,6 +345,127 @@ export async function getGame(game_id: number) {
     });
 
   return gameResult;
+}
+
+const GameEditFormSchema = z.object({
+  game_id: z.number().min(1),
+  league_id: z.number().min(1),
+  home_team_id: z.number().min(1),
+  away_team_id: z.number().min(1),
+  arena_id: z.number().min(1),
+  date_time: z.date(),
+  status: z.enum(game_status_options),
+});
+
+export async function editGame(
+  state: GameFormState,
+  formData: FormData
+): Promise<GameFormState> {
+  // check user is logged in
+  await verifySession();
+
+  const gameData = {
+    game_id: parseInt(formData.get("game_id") as string),
+    league_id: parseInt(formData.get("league_id") as string),
+    home_team_id: parseInt(formData.get("home_team_id") as string),
+    away_team_id: parseInt(formData.get("away_team_id") as string),
+    arena_id: parseInt(formData.get("arena_id") as string),
+    date_time: new Date(formData.get("date_time") as string),
+    status: formData.get("status") as string,
+  };
+
+  console.log(formData.get("home_team_id"), formData.get("away_team_id"));
+
+  // Check to see if the user is allowed to create a season for this league
+  const { canEdit } = await canEditLeague(gameData.league_id);
+
+  if (!canEdit) {
+    return {
+      message: "You do not have permission to edit this game.",
+      status: 400,
+    };
+  }
+
+  let errors: GameErrorProps = {};
+
+  // Validate form fields
+  const validatedFields = GameEditFormSchema.safeParse(gameData);
+
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    errors = validatedFields.error.flatten().fieldErrors;
+  }
+
+  if (gameData.home_team_id === gameData.away_team_id) {
+    if (errors.away_team_id) {
+      errors.away_team_id.push("Home and away teams must be different!");
+    } else {
+      errors.away_team_id = ["Home and away teams must be different!"];
+    }
+  }
+
+  // if there are any validation errors, return errors
+  if (!isObjectEmpty(errors))
+    return {
+      link: state?.link,
+      errors,
+      data: {
+        home_team_id: gameData.home_team_id,
+        away_team_id: gameData.away_team_id,
+        arena_id: gameData.arena_id,
+        date_time: formData.get("date_time") as string,
+        status: gameData.status,
+      },
+    };
+
+  const updateSql = `
+    UPDATE
+      league_management.games
+    SET
+      home_team_id = $1,
+      away_team_id = $2,
+      arena_id = $3,
+      date_time = $4,
+      status = $5
+    WHERE
+      game_id = $6
+  `;
+
+  const updateResult: ResultProps<{ game_id: number }> = await db
+    .query(updateSql, [
+      gameData.home_team_id,
+      gameData.away_team_id,
+      gameData.arena_id,
+      gameData.date_time,
+      gameData.status,
+      gameData.game_id,
+    ])
+    .then((res) => {
+      return {
+        message: "Game updated!",
+        status: 200,
+        data: res.rows[0],
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  console.log(updateResult);
+
+  if (updateResult.status === 400) {
+    return {
+      message: updateResult.message,
+      status: updateResult.status,
+    };
+  }
+
+  // TODO: handle if there link isn't working
+
+  state?.link && redirect(state?.link);
 }
 
 const GameScoreSchema = z.object({
