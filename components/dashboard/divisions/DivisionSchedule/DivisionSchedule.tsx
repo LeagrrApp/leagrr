@@ -62,7 +62,7 @@ export default function DivisionSchedule({
     if (showPastGames) {
       updatedGamesList.reverse();
       setGameList(
-        updatedGamesList.slice(gameListOffset, gameListOffset + gamesPerPage)
+        updatedGamesList.slice(gameListOffset, gameListOffset + gamesPerPage),
       );
     } else {
       setGameList(updatedGamesList);
@@ -134,7 +134,7 @@ export default function DivisionSchedule({
               if (g.status !== "public" && g.status !== "completed") {
                 rowClasses.push(
                   css.game_list_flag,
-                  css[`game_list_flag_${g.status}`]
+                  css[`game_list_flag_${g.status}`],
                 );
               }
 

@@ -111,7 +111,7 @@ export async function getDashboardMenuData(): Promise<
 }
 
 export async function getUserData(
-  identifier: string
+  identifier: string,
 ): Promise<ResultProps<UserData>> {
   const { user_id } = await verifySession();
 

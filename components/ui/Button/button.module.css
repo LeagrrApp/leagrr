@@ -2,21 +2,18 @@
   --btn-bg-color: var(--color-primary);
   --btn-border-color: var(--color-primary-dark);
   --btn-text-color: var(--color-white);
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--spacer-em-base);
-
   padding: var(--btn-padding, var(--spacer-em-m) var(--spacer-em-base));
   border-radius: var(--spacer-em-s);
-
   background-color: var(--btn-bg-color);
   border: 0.0625rem solid var(--btn-border-color);
   color: var(--btn-text-color);
-
   line-height: 1.25;
   vertical-align: middle;
-
   text-decoration: none;
   text-align: center;
   font-family: inherit;
@@ -42,9 +39,11 @@
   &:is([disabled]) {
     opacity: 0.5;
     cursor: not-allowed;
+
     --btn-bg-color: var(--color-grey);
     --btn-border-color: var(--color-grey-dark);
     --btn-text-color: var(--color-black);
+
     &:where(:hover, :focus-visible) {
       --btn-bg-color: var(--color-grey);
       --btn-text-color: var(--color-black);
@@ -56,6 +55,7 @@
   --btn-bg-color: var(--color-secondary);
   --btn-border-color: var(--color-secondary-dark);
   --btn-text-color: var(--color-black);
+
   &:where(:hover, :focus-visible) {
     --btn-bg-color: var(--color-secondary-dark);
   }
@@ -72,6 +72,7 @@
   --btn-bg-color: var(--color-accent);
   --btn-border-color: var(--color-accent-dark);
   --btn-text-color: var(--color-black);
+
   &:where(:hover, :focus-visible) {
     --btn-bg-color: var(--color-accent-dark);
   }
@@ -88,6 +89,7 @@
   --btn-bg-color: var(--color-success);
   --btn-border-color: var(--color-success-dark);
   --btn-text-color: var(--color-black);
+
   &:where(:hover, :focus-visible) {
     --btn-bg-color: var(--color-success-dark);
   }
@@ -104,6 +106,7 @@
   --btn-bg-color: var(--color-warning);
   --btn-border-color: var(--color-warning-dark);
   --btn-text-color: var(--color-black);
+
   &:where(:hover, :focus-visible) {
     --btn-bg-color: var(--color-warning-dark);
   }
@@ -120,6 +123,7 @@
   --btn-bg-color: var(--color-danger);
   --btn-border-color: var(--color-danger-dark);
   --btn-text-color: var(--color-black);
+
   &:where(:hover, :focus-visible) {
     --btn-bg-color: var(--color-danger-dark);
     --btn-text-color: var(--color-white);
@@ -137,6 +141,7 @@
   --btn-bg-color: var(--color-grey);
   --btn-border-color: var(--color-grey-dark);
   --btn-text-color: var(--color-black);
+
   &:where(:hover, :focus-visible) {
     --btn-bg-color: var(--color-grey-dark);
     --btn-text-color: var(--color-white);

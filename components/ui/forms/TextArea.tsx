@@ -31,7 +31,7 @@ export default function TextArea({
   optional,
 }: TextAreaProps) {
   const [textAreaValue, setTextAreaValue] = useState(
-    value || defaultValue || ""
+    value || defaultValue || "",
   );
 
   const placeholderText = labelAsPlaceholder ? label : placeholder;

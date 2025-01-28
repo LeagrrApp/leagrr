@@ -2,7 +2,7 @@ import { getGameFeed, getGameTeamRosters } from "@/actions/games";
 import Card from "@/components/ui/Card/Card";
 import Icon from "@/components/ui/Icon/Icon";
 import css from "./gameFeed.module.css";
-import GameFeedAdd from "./GameFeedAdd/GameFeedAdd";
+import GameFeedAdd from "../GameFeedAdd/GameFeedAdd";
 import GameFeedGoal from "./GameFeedGoal";
 import GameFeedPenalty from "./GameFeedPenalty";
 import GameFeedSave from "./GameFeedSave";
@@ -18,7 +18,7 @@ export default async function GameFeed({ game, canEdit }: GameFeedProps) {
 
   const { data: teamRosters } = await getGameTeamRosters(
     game.away_team_id,
-    game.home_team_id
+    game.home_team_id,
   );
 
   if (!teamRosters) return null;

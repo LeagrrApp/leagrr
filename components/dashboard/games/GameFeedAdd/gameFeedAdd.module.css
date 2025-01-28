@@ -1,13 +1,16 @@
 .game_feed_add {
   --cols: 1;
+
   display: grid;
   gap: var(--spacer-base);
   grid-template-columns: repeat(var(--cols), 1fr);
   background-color: var(--color-grey-light);
   padding: var(--spacer-base);
+
   @container (min-width: 25rem) {
     --cols: 2;
   }
+
   @container (min-width: 45rem) {
     --cols: 3;
   }
@@ -17,6 +20,7 @@
   display: grid;
   grid-template-columns: 1fr 2fr 2fr;
   gap: var(--spacer-m);
+
   & label {
     font-size: var(--type-scale-xs);
     text-transform: none;

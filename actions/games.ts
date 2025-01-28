@@ -13,7 +13,7 @@ import { createPeriodTimeString } from "@/utils/helpers/formatting";
 export async function getLeagueInfoForGames(
   division_slug: string,
   season_slug: string,
-  league_slug: string
+  league_slug: string,
 ): Promise<ResultProps<AddGameData>> {
   // check user is logged in
   await verifySession();
@@ -196,7 +196,7 @@ type GameFormState =
 
 export async function createGame(
   state: GameFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<GameFormState> {
   // check user is logged in
   await verifySession();
@@ -360,7 +360,7 @@ const GameEditFormSchema = z.object({
 
 export async function editGame(
   state: GameFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<GameFormState> {
   // check user is logged in
   await verifySession();
@@ -490,7 +490,7 @@ type GameScoreState =
 
 export async function setGameScore(
   state: GameScoreState,
-  formData: FormData
+  formData: FormData,
 ): Promise<GameScoreState> {
   if (!state || !state.league || !state.game || !state.link)
     return {
@@ -877,7 +877,7 @@ export async function getGameFeed(game_id: number): Promise<
         a.period_time.seconds -
         (b.period_time.minutes * 60 + b.period_time.seconds) ||
       (typeOrder[a.type] || typeOrder.default) -
-        (typeOrder[b.type] || typeOrder.default)
+        (typeOrder[b.type] || typeOrder.default),
   );
 
   const gameFeed: {
@@ -900,7 +900,7 @@ export async function getGameFeed(game_id: number): Promise<
 
 export async function getGameTeamRosters(
   away_team_id: number,
-  home_team_id: number
+  home_team_id: number,
 ) {
   // verify user is signed in
   await verifySession();
@@ -991,7 +991,7 @@ type AddGameFeedState =
 
 export async function addToGameFeed(
   state: AddGameFeedState,
-  formData: FormData
+  formData: FormData,
 ) {
   const messages: string[] = [];
   const type = formData.get("type");
@@ -1013,7 +1013,7 @@ export async function addToGameFeed(
 
   const period_time = createPeriodTimeString(
     feedItemData.minutes,
-    feedItemData.seconds
+    feedItemData.seconds,
   );
 
   let inserted_goal_id: number;
@@ -1056,6 +1056,7 @@ export async function addToGameFeed(
           };
         });
 
+      // if goal adding was successful, update the game score
       if (goalResult.data) {
         inserted_goal_id = goalResult.data.goal_id;
 
@@ -1138,6 +1139,9 @@ export async function addToGameFeed(
     }
 
     // -- add shot
+    const shotSql = `
+    `;
+
     messages.push("A shot!");
     if (type !== "goal") {
       // -- -- add save if not goal

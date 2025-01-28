@@ -1,7 +1,6 @@
 .game {
   display: grid;
   gap: var(--spacer-base);
-
   container: game / inline-size;
 
   @container (min-width: 50rem) {

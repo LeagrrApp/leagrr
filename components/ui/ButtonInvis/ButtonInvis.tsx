@@ -3,7 +3,7 @@ import css from "./buttonInvis.module.css";
 import { apply_classes } from "@/utils/helpers/html-attributes";
 
 export default function ButtonInvis(
-  props: PropsWithChildren<ButtonHTMLAttributes<HTMLButtonElement>>
+  props: PropsWithChildren<ButtonHTMLAttributes<HTMLButtonElement>>,
 ) {
   return (
     <button

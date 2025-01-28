@@ -12,7 +12,7 @@ import { verifySession } from "@/lib/session";
 
 export async function createLeague(
   state: LeagueFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<LeagueFormState> {
   // Verify user session
   const { user_id } = await verifySession();
@@ -108,7 +108,7 @@ export async function createLeague(
 }
 
 export async function getLeagueAdminRole(
-  league: number | string
+  league: number | string,
 ): Promise<number> {
   // Verify user session
   const { user_id } = await verifySession();
@@ -163,7 +163,7 @@ export async function getLeagueAdminRole(
 
 export async function verifyLeagueAdminRole(
   league_id: number,
-  roleType: number
+  roleType: number,
 ): Promise<boolean> {
   const league_role_id = await getLeagueAdminRole(league_id);
 
@@ -172,7 +172,7 @@ export async function verifyLeagueAdminRole(
 
 export async function canEditLeague(
   league: number | string,
-  commissionerOnly?: boolean
+  commissionerOnly?: boolean,
 ): Promise<{ canEdit: boolean; role: string | undefined }> {
   // check if they are a site wide admin
   const isAdmin = await verifyUserRole(1);
@@ -206,7 +206,7 @@ export async function canEditLeague(
 }
 
 export async function getLeagueData(
-  slug: string
+  slug: string,
 ): Promise<ResultProps<LeagueData>> {
   // Verify user session
   await verifySession();
@@ -302,7 +302,7 @@ export async function getLeagueData(
 
 export async function editLeague(
   state: LeagueFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<LeagueFormState> {
   // Verify user session
   await verifySession();

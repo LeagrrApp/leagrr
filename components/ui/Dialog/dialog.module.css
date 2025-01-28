@@ -12,6 +12,7 @@
 .dialog h2 {
   font-size: var(--type-scale-h4);
   margin-block-end: var(--spacer-base);
+
   &:where(:has(+ p)) {
     margin-block-end: var(--spacer-m);
   }
@@ -33,6 +34,7 @@
   border: 0;
   background-color: transparent;
   border-radius: var(--spacer-s);
+
   &:where(:hover, :focus-visible) {
     background-color: var(--color-grey);
   }

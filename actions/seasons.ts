@@ -13,7 +13,7 @@ import { canEditLeague, verifyLeagueAdminRole } from "./leagues";
 
 export async function createSeason(
   state: SeasonFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<SeasonFormState> {
   // Verify user session
   const { user_id } = await verifySession();
@@ -96,7 +96,7 @@ export async function createSeason(
 
   if (seasonInsertResult?.data)
     redirect(
-      `/dashboard/l/${seasonInsertResult?.data.league_slug}/s/${seasonInsertResult?.data.slug}`
+      `/dashboard/l/${seasonInsertResult?.data.league_slug}/s/${seasonInsertResult?.data.slug}`,
     );
 
   return seasonInsertResult;
@@ -105,7 +105,7 @@ export async function createSeason(
 export async function getSeason(
   season_slug: string,
   league_slug: string,
-  includeDivisions?: boolean
+  includeDivisions?: boolean,
 ): Promise<ResultProps<SeasonData>> {
   // Verify user session
   await verifySession();
@@ -200,7 +200,7 @@ export async function getSeason(
 
 export async function editSeason(
   state: SeasonFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<SeasonFormState> {
   // Verify user session
   await verifySession();
@@ -296,7 +296,7 @@ export async function editSeason(
 
   if (seasonUpdateResult?.data)
     redirect(
-      `/dashboard/l/${seasonUpdateResult?.data.league_slug}/s/${seasonUpdateResult?.data.slug}`
+      `/dashboard/l/${seasonUpdateResult?.data.league_slug}/s/${seasonUpdateResult?.data.slug}`,
     );
 
   return seasonUpdateResult;

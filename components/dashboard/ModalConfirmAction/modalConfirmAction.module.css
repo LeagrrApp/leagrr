@@ -1,20 +1,3 @@
-.trigger {
-  /* padding: 0;
-  border: 0;
-  background-color: transparent;
-  display: block;
-  width: 100%;
-  border-radius: 0; */
-}
-
-.trigger_icon {
-  /* color: var(--color-white);
-  background-color: var(--color-primary-darker);
-  &:where(:hover, :focus-visible) {
-    background-color: var(--color-danger-dark);
-  } */
-}
-
 .dialog {
   text-align: center;
 }
@@ -22,6 +5,7 @@
 .dialog_heading {
   font-size: var(--type-scale-h4);
   margin-block-end: var(--spacer-base);
+
   &:where(:has(+ p)) {
     margin-block-end: var(--spacer-m);
   }

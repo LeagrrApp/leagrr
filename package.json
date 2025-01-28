@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "format": "prettier --check . && stylelint --allow-empty-input \"**/*.{css}\"",
+    "format": "prettier --check . && stylelint --allow-empty-input \"**/*.css\"",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

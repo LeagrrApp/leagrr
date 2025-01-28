@@ -44,7 +44,7 @@ export default async function Page({
               <Button
                 href={createDashboardUrl(
                   { l: league, s: season, d: division },
-                  "t"
+                  "t",
                 )}
               >
                 Invite teams
@@ -69,7 +69,7 @@ export default async function Page({
               <Button
                 href={createDashboardUrl(
                   { l: league, s: season, d: division },
-                  "g"
+                  "g",
                 )}
               >
                 Add games

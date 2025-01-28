@@ -31,7 +31,7 @@ export default function DivisionHeader({
 
   const editLink = createDashboardUrl(
     { l: league_slug, s: season_slug, d: slug },
-    "edit"
+    "edit",
   );
 
   const showStatus = status !== undefined && status !== "public";

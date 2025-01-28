@@ -22,7 +22,7 @@ export default function Switch({
 
   useEffect(() => {
     setClassNames(
-      checked ? `${css.switch_wrap} ${css.switch_checked}` : css.switch_wrap
+      checked ? `${css.switch_wrap} ${css.switch_checked}` : css.switch_wrap,
     );
   }, [checked]);
 

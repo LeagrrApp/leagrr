@@ -36,7 +36,7 @@ export default function ModalConfirmAction({
   return (
     <>
       <Button
-        className={apply_classes(css.trigger, trigger?.classes)}
+        className={trigger?.classes ? apply_classes(trigger?.classes) : ""}
         onClick={() => dialogRef?.current?.showModal()}
         variant={trigger?.buttonStyles?.variant || "transparent"}
         outline={trigger?.buttonStyles?.outline}

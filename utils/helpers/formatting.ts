@@ -10,7 +10,7 @@ export function createDashboardUrl(
     g?: string | number;
     t?: string;
   },
-  additional?: string
+  additional?: string,
 ): string {
   let url = `/dashboard`;
 
@@ -46,7 +46,7 @@ export function makeAcronym(
   settings?: {
     ignoredWords?: string[];
     includePeriods?: boolean;
-  }
+  },
 ): string {
   let ignoredWords = ["and", "or", "of", "to", "the"];
 
@@ -86,7 +86,7 @@ export function nameDisplay(
     | "last_name"
     | "initials"
     | "first_initial"
-    | "last_initial"
+    | "last_initial",
 ): string {
   switch (style) {
     case "first_name":
@@ -130,7 +130,7 @@ export function formatDateForInput(date: string | Date): string {
 
 export function addNumberOrdinals(number: number) {
   const cleanedNumberToCheck = parseInt(
-    number.toString().substring(number.toString().length - 1)
+    number.toString().substring(number.toString().length - 1),
   );
 
   switch (cleanedNumberToCheck) {
@@ -167,7 +167,7 @@ export function applyColor(color: string): string {
 
 export function createPeriodTimeString(
   minutes: number,
-  seconds: number
+  seconds: number,
 ): string {
   return `00:${minutes < 10 ? `0${minutes}` : minutes}:${
     seconds < 10 ? `0${seconds}` : seconds

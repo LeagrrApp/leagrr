@@ -31,7 +31,7 @@ export default function NumberSelect({
   disabled,
 }: NumberSelectProps) {
   const [selectValue, setSelectValue] = useState<string | number | undefined>(
-    selected || ""
+    selected || "",
   );
 
   useEffect(() => {

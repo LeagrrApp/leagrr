@@ -58,13 +58,15 @@ export default function GameFeedAdd({
   const [type, setType] = useState<string>("goal");
   const [team, setTeam] = useState<number>(game.away_team_id);
   const [player, setPlayer] = useState<number>(
-    team === game.home_team_id ? home_players[0].value : away_players[0].value
+    team === game.home_team_id ? home_players[0].value : away_players[0].value,
   );
   const [canAssist, setCanAssist] = useState<Choice[]>([]);
 
   useEffect(() => {
     setPlayer(
-      team === game.home_team_id ? home_players[0].value : away_players[0].value
+      team === game.home_team_id
+        ? home_players[0].value
+        : away_players[0].value,
     );
   }, [team]);
 

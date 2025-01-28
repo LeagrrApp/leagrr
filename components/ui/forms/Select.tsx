@@ -32,7 +32,7 @@ export default function Select({
   ref,
 }: SelectProps) {
   const [selectValue, setSelectValue] = useState<string | number | undefined>(
-    selected || ""
+    selected || "",
   );
 
   useEffect(() => {

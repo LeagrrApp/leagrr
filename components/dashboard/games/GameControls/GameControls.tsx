@@ -2,7 +2,7 @@
 
 import Button from "@/components/ui/Button/Button";
 import Icon from "@/components/ui/Icon/Icon";
-import GameScoreInput from "../GameScoreInput/GameScoreInput";
+import GameScoreInput from "../GameHeader/GameScoreInput/GameScoreInput";
 import css from "./gameControls.module.css";
 import { usePathname } from "next/navigation";
 

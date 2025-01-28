@@ -27,7 +27,7 @@ export default async function GameTeamStats({
 
   const { data: teamGameStates } = await getTeamGameStats(
     game.game_id,
-    team.team_id
+    team.team_id,
   );
 
   if (!teamGameStates)
@@ -100,7 +100,6 @@ export default async function GameTeamStats({
                     <th scope="row">
                       <Link href={`/dashboard/u/${p.username}`}>
                         {nameDisplay(p.first_name, p.last_name, "last_initial")}
-                        {/* {p.first_name} {p.last_name} */}
                       </Link>
                     </th>
                     <td>{makeAcronym(p.position || "")}</td>
@@ -154,7 +153,7 @@ export default async function GameTeamStats({
                             (isHome
                               ? game.away_team_shots
                               : game.home_team_shots)) *
-                            10000
+                            10000,
                         ) / 10000}
                     </td>
                   </tr>

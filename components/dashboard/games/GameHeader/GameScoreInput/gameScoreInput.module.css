@@ -5,6 +5,7 @@
 .game_score_input_team {
   margin-block-end: var(--spacer-base);
   text-align: center;
+
   & label {
     display: block;
     width: 100%;
@@ -13,6 +14,7 @@
     letter-spacing: 0.0625rem;
     margin-block-end: var(--spacer-ml);
   }
+
   & input {
     width: 4rem;
     aspect-ratio: 1;
@@ -29,17 +31,18 @@
 
     &:user-invalid {
       border-color: var(--color-danger);
-      background-color: hsla(from var(--color-danger) h s l / 20%);
+      background-color: hsla(from var(--color-danger) h s l / 0.2);
     }
+
     &::-webkit-outer-spin-button,
     &::-webkit-inner-spin-button {
-      -webkit-appearance: none;
+      appearance: none;
       margin: 0;
     }
 
     /* Firefox */
     &[type="number"] {
-      -moz-appearance: textfield;
+      appearance: textfield;
     }
   }
 }

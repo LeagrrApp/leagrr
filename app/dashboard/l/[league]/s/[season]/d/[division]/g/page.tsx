@@ -25,7 +25,7 @@ export default async function Page({
   const { data: addGameData } = await getLeagueInfoForGames(
     division,
     season,
-    league
+    league,
   );
 
   return (

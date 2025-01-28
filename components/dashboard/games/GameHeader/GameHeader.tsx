@@ -4,7 +4,7 @@ import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { apply_classes } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
 import css from "./gameHeader.module.css";
-import GameScoreInput from "../GameScoreInput/GameScoreInput";
+import GameScoreInput from "./GameScoreInput/GameScoreInput";
 import Badge from "@/components/ui/Badge/Badge";
 
 interface GameHeaderProps {
@@ -50,7 +50,7 @@ export default function GameHeader({ game, canEdit }: GameHeaderProps) {
             [css.game_header_team_info, css.game_header_team_info_away],
             gameCompleted && game.away_team_score > game.home_team_score
               ? css.game_header_team_info_winner
-              : undefined
+              : undefined,
           )}
         >
           <div className={css.game_header_team_wrap}>
@@ -100,7 +100,7 @@ export default function GameHeader({ game, canEdit }: GameHeaderProps) {
             [css.game_header_team_info, css.game_header_team_info_home],
             gameCompleted && game.home_team_score > game.away_team_score
               ? css.game_header_team_info_winner
-              : undefined
+              : undefined,
           )}
         >
           <div className={css.game_header_team_wrap}>

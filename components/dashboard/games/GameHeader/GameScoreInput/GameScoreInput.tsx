@@ -35,7 +35,7 @@ export default function GameScoreInput({
 
   const [homeTeamScore, setHomeTeamScore] = useState(game.home_team_score);
   const [awayTeamScore, setAwayTeamScore] = useState<number>(
-    game.away_team_score
+    game.away_team_score,
   );
 
   return (

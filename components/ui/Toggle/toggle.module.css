@@ -1,5 +1,4 @@
 .toggle {
-  padding: 0;
   margin: 0;
   background-color: var(--color-primary-pale);
   border: 0.0625rem solid var(--color-white);
@@ -7,7 +6,6 @@
   flex-direction: column;
   justify-content: space-between;
   padding: 0.25rem;
-
   width: var(--spacer-l);
   height: calc(var(--spacer-l) * 0.875);
   border-radius: var(--spacer-s);
@@ -37,9 +35,11 @@
     translate: 0 -50%;
     rotate: 45deg;
   }
+
   .tog_middle {
     opacity: 0;
   }
+
   .tog_bottom {
     inset-block-end: 50%;
     translate: 0 50%;

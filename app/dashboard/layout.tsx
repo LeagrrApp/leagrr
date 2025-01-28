@@ -14,7 +14,7 @@ export default async function Layout({
 
   if (!data)
     throw new Error(
-      "Sorry, an error occurred and we were unable to load your data."
+      "Sorry, an error occurred and we were unable to load your data.",
     );
 
   const skipLinks: BasicLink[] = [

@@ -117,7 +117,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
                     className={css.menu_item}
                     href={`/dashboard/l/${league.slug}`}
                     aria-current={pathname.includes(
-                      `/dashboard/l/${league.slug}`
+                      `/dashboard/l/${league.slug}`,
                     )}
                   >
                     {league.img ? (

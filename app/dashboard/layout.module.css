@@ -3,7 +3,7 @@
   min-height: 100dvh;
   grid-template-rows: auto 1fr;
 
-  @media only screen and (min-width: 60rem) {
+  @media only screen and (width >= 60rem) {
     grid-template-columns: 15rem 1fr;
     grid-template-rows: auto;
   }
@@ -13,7 +13,8 @@
   overflow: hidden;
   container: main / inline-size;
   padding-block-end: var(--spacer-l);
-  @media only screen and (min-width: 60rem) {
+
+  @media only screen and (width >= 60rem) {
     position: relative;
     box-shadow: -0.25rem 0 0.5rem
       hsla(from var(--color-grey-darker) h s calc(l - 40) / 0.5);

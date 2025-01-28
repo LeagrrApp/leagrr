@@ -18,7 +18,6 @@
     content: " ";
     margin-block-start: var(--spacer-l);
     display: block;
-    /* border-block-end: 0.0625rem solid var(--color-primary); */
     margin-inline: auto;
     width: min(50%, 25rem);
     height: 0.125rem;
@@ -35,13 +34,13 @@
 .game_feed_period_heading {
   margin-block-end: var(--spacer-ml);
   text-transform: uppercase;
-  /* font-size: var(--type-scale-h5); */
 }
 
 .game_feed_feed {
   display: grid;
   gap: var(--spacer-s) var(--spacer-base);
   grid-template-columns: auto auto 1fr auto;
+
   @container (min-width: 45rem) {
     grid-template-columns: auto auto 1fr 4rem 1fr auto auto;
   }
@@ -73,6 +72,7 @@
       var(--color-white) 20%,
       var(--color-white)
     );
+
     @container (min-width: 45rem) {
       background: linear-gradient(
         var(--feed-rotation, 135deg),
@@ -83,6 +83,7 @@
       );
     }
   }
+
   &::after {
     content: " ";
     position: absolute;
@@ -92,6 +93,7 @@
     background: white;
     z-index: -1;
   }
+
   @container (min-width: 45rem) {
     grid-column: span 4;
   }
@@ -99,8 +101,10 @@
 
 .game_feed_home {
   --color-feed: var(--color-home);
+
   @container (min-width: 45rem) {
     --feed-rotation: 315deg;
+
     text-align: right;
     grid-template-areas: "type player team time";
     grid-column: 4 / span 4;

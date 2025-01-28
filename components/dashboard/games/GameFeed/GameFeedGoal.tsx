@@ -62,7 +62,7 @@ export default function GameFeedGoal({
             <>
               assisted by{" "}
               {assists.map((a, i) =>
-                i === 0 ? a.user_last_name : `, ${a.user_last_name}`
+                i === 0 ? a.user_last_name : `, ${a.user_last_name}`,
               )}
             </>
           ) : (
@@ -73,7 +73,7 @@ export default function GameFeedGoal({
       <div
         className={apply_classes(
           css.game_feed_item_type,
-          css.game_feed_item_type_goal
+          css.game_feed_item_type_goal,
         )}
       >
         <Icon icon="e911_emergency" label="Goal" hideLabel size="h4" />
