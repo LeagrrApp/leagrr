@@ -12,6 +12,7 @@ import NumberSelect from "@/components/ui/forms/NumberSelect";
 import Switch from "@/components/ui/forms/Switch/Switch";
 import { addToGameFeed } from "@/actions/games";
 import Input from "@/components/ui/forms/Input";
+import { usePathname } from "next/navigation";
 
 interface GameFeedAddProps {
   game: GameData;
@@ -19,6 +20,11 @@ interface GameFeedAddProps {
   teamRosters: {
     away_roster: TeamRosterItem[];
     home_roster: TeamRosterItem[];
+  };
+  currentTime: {
+    period: number;
+    minutes: number;
+    seconds: number;
   };
 }
 
@@ -28,9 +34,12 @@ export default function GameFeedAdd({
   game,
   canEdit,
   teamRosters,
+  currentTime,
 }: GameFeedAddProps) {
-  const assistRef = useRef<HTMLSelectElement>(null);
-  const [state, action, pending] = useActionState(addToGameFeed, undefined);
+  const pathname = usePathname();
+  const [state, action, pending] = useActionState(addToGameFeed, {
+    link: pathname,
+  });
 
   useEffect(() => {
     console.log(state);
@@ -55,18 +64,25 @@ export default function GameFeedAdd({
   ];
 
   const [adding, setAdding] = useState<boolean>(true);
-  const [type, setType] = useState<string>("goal");
+  const [type, setType] = useState<string>("shot");
   const [team, setTeam] = useState<number>(game.away_team_id);
-  const [player, setPlayer] = useState<number>(
-    team === game.home_team_id ? home_players[0].value : away_players[0].value,
-  );
+  const [player, setPlayer] = useState<number>(away_players[0].value);
   const [canAssist, setCanAssist] = useState<Choice[]>([]);
+  const [goalie, setGoalie] = useState<number>(
+    teamRosters.home_roster.find((p) => p.position === "Goalie")?.user_id || 0,
+  );
 
   useEffect(() => {
     setPlayer(
       team === game.home_team_id
         ? home_players[0].value
         : away_players[0].value,
+    );
+    setGoalie(
+      (team === game.home_team_id
+        ? teamRosters.away_roster
+        : teamRosters.home_roster
+      ).find((p) => p.position === "Goalie")?.user_id || 0,
     );
   }, [team]);
 
@@ -98,7 +114,7 @@ export default function GameFeedAdd({
     }
 
     return (
-      <form className={css.game_feed_add} action={action}>
+      <form id="game-feed-add" className={css.game_feed_add} action={action}>
         <Col fullSpan>
           <h4>Add to Game Feed</h4>
         </Col>
@@ -131,6 +147,7 @@ export default function GameFeedAdd({
             min={1}
             max={3}
             labelAfter
+            selected={currentTime.period.toString()}
             required
           />
           <NumberSelect
@@ -139,6 +156,7 @@ export default function GameFeedAdd({
             min={0}
             max={19}
             labelAfter
+            selected={currentTime.minutes.toString()}
             required
           />
           <NumberSelect
@@ -147,6 +165,7 @@ export default function GameFeedAdd({
             min={0}
             max={59}
             labelAfter
+            selected={currentTime.seconds.toString()}
             required
           />
         </fieldset>
@@ -229,8 +248,19 @@ export default function GameFeedAdd({
           </>
         )}
         <input type="hidden" name="game_id" value={game.game_id} />
+        <input
+          type="hidden"
+          name="opposition_id"
+          value={
+            game.home_team_id === team ? game.away_team_id : game.home_team_id
+          }
+        />
+        <input type="hidden" name="goalie_id" value={goalie} />
         <Col fullSpan>
           <Button type="submit">Add to feed</Button>
+          <Button type="button" onClick={() => setAdding(false)} variant="grey">
+            Cancel
+          </Button>
         </Col>
       </form>
     );

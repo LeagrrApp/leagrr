@@ -44,10 +44,10 @@ export default function NumberSelect({
     if (onChange) onChange(e);
   }
 
-  const choices: number[] = [];
+  const choices: string[] = [];
 
   for (let index = min; index <= max; index++) {
-    choices.push(index);
+    choices.push(index.toString());
   }
 
   return (

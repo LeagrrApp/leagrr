@@ -873,9 +873,9 @@ export async function getGameFeed(game_id: number): Promise<
   ].sort(
     (a, b) =>
       a.period - b.period ||
-      a.period_time.minutes * 60 +
-        a.period_time.seconds -
-        (b.period_time.minutes * 60 + b.period_time.seconds) ||
+      (a.period_time.minutes || 0) * 60 +
+        (a.period_time.seconds || 0) -
+        ((b.period_time.minutes || 0) * 60 + (b.period_time.seconds || 0)) ||
       (typeOrder[a.type] || typeOrder.default) -
         (typeOrder[b.type] || typeOrder.default),
   );
@@ -1007,16 +1007,20 @@ export async function addToGameFeed(
     empty_net: formData.get("empty_net") === "true",
     rebound: formData.get("rebound") === "true",
     assists: formData.getAll("assists"),
-    penalty_minutes: parseInt(formData.get("seconds") as string),
-    infraction: formData.get("seconds") as string,
+    penalty_minutes: parseInt(formData.get("penalty_minutes") as string),
+    infraction: formData.get("infraction") as string,
+    goalie_id: parseInt(formData.get("goalie_id") as string),
+    opposition_id: parseInt(formData.get("opposition_id") as string),
   };
+
+  console.log(feedItemData.minutes, feedItemData.seconds);
 
   const period_time = createPeriodTimeString(
     feedItemData.minutes,
     feedItemData.seconds,
   );
 
-  let inserted_goal_id: number;
+  let inserted_goal_id: number | null = null;
 
   // goal or shot
   if (type === "goal" || type === "shot") {
@@ -1031,6 +1035,7 @@ export async function addToGameFeed(
           goal_id
       `;
 
+      console.log(period_time);
       const goalResult: ResultProps<{ goal_id: number }> = await db
         .query(goalSql, [
           feedItemData.game_id,
@@ -1140,22 +1145,168 @@ export async function addToGameFeed(
 
     // -- add shot
     const shotSql = `
+      INSERT INTO stats.shots
+        (game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play)
+      VALUES 
+        ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING
+        shot_id
     `;
 
+    const shotResult: ResultProps<{ shot_id: number }> = await db
+      .query(shotSql, [
+        feedItemData.game_id,
+        feedItemData.user_id,
+        feedItemData.team_id,
+        feedItemData.period,
+        period_time,
+        inserted_goal_id,
+        feedItemData.shorthanded,
+        feedItemData.power_play,
+      ])
+      .then((res) => {
+        return {
+          message: "Shot created!",
+          status: 200,
+          data: res.rows[0],
+        };
+      })
+      .catch((err) => {
+        return {
+          message: err.message,
+          status: 400,
+        };
+      });
+
+    // TODO: improve shot error handling
+    if (shotResult.status === 400) {
+      throw new Error(shotResult.message);
+    }
+
     messages.push("A shot!");
-    if (type !== "goal") {
+    if (type !== "goal" && shotResult.data) {
       // -- -- add save if not goal
+
+      const saveSql = `
+        INSERT INTO stats.saves
+          (game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound)
+        VALUES 
+          ($1, $2, $3, $4, $5, $6, $7, $8)
+      `;
+
+      const saveResult = await db
+        .query(saveSql, [
+          feedItemData.game_id,
+          feedItemData.goalie_id,
+          feedItemData.opposition_id,
+          shotResult.data.shot_id,
+          feedItemData.period,
+          period_time,
+          feedItemData.shorthanded,
+          feedItemData.rebound,
+        ])
+        .then(() => {
+          return {
+            message: "Save created!",
+            status: 200,
+          };
+        })
+        .catch((err) => {
+          return {
+            message: err.message,
+            status: 400,
+          };
+        });
+
+      // TODO: improve save error handling
+      if (saveResult.status === 400) {
+        throw new Error(saveResult.message);
+      }
       messages.push("A save!");
     }
   }
 
   // penalty
   if (type === "penalty") {
+    const penaltySql = `
+      INSERT INTO stats.penalties
+        (game_id, user_id, team_id, period, period_time, infraction, minutes)
+      VALUES
+        ($1, $2, $3, $4, $5, $6, $7)
+    `;
+
+    const penaltyResult = await db
+      .query(penaltySql, [
+        feedItemData.game_id,
+        feedItemData.user_id,
+        feedItemData.team_id,
+        feedItemData.period,
+        period_time,
+        feedItemData.infraction,
+        feedItemData.penalty_minutes,
+      ])
+      .then(() => {
+        return {
+          message: "Penalty created!",
+          status: 200,
+        };
+      })
+      .catch((err) => {
+        return {
+          message: err.message,
+          status: 400,
+        };
+      });
+
+    // TODO: improve penalty error handling
+    if (penaltyResult.status === 400) {
+      throw new Error(penaltyResult.message);
+    }
     messages.push("A penalty!");
   }
 
-  return {
-    message: messages.join(" "),
-    status: 200,
-  };
+  state?.link && redirect(`${state?.link}#game-feed-add`);
+}
+
+export default async function endGame(state: {
+  canEdit: boolean;
+  game_id: number;
+  backLink: string;
+}) {
+  // Verify user session
+  await verifySession();
+
+  if (!state.canEdit) redirect(state.backLink);
+
+  const sql = `
+    UPDATE league_management.games
+    SET status = 'completed'
+    WHERE game_id = $1
+    RETURNING game_id
+  `;
+
+  const endGameResult = await db
+    .query(sql, [state.game_id])
+    .then((res) => {
+      if (res.rowCount === 0) {
+        throw new Error("Game not found!");
+      }
+      return {
+        message: "Game completed!",
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  // TODO: improve penalty error handling
+  if (endGameResult.status === 400) {
+    throw new Error(endGameResult.message);
+  }
+
+  redirect(state.backLink);
 }

@@ -34,6 +34,12 @@ export default async function Page({
   // console.log(gameData);
 
   const backLink = createDashboardUrl({ l: league, s: season, d: division });
+  const gameLink = createDashboardUrl({
+    l: league,
+    s: season,
+    d: division,
+    g: game_id,
+  });
 
   const { canEdit } = await canEditLeague(league);
 
@@ -70,7 +76,7 @@ export default async function Page({
         <GameHeader game={gameData} canEdit={canEdit} />
         <GameTeamStats game={gameData} team={awayTeam} />
         <GameTeamStats game={gameData} team={homeTeam} isHome />
-        <GameFeed game={gameData} canEdit={canEdit} />
+        <GameFeed game={gameData} canEdit={canEdit} backLink={gameLink} />
       </article>
     </>
   );

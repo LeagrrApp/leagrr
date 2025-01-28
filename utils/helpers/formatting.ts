@@ -108,9 +108,13 @@ export function formatTimePeriod(time_period: {
   minutes: number;
   seconds: number;
 }): string {
-  return `${time_period.minutes}:${
-    time_period.seconds > 9 ? time_period.seconds : `0${time_period.seconds}`
-  }`;
+  const minutes_string = time_period.minutes ? time_period.minutes : "0";
+  const seconds_string = time_period.seconds
+    ? time_period.seconds > 9
+      ? time_period.seconds
+      : `0${time_period.seconds}`
+    : "00";
+  return `${minutes_string}:${seconds_string}`;
 }
 
 export function formatDateForInput(date: string | Date): string {
@@ -169,7 +173,9 @@ export function createPeriodTimeString(
   minutes: number,
   seconds: number,
 ): string {
-  return `00:${minutes < 10 ? `0${minutes}` : minutes}:${
+  const period_time = `00:${minutes < 10 ? `0${minutes}` : minutes}:${
     seconds < 10 ? `0${seconds}` : seconds
   }`;
+  console.log(period_time);
+  return period_time;
 }

@@ -26,14 +26,24 @@ export default function GameFeedGoal({
     username,
     assists,
     empty_net,
+    shorthanded,
+    power_play,
     team,
   } = item;
   const classes: string[] = [css.game_feed_item, css.game_feed_item_penalty];
 
   if (isHome) classes.push(css.game_feed_home);
 
+  let preText: string | undefined = undefined;
+
+  if (empty_net) preText = "Empty net goal";
+  if (empty_net && shorthanded) preText = "Shorthanded empty net goal";
+  if (shorthanded) preText = "Shorthanded goal";
+  if (power_play) preText = "Power play goal";
+  if (empty_net && power_play) preText = "Power play empty net goal";
+
   return (
-    <div className={apply_classes(classes)}>
+    <li className={apply_classes(classes)}>
       <div className={css.game_feed_item_time}>
         <h5 className={css.game_feed_item_period_time}>
           {formatTimePeriod(period_time)}
@@ -55,7 +65,7 @@ export default function GameFeedGoal({
         />
       </div>
       <p className={css.game_feed_item_player_info}>
-        {empty_net ? "Empty net goal" : "Goal"} by{" "}
+        {preText ? preText : "Goal"} by{" "}
         <Link href={`/dashboard/u/${username}`}>{user_last_name}</Link>{" "}
         <span style={{ fontStyle: "italic" }}>
           {assists && assists.length > 0 ? (
@@ -78,6 +88,6 @@ export default function GameFeedGoal({
       >
         <Icon icon="e911_emergency" label="Goal" hideLabel size="h4" />
       </div>
-    </div>
+    </li>
   );
 }

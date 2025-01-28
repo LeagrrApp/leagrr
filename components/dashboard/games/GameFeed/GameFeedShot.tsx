@@ -26,7 +26,7 @@ export default function GameFeedShot({
   if (isHome) classes.push(css.game_feed_home);
 
   return (
-    <div className={apply_classes(classes)}>
+    <li className={apply_classes(classes)}>
       <div className={css.game_feed_item_time}>
         <span className={css.game_feed_item_period_time}>
           {formatTimePeriod(period_time)}
@@ -54,6 +54,6 @@ export default function GameFeedShot({
       <div className={css.game_feed_item_type}>
         <Icon icon="target" label="Shot" hideLabel size="h4" />
       </div>
-    </div>
+    </li>
   );
 }

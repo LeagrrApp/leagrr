@@ -5,14 +5,13 @@ import Card from "@/components/ui/Card/Card";
 import Icon from "@/components/ui/Icon/Icon";
 import Table from "@/components/ui/Table/Table";
 import Switch from "@/components/ui/forms/Switch/Switch";
-import { CSSProperties, useEffect, useState } from "react";
-import css from "./divisionSchedule.module.css";
-import DashboardUnit from "../../DashboardUnit/DashboardUnit";
-import DashboardUnitHeader from "../../DashboardUnitHeader/DashboardUnitHeader";
 import { apply_classes } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Button from "@/components/ui/Button/Button";
+import { useEffect, useState } from "react";
+import DashboardUnit from "../../DashboardUnit/DashboardUnit";
+import DashboardUnitHeader from "../../DashboardUnitHeader/DashboardUnitHeader";
+import css from "./divisionSchedule.module.css";
 
 type DivisionGamesProps = {
   games: GameData[];
@@ -151,7 +150,8 @@ export default function DivisionSchedule({
                   </td>
                   <td
                     className={
-                      g.away_team_score > g.home_team_score
+                      g.away_team_score > g.home_team_score &&
+                      g.status === "completed"
                         ? css.division_winner
                         : undefined
                     }
@@ -163,7 +163,8 @@ export default function DivisionSchedule({
                   </td>
                   <td
                     className={
-                      g.home_team_score > g.away_team_score
+                      g.home_team_score > g.away_team_score &&
+                      g.status === "completed"
                         ? css.division_winner
                         : undefined
                     }

@@ -1,4 +1,4 @@
-import { getGameFeed, getGameTeamRosters } from "@/actions/games";
+import endGame, { getGameFeed, getGameTeamRosters } from "@/actions/games";
 import Card from "@/components/ui/Card/Card";
 import Icon from "@/components/ui/Icon/Icon";
 import css from "./gameFeed.module.css";
@@ -7,13 +7,20 @@ import GameFeedGoal from "./GameFeedGoal";
 import GameFeedPenalty from "./GameFeedPenalty";
 import GameFeedSave from "./GameFeedSave";
 import GameFeedShot from "./GameFeedShot";
+import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
+import Grid from "@/components/ui/layout/Grid";
 
 interface GameFeedProps {
   game: GameData;
   canEdit: boolean;
+  backLink: string;
 }
 
-export default async function GameFeed({ game, canEdit }: GameFeedProps) {
+export default async function GameFeed(props: GameFeedProps) {
+  const { game, canEdit, backLink } = props;
+
+  console.log(props);
+
   const { data: gameFeed } = await getGameFeed(game.game_id);
 
   const { data: teamRosters } = await getGameTeamRosters(
@@ -22,6 +29,12 @@ export default async function GameFeed({ game, canEdit }: GameFeedProps) {
   );
 
   if (!teamRosters) return null;
+
+  const currentTime = {
+    period: 1,
+    minutes: 0,
+    seconds: 0,
+  };
 
   if (
     !gameFeed ||
@@ -38,6 +51,7 @@ export default async function GameFeed({ game, canEdit }: GameFeedProps) {
               game={game}
               canEdit={canEdit}
               teamRosters={teamRosters}
+              currentTime={currentTime}
             />
           ) : (
             <p>There are no items in this game feed yet.</p>
@@ -49,90 +63,145 @@ export default async function GameFeed({ game, canEdit }: GameFeedProps) {
 
   const periods: string[] = Object.keys(gameFeed);
 
+  periods.forEach((p) => {
+    if (gameFeed[p].length) {
+      const lastItem = gameFeed[p][gameFeed[p].length - 1];
+      if (lastItem.period > currentTime.period) {
+        currentTime.period = lastItem.period || 0;
+        currentTime.minutes = lastItem.period_time.minutes || 0;
+        currentTime.seconds = lastItem.period_time.seconds + 1 || 0;
+      }
+      if (lastItem.period_time.minutes > currentTime.minutes) {
+        currentTime.minutes = lastItem.period_time.minutes || 0;
+        currentTime.seconds = lastItem.period_time.seconds + 1 || 0;
+      }
+      if (lastItem.period_time.seconds > currentTime.seconds) {
+        currentTime.seconds = lastItem.period_time.seconds + 1 || 0;
+      }
+    }
+  });
+
   return (
     <section id="game-feed" className={css.game_feed}>
       <h3 className="push-ml type-scale-h4">Game Feed</h3>
       <Card padding="ml">
         <ol className={css.game_feed_periods}>
           {periods.map((p, i) => {
-            if (gameFeed[p].length < 1) return null;
+            // if this period is empty, but later periods are not,
+            // return no events message
+            let laterPeriodsHaveItems = false;
+            periods.forEach((period, index) => {
+              if (i < index && gameFeed[period].length > 0) {
+                laterPeriodsHaveItems = true;
+              }
+            });
+            // if this period is empty and so are periods after it, return null
+            if (!laterPeriodsHaveItems && gameFeed[p].length === 0) return null;
 
             return (
               <li key={p} className={css.game_feed_period}>
                 <h4 className={css.game_feed_period_heading}>
                   <Icon icon="sports" label={`Period ${i + 1}`} labelFirst />
                 </h4>
-                <ol className={css.game_feed_feed}>
-                  {gameFeed[p].map((item: GameFeedItemData) => {
-                    const isHome = game.home_team_id === item.team_id;
-                    switch (item.type) {
-                      case "stats.shots":
-                        return (
-                          <GameFeedShot
-                            key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
-                            item={item}
-                            isHome={isHome}
-                            teamColor={
-                              isHome
-                                ? game.home_team_color
-                                : game.away_team_color
-                            }
-                          />
-                        );
-                      case "stats.goals":
-                        return (
-                          <GameFeedGoal
-                            key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
-                            item={item}
-                            isHome={isHome}
-                            teamColor={
-                              isHome
-                                ? game.home_team_color
-                                : game.away_team_color
-                            }
-                          />
-                        );
-                      case "stats.saves":
-                        return (
-                          <GameFeedSave
-                            key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
-                            item={item}
-                            isHome={isHome}
-                            teamColor={
-                              isHome
-                                ? game.home_team_color
-                                : game.away_team_color
-                            }
-                          />
-                        );
-                      case "stats.penalties":
-                        return (
-                          <GameFeedPenalty
-                            key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
-                            item={item}
-                            isHome={isHome}
-                            teamColor={
-                              isHome
-                                ? game.home_team_color
-                                : game.away_team_color
-                            }
-                          />
-                        );
-                      default:
-                        return null;
-                    }
-                  })}
-                </ol>
+                {gameFeed[p].length > 1 ? (
+                  <ol className={css.game_feed_feed}>
+                    {gameFeed[p].map((item: GameFeedItemData) => {
+                      const isHome = game.home_team_id === item.team_id;
+                      switch (item.type) {
+                        case "stats.shots":
+                          return (
+                            <GameFeedShot
+                              key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
+                              item={item}
+                              isHome={isHome}
+                              teamColor={
+                                isHome
+                                  ? game.home_team_color
+                                  : game.away_team_color
+                              }
+                            />
+                          );
+                        case "stats.goals":
+                          return (
+                            <GameFeedGoal
+                              key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
+                              item={item}
+                              isHome={isHome}
+                              teamColor={
+                                isHome
+                                  ? game.home_team_color
+                                  : game.away_team_color
+                              }
+                            />
+                          );
+                        case "stats.saves":
+                          return (
+                            <GameFeedSave
+                              key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
+                              item={item}
+                              isHome={isHome}
+                              teamColor={
+                                isHome
+                                  ? game.home_team_color
+                                  : game.away_team_color
+                              }
+                            />
+                          );
+                        case "stats.penalties":
+                          return (
+                            <GameFeedPenalty
+                              key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
+                              item={item}
+                              isHome={isHome}
+                              teamColor={
+                                isHome
+                                  ? game.home_team_color
+                                  : game.away_team_color
+                              }
+                            />
+                          );
+                        default:
+                          return null;
+                      }
+                    })}
+                  </ol>
+                ) : (
+                  <p>No events this period!</p>
+                )}
               </li>
             );
           })}
         </ol>
         {canEdit && (
-          <GameFeedAdd
-            game={game}
-            canEdit={canEdit}
-            teamRosters={teamRosters}
-          />
+          <Grid cols={1} gap="base">
+            <GameFeedAdd
+              game={game}
+              canEdit={canEdit}
+              teamRosters={teamRosters}
+              currentTime={currentTime}
+            />
+            {game.status !== "completed" && (
+              <ModalConfirmAction
+                defaultState={{
+                  canEdit,
+                  game_id: game.game_id,
+                  backLink,
+                }}
+                actionFunction={endGame}
+                confirmationHeading={`Confirm End Game`}
+                confirmationByline={`This will publish the game score into the standings, schedule, and stats.`}
+                confirmationButtonVariant="primary"
+                trigger={{
+                  icon: "trophy",
+                  label: "End Game",
+                  buttonStyles: {
+                    variant: "grey",
+                    size: "h5",
+                  },
+                }}
+              />
+            )}
+          </Grid>
         )}
         {game.status === "completed" && (
           <div className={css.game_feed_completed}>
