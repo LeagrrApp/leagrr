@@ -20,6 +20,7 @@ export default function GameControls({ game }: GameControlsProps) {
       </Button>
       {/* Add to game feed */}
       <Button
+        href="#game-feed"
         variant="grey"
         size="h5"
         disabled={game.status !== "public" && game.status !== "completed"}

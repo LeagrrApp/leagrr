@@ -7,6 +7,7 @@ import { z } from "zod";
 import { game_status_options } from "@/lib/definitions";
 import { isObjectEmpty } from "@/utils/helpers/objects";
 import { redirect } from "next/navigation";
+import { createPeriodTimeString } from "@/utils/helpers/formatting";
 
 // TODO: Rename this function to something clearer
 export async function getLeagueInfoForGames(
@@ -894,5 +895,263 @@ export async function getGameFeed(game_id: number): Promise<
     message: "Game feed data loaded!",
     status: 200,
     data: gameFeed,
+  };
+}
+
+export async function getGameTeamRosters(
+  away_team_id: number,
+  home_team_id: number
+) {
+  // verify user is signed in
+  await verifySession();
+
+  const rostersSql = `
+    SELECT
+      tm.team_id,
+      u.user_id,
+      u.first_name,
+      u.last_name,
+      tm.position
+    FROM
+      league_management.team_memberships as tm
+    JOIN
+      admin.users AS u
+    ON
+      u.user_id = tm.user_id
+    WHERE
+      team_id = $1
+      OR
+      team_id = $2
+    ORDER BY
+      tm.team_id, u.last_name, u.first_name
+  `;
+
+  const rosterResult: ResultProps<TeamRosterItem[]> = await db
+    .query(rostersSql, [away_team_id, home_team_id])
+    .then((res) => {
+      return {
+        message: "Rosters loaded",
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (!rosterResult.data) {
+    return {
+      message: rosterResult.message,
+      status: rosterResult.status,
+    };
+  }
+
+  return {
+    message: rosterResult.message,
+    status: rosterResult.status,
+    data: {
+      away_roster: rosterResult.data.filter((p) => p.team_id === away_team_id),
+      home_roster: rosterResult.data.filter((p) => p.team_id === home_team_id),
+    },
+  };
+}
+
+const AddGameFeedShotSchema = z.object({
+  team_id: z.number().min(1),
+  game_id: z.number().min(1),
+  user_id: z.number().min(1),
+  period: z.number().min(1).max(3),
+  minutes: z.number().min(0).max(19),
+  seconds: z.number().min(0).max(59),
+  power_play: z.boolean(),
+  rebound: z.boolean(),
+});
+
+type AddGameFeedErrorProps = {
+  team_id?: string[] | undefined;
+  game_id?: string[] | undefined;
+  user_id?: string[] | undefined;
+  period?: string[] | undefined;
+  minutes?: string[] | undefined;
+  seconds?: string[] | undefined;
+  power_play?: string[] | undefined;
+  rebound?: string[] | undefined;
+};
+
+type AddGameFeedState =
+  | {
+      errors?: AddGameFeedErrorProps;
+      message?: string;
+      link?: string;
+    }
+  | undefined;
+
+export async function addToGameFeed(
+  state: AddGameFeedState,
+  formData: FormData
+) {
+  const messages: string[] = [];
+  const type = formData.get("type");
+  const feedItemData = {
+    game_id: parseInt(formData.get("game_id") as string),
+    user_id: parseInt(formData.get("user_id") as string),
+    team_id: parseInt(formData.get("team_id") as string),
+    period: parseInt(formData.get("period") as string),
+    minutes: parseInt(formData.get("minutes") as string),
+    seconds: parseInt(formData.get("seconds") as string),
+    shorthanded: formData.get("shorthanded") === "true",
+    power_play: formData.get("power_play") === "true",
+    empty_net: formData.get("empty_net") === "true",
+    rebound: formData.get("rebound") === "true",
+    assists: formData.getAll("assists"),
+    penalty_minutes: parseInt(formData.get("seconds") as string),
+    infraction: formData.get("seconds") as string,
+  };
+
+  const period_time = createPeriodTimeString(
+    feedItemData.minutes,
+    feedItemData.seconds
+  );
+
+  let inserted_goal_id: number;
+
+  // goal or shot
+  if (type === "goal" || type === "shot") {
+    // -- add goal
+    if (type === "goal") {
+      const goalSql = `
+        INSERT INTO stats.goals
+          (game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net)
+        VALUES
+          ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING
+          goal_id
+      `;
+
+      const goalResult: ResultProps<{ goal_id: number }> = await db
+        .query(goalSql, [
+          feedItemData.game_id,
+          feedItemData.user_id,
+          feedItemData.team_id,
+          feedItemData.period,
+          period_time,
+          feedItemData.shorthanded,
+          feedItemData.power_play,
+          feedItemData.empty_net,
+        ])
+        .then((res) => {
+          return {
+            message: "Goal created!",
+            status: 200,
+            data: res.rows[0],
+          };
+        })
+        .catch((err) => {
+          return {
+            message: err.message,
+            status: 400,
+          };
+        });
+
+      if (goalResult.data) {
+        inserted_goal_id = goalResult.data.goal_id;
+
+        const updateGameScoreSql = `
+          UPDATE league_management.games AS g
+          SET
+            home_team_score = (SELECT COUNT(*) FROM stats.goals AS goals WHERE goals.team_id = g.home_team_id AND goals.game_id = $1),
+            away_team_score = (SELECT COUNT(*) FROM stats.goals AS goals WHERE goals.team_id = g.away_team_id AND goals.game_id = $1)
+          WHERE
+            g.game_id = $1
+        `;
+
+        const updateGameScoreResult = await db
+          .query(updateGameScoreSql, [feedItemData.game_id])
+          .then(() => {
+            return {
+              message: "Game score updated!",
+              status: 200,
+            };
+          })
+          .catch((err) => {
+            return {
+              message: err.message,
+              status: 400,
+            };
+          });
+
+        // TODO: improve update game score error handling
+        if (updateGameScoreResult.status === 400) {
+          throw new Error(updateGameScoreResult.message);
+        }
+
+        messages.push(`A goal with id ${inserted_goal_id}`);
+      } else {
+        return goalResult;
+      }
+
+      // -- -- add assists
+      if (feedItemData?.assists?.length && inserted_goal_id) {
+        const assistSql = `
+          INSERT INTO stats.assists
+            (goal_id, game_id, user_id, team_id, primary_assist)
+          VALUES
+            ($1, $2, $3, $4, $5)
+        `;
+
+        let assistCount = 0;
+        for await (const assist of feedItemData.assists) {
+          const assistResult = await db
+            .query(assistSql, [
+              inserted_goal_id,
+              feedItemData.game_id,
+              assist,
+              feedItemData.team_id,
+              assistCount === 0,
+            ])
+            .then(() => {
+              return {
+                message: "Assist created!",
+                status: 200,
+              };
+            })
+            .catch((err) => {
+              return {
+                message: err.message,
+                status: 400,
+              };
+            });
+
+          // TODO: improve assist error handling
+          if (assistResult.status === 400) {
+            throw new Error(assistResult.message);
+          }
+
+          assistCount++;
+        }
+
+        messages.push("Has assists!");
+      }
+    }
+
+    // -- add shot
+    messages.push("A shot!");
+    if (type !== "goal") {
+      // -- -- add save if not goal
+      messages.push("A save!");
+    }
+  }
+
+  // penalty
+  if (type === "penalty") {
+    messages.push("A penalty!");
+  }
+
+  return {
+    message: messages.join(" "),
+    status: 200,
   };
 }

@@ -40,6 +40,14 @@ type TeamStandingsData = Pick<
 
 type QuickTeam = Pick<TeamData, "team_id" | "name">;
 
+type TeamRosterItem = {
+  team_id: number;
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  position: string;
+};
+
 type LeagueData = {
   league_id: number;
   slug: string;

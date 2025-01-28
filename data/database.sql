@@ -690,15 +690,15 @@ CREATE TABLE stats.goals (
 
 ALTER TABLE stats.goals
 ADD CONSTRAINT fk_goals_game_id FOREIGN KEY (game_id)
-    REFERENCES league_management.games (game_id);
+    REFERENCES league_management.games (game_id) ON DELETE CASCADE;
 
 ALTER TABLE stats.goals
 ADD CONSTRAINT fk_goals_user_id FOREIGN KEY (user_id)
-    REFERENCES admin.users (user_id);
+    REFERENCES admin.users (user_id) ON DELETE CASCADE;
 
 ALTER TABLE stats.goals
 ADD CONSTRAINT fk_goals_team_id FOREIGN KEY (team_id)
-    REFERENCES league_management.teams (team_id);
+    REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
 
 -- Create Assist
 -- An assist marks players who passed to the goal scorer
@@ -714,19 +714,19 @@ CREATE TABLE stats.assists (
 
 ALTER TABLE stats.assists
 ADD CONSTRAINT fk_assists_goal_id FOREIGN KEY (goal_id)
-    REFERENCES stats.goals (goal_id);
+    REFERENCES stats.goals (goal_id) ON DELETE CASCADE;
 
 ALTER TABLE stats.assists
 ADD CONSTRAINT fk_assists_game_id FOREIGN KEY (game_id)
-    REFERENCES league_management.games (game_id);
+    REFERENCES league_management.games (game_id) ON DELETE CASCADE;
 
 ALTER TABLE stats.assists
 ADD CONSTRAINT fk_assists_user_id FOREIGN KEY (user_id)
-    REFERENCES admin.users (user_id);
+    REFERENCES admin.users (user_id) ON DELETE CASCADE;
 
 ALTER TABLE stats.assists
 ADD CONSTRAINT fk_assists_team_id FOREIGN KEY (team_id)
-    REFERENCES league_management.teams (team_id);
+    REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
 
 -- Create penalties
 -- Tracks individual penalties committed by players and connects them with games
@@ -744,15 +744,15 @@ CREATE TABLE stats.penalties (
 
 ALTER TABLE stats.penalties
 ADD CONSTRAINT fk_penalties_game_id FOREIGN KEY (game_id)
-    REFERENCES league_management.games (game_id);
+    REFERENCES league_management.games (game_id) ON DELETE CASCADE;
 
 ALTER TABLE stats.penalties
 ADD CONSTRAINT fk_penalties_user_id FOREIGN KEY (user_id)
-    REFERENCES admin.users (user_id);
+    REFERENCES admin.users (user_id) ON DELETE CASCADE;
 
 ALTER TABLE stats.penalties
 ADD CONSTRAINT fk_penalties_team_id FOREIGN KEY (team_id)
-    REFERENCES league_management.teams (team_id);
+    REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
 
 -- Create shots
 -- Track shots and connect the shots to a game and a player
@@ -771,19 +771,19 @@ CREATE TABLE stats.shots (
 
 ALTER TABLE stats.shots
 ADD CONSTRAINT fk_shots_game_id FOREIGN KEY (game_id)
-    REFERENCES league_management.games (game_id);
+    REFERENCES league_management.games (game_id) ON DELETE CASCADE;
 
 ALTER TABLE stats.shots
 ADD CONSTRAINT fk_shots_user_id FOREIGN KEY (user_id)
-    REFERENCES admin.users (user_id);
+    REFERENCES admin.users (user_id) ON DELETE CASCADE;
 
 ALTER TABLE stats.shots
 ADD CONSTRAINT fk_shots_team_id FOREIGN KEY (team_id)
-    REFERENCES league_management.teams (team_id);
+    REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
 
 ALTER TABLE stats.shots
 ADD CONSTRAINT fk_shots_goal_id FOREIGN KEY (goal_id)
-    REFERENCES stats.goals (goal_id);
+    REFERENCES stats.goals (goal_id) ON DELETE CASCADE;
 
 -- Create saves
 -- Track saves and connect the saves to a game and a player
@@ -802,19 +802,19 @@ CREATE TABLE stats.saves (
 
 ALTER TABLE stats.saves
 ADD CONSTRAINT fk_saves_game_id FOREIGN KEY (game_id)
-    REFERENCES league_management.games (game_id);
+    REFERENCES league_management.games (game_id) ON DELETE CASCADE;
 
 ALTER TABLE stats.saves
 ADD CONSTRAINT fk_saves_user_id FOREIGN KEY (user_id)
-    REFERENCES admin.users (user_id);
+    REFERENCES admin.users (user_id) ON DELETE CASCADE;
 
 ALTER TABLE stats.saves
 ADD CONSTRAINT fk_saves_team_id FOREIGN KEY (team_id)
-    REFERENCES league_management.teams (team_id);
+    REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
 
 ALTER TABLE stats.saves
 ADD CONSTRAINT fk_saves_shot_id FOREIGN KEY (shot_id)
-    REFERENCES stats.shots (shot_id);
+    REFERENCES stats.shots (shot_id) ON DELETE CASCADE;
 
 -- Create shutout
 -- Track shoutouts and connect the shutout to a game and a player
@@ -828,15 +828,15 @@ CREATE TABLE stats.shutouts (
 
 ALTER TABLE stats.shutouts
 ADD CONSTRAINT fk_shutouts_game_id FOREIGN KEY (game_id)
-    REFERENCES league_management.games (game_id);
+    REFERENCES league_management.games (game_id) ON DELETE CASCADE;
 
 ALTER TABLE stats.shutouts
 ADD CONSTRAINT fk_shutouts_user_id FOREIGN KEY (user_id)
-    REFERENCES admin.users (user_id);
+    REFERENCES admin.users (user_id) ON DELETE CASCADE;
 
 ALTER TABLE stats.shutouts
 ADD CONSTRAINT fk_shutouts_team_id FOREIGN KEY (team_id)
-    REFERENCES league_management.teams (team_id);
+    REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
 
 -----------------------------------
 -- INSERT DATA INTO TABLES 
@@ -1046,7 +1046,8 @@ VALUES
   ('josefinklein', 'josefinklein@example.com', 'Josefin', 'Klein', 1, 'she/her', 'heyJosefin123'),
   ('finnandersen', 'finn.andersen@example.com', 'Finn', 'Andersen', 2, 'he/him', 'heyFinn123'),
   ('sofiaparker', 'sofia.parker@example.com', 'Sofia', 'Parker', 1, 'she/her', 'heySofia123'),
-  ('theogibson', 'theo.gibson@example.com', 'Theo', 'Gibson', 2, 'he/him', 'heyTheo123')
+  ('theogibson', 'theo.gibson@example.com', 'Theo', 'Gibson', 2, 'he/him', 'heyTheo123'),
+  ('floose', 'floose@example.com', 'Floose', 'McGoose', 3, 'any/all', 1, '$2b$10$7pjrECYElk1ithndcAhtcuPytB2Hc8DiDi3e8gAEXYcfIjOVZdEfS')
 ;
 
 -- Add OPH teams
@@ -1394,70 +1395,70 @@ VALUES
 
 -- Goal samples
 INSERT INTO stats.goals
-  (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net)
+  (game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net)
 VALUES
-  (1, 31, 3, 2, 1, '00:11:20', false, false, false),
-  (2, 31, 10, 2, 1, '00:15:37', false, true, false),
-  (3, 31, 6, 1, 2, '00:05:40', false, false, false),
-  (4, 31, 3, 2, 2, '00:18:10', false, false, false),
-  (5, 31, 28, 2, 3, '00:18:20', false, false, true)
+  (31, 3, 2, 1, '00:11:20', false, false, false),
+  (31, 10, 2, 1, '00:15:37', false, true, false),
+  (31, 6, 1, 2, '00:05:40', false, false, false),
+  (31, 3, 2, 2, '00:18:10', false, false, false),
+  (31, 28, 2, 3, '00:18:20', false, false, true)
 ;
 
 -- Assist samples
 INSERT INTO stats.assists
-  (assist_id, goal_id, game_id, user_id, team_id, primary_assist)
+  (goal_id, game_id, user_id, team_id, primary_assist)
 VALUES
-  (1, 1, 31, 33, 2, true),
-  (2, 1, 31, 30, 2, false),
-  (3, 2, 31, 3, 2, true),
-  (4, 3, 31, 16, 1, true),
-  (5, 4, 31, 30, 2, true)
+  (1, 31, 33, 2, true),
+  (1, 31, 30, 2, false),
+  (2, 31, 3, 2, true),
+  (3, 31, 16, 1, true),
+  (4, 31, 30, 2, true)
 ;
 
 -- Penalties
 INSERT INTO stats.penalties
-  (penalty_id, game_id, user_id, team_id, period, period_time, infraction, minutes)
+  (game_id, user_id, team_id, period, period_time, infraction, minutes)
 VALUES
-  (1, 31, 7, 1, 1, '00:15:02', 'Tripping', 2),
-  (2, 31, 32, 2, 2, '00:08:22', 'Hooking', 2),
-  (3, 31, 32, 2, 3, '00:11:31', 'Interference', 2)
+  (31, 7, 1, 1, '00:15:02', 'Tripping', 2),
+  (31, 32, 2, 2, '00:08:22', 'Hooking', 2),
+  (31, 32, 2, 3, '00:11:31', 'Interference', 2)
 ;
 
 -- Shots
 INSERT INTO stats.shots
-  (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play)
+  (game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play)
 VALUES 
-  (1, 31, 3, 2, 1, '00:05:15', null, false, false),
-  (2, 31, 6, 1, 1, '00:07:35', null, false, false),
-  (3, 31, 31, 2, 1, '00:09:05', null, false, false),
-  (4, 31, 18, 1, 1, '00:10:03', null, false, false),
-  (5, 31, 3, 2, 1, '00:11:20', 1, false, false),
-  (6, 31, 10, 2, 1, '00:15:37', 2, false, true),
-  (7, 31, 3, 2, 1, '00:17:43', null, false, false),
-  (8, 31, 10, 2, 2, '00:01:11', null, false, false),
-  (9, 31, 6, 1, 2, '00:05:40', 3, false, false),
-  (10, 31, 21, 1, 2, '00:07:15', null, false, false),
-  (11, 31, 34, 2, 2, '00:11:15', null, false, false),
-  (12, 31, 3, 2, 2, '00:18:10', 4, false, false),
-  (13, 31, 27, 2, 3, '00:07:12', null, false, false),
-  (14, 31, 22, 1, 3, '00:11:56', null, false, false),
-  (15, 31, 36, 2, 3, '00:15:15', null, false, false),
-  (16, 31, 28, 2, 3, '00:18:20', 5, false, false)
+  (31, 3, 2, 1, '00:05:15', null, false, false),
+  (31, 6, 1, 1, '00:07:35', null, false, false),
+  (31, 31, 2, 1, '00:09:05', null, false, false),
+  (31, 18, 1, 1, '00:10:03', null, false, false),
+  (31, 3, 2, 1, '00:11:20', 1, false, false),
+  (31, 10, 2, 1, '00:15:37', 2, false, true),
+  (31, 3, 2, 1, '00:17:43', null, false, false),
+  (31, 10, 2, 2, '00:01:11', null, false, false),
+  (31, 6, 1, 2, '00:05:40', 3, false, false),
+  (31, 21, 1, 2, '00:07:15', null, false, false),
+  (31, 34, 2, 2, '00:11:15', null, false, false),
+  (31, 3, 2, 2, '00:18:10', 4, false, false),
+  (31, 27, 2, 3, '00:07:12', null, false, false),
+  (31, 22, 1, 3, '00:11:56', null, false, false),
+  (31, 36, 2, 3, '00:15:15', null, false, false),
+  (31, 28, 2, 3, '00:18:20', 5, false, false)
 ;
 
 -- Saves
 INSERT INTO stats.saves
-  (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound)
+  (game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound)
 VALUES 
-  (1, 31, 26, 1, 1, 1, '00:05:15', false, false),
-  (2, 31, 38, 2, 2, 1, '00:07:35', false, true),
-  (3, 31, 26, 1, 3, 1, '00:09:05', false, true),
-  (4, 31, 38, 2, 4, 1, '00:10:03', false, false),
-  (5, 31, 26, 1, 7, 1, '00:17:43', false, true),
-  (6, 31, 26, 1, 8, 2, '00:01:11', false, false),
-  (7, 31, 38, 2, 10, 2, '00:07:15', false, true),
-  (8, 31, 26, 1, 11, 2, '00:11:15', false, true),
-  (9, 31, 26, 1, 13, 3, '00:07:12', false, true),
-  (10, 31, 38, 2, 14, 3, '00:11:56', true, false),
-  (11, 31, 26, 1, 15, 3, '00:15:15', false, true)
+  (31, 26, 1, 1, 1, '00:05:15', false, false),
+  (31, 38, 2, 2, 1, '00:07:35', false, true),
+  (31, 26, 1, 3, 1, '00:09:05', false, true),
+  (31, 38, 2, 4, 1, '00:10:03', false, false),
+  (31, 26, 1, 7, 1, '00:17:43', false, true),
+  (31, 26, 1, 8, 2, '00:01:11', false, false),
+  (31, 38, 2, 10, 2, '00:07:15', false, true),
+  (31, 26, 1, 11, 2, '00:11:15', false, true),
+  (31, 26, 1, 13, 3, '00:07:12', false, true),
+  (31, 38, 2, 14, 3, '00:11:56', true, false),
+  (31, 26, 1, 15, 3, '00:15:15', false, true)
 ;

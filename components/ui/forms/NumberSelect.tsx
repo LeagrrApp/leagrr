@@ -1,36 +1,35 @@
 "use client";
 
-import { ChangeEvent, ChangeEventHandler, useEffect, useState } from "react";
-import forms from "./forms.module.css";
+import { ChangeEvent, useEffect, useState } from "react";
 import Alert from "../Alert/Alert";
-import { capitalize } from "@/utils/helpers/formatting";
+import forms from "./forms.module.css";
 
-interface SelectProps extends Partial<HTMLSelectElement> {
+interface NumberSelectProps extends Partial<HTMLSelectElement> {
   label: string;
   labelAfter?: boolean;
+  min: number;
+  max: number;
   onChange?(e: ChangeEvent<HTMLSelectElement>): any;
   errors?: {
     errs?: string[];
     type?: string;
   };
-  choices: string[] | SelectOption[] | readonly [string, ...string[]];
   selected?: string | number;
-  blankFirst?: boolean;
 }
 
-export default function Select({
+export default function NumberSelect({
   label,
   name,
   labelAfter,
-  choices,
+  min,
+  max,
   selected,
   required,
+  autocapitalize,
   onChange,
   errors,
   disabled,
-  blankFirst,
-  ref,
-}: SelectProps) {
+}: NumberSelectProps) {
   const [selectValue, setSelectValue] = useState<string | number | undefined>(
     selected || ""
   );
@@ -45,6 +44,12 @@ export default function Select({
     if (onChange) onChange(e);
   }
 
+  const choices: number[] = [];
+
+  for (let index = min; index <= max; index++) {
+    choices.push(index);
+  }
+
   return (
     <div className={forms.unit}>
       {!labelAfter && (
@@ -53,31 +58,19 @@ export default function Select({
         </label>
       )}
       <select
-        ref={ref}
         className={forms.field}
         name={name}
         id={name}
         onChange={handleChange}
         required={required}
+        autoCapitalize={autocapitalize}
         value={selectValue}
         disabled={disabled}
       >
-        {blankFirst && <option value="" disabled></option>}
         {choices?.map((choice) => {
-          if (typeof choice === "object") {
-            return (
-              <option
-                key={choice.value}
-                value={choice.value}
-                disabled={choice.value === ""}
-              >
-                {choice.label}
-              </option>
-            );
-          }
           return (
             <option key={`${name}-${choice}`} value={choice}>
-              {capitalize(choice)}
+              {choice}
             </option>
           );
         })}

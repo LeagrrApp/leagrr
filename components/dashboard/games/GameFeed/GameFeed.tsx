@@ -1,40 +1,47 @@
+import { getGameFeed, getGameTeamRosters } from "@/actions/games";
 import Card from "@/components/ui/Card/Card";
+import Icon from "@/components/ui/Icon/Icon";
 import css from "./gameFeed.module.css";
-import { getGameFeed } from "@/actions/games";
+import GameFeedAdd from "./GameFeedAdd/GameFeedAdd";
+import GameFeedGoal from "./GameFeedGoal";
 import GameFeedPenalty from "./GameFeedPenalty";
 import GameFeedSave from "./GameFeedSave";
-import GameFeedGoal from "./GameFeedGoal";
 import GameFeedShot from "./GameFeedShot";
-import Icon from "@/components/ui/Icon/Icon";
 
 interface GameFeedProps {
   game: GameData;
+  canEdit: boolean;
 }
 
-export default async function GameFeed({ game }: GameFeedProps) {
-  const { data: gameFeed, message } = await getGameFeed(game.game_id);
+export default async function GameFeed({ game, canEdit }: GameFeedProps) {
+  const { data: gameFeed } = await getGameFeed(game.game_id);
 
-  if (!gameFeed) {
-    return (
-      <div className={css.game_feed}>
-        <h3>Game Feed</h3>
-        <Card className={css.game_feed} padding="ml">
-          <p>{message}</p>
-        </Card>
-      </div>
-    );
-  }
+  const { data: teamRosters } = await getGameTeamRosters(
+    game.away_team_id,
+    game.home_team_id
+  );
+
+  if (!teamRosters) return null;
 
   if (
-    gameFeed.period1.length < 1 &&
-    gameFeed.period1.length < 1 &&
-    gameFeed.period1.length < 1
+    !gameFeed ||
+    (gameFeed?.period1?.length < 1 &&
+      gameFeed?.period2?.length < 1 &&
+      gameFeed?.period3?.length < 1)
   ) {
     return (
       <div className={css.game_feed}>
         <h3>Game Feed</h3>
         <Card className={css.game_feed} padding="ml">
-          <p>This game has no items in its game feed!</p>
+          {canEdit ? (
+            <GameFeedAdd
+              game={game}
+              canEdit={canEdit}
+              teamRosters={teamRosters}
+            />
+          ) : (
+            <p>There are no items in this game feed yet.</p>
+          )}
         </Card>
       </div>
     );
@@ -43,11 +50,13 @@ export default async function GameFeed({ game }: GameFeedProps) {
   const periods: string[] = Object.keys(gameFeed);
 
   return (
-    <div className={css.game_feed}>
+    <section id="game-feed" className={css.game_feed}>
       <h3 className="push-ml type-scale-h4">Game Feed</h3>
       <Card padding="ml">
         <ol className={css.game_feed_periods}>
           {periods.map((p, i) => {
+            if (gameFeed[p].length < 1) return null;
+
             return (
               <li key={p} className={css.game_feed_period}>
                 <h4 className={css.game_feed_period_heading}>
@@ -118,6 +127,13 @@ export default async function GameFeed({ game }: GameFeedProps) {
             );
           })}
         </ol>
+        {canEdit && (
+          <GameFeedAdd
+            game={game}
+            canEdit={canEdit}
+            teamRosters={teamRosters}
+          />
+        )}
         {game.status === "completed" && (
           <div className={css.game_feed_completed}>
             <h4 className={css.game_feed_completed_heading}>Final Score</h4>
@@ -145,6 +161,6 @@ export default async function GameFeed({ game }: GameFeedProps) {
           </div>
         )}
       </Card>
-    </div>
+    </section>
   );
 }

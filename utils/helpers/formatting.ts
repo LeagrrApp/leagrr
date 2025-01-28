@@ -164,3 +164,12 @@ export function applyColor(color: string): string {
   }
   return color;
 }
+
+export function createPeriodTimeString(
+  minutes: number,
+  seconds: number
+): string {
+  return `00:${minutes < 10 ? `0${minutes}` : minutes}:${
+    seconds < 10 ? `0${seconds}` : seconds
+  }`;
+}

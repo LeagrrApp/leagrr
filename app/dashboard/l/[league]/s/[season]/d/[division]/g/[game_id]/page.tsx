@@ -70,7 +70,7 @@ export default async function Page({
         <GameHeader game={gameData} canEdit={canEdit} />
         <GameTeamStats game={gameData} team={awayTeam} />
         <GameTeamStats game={gameData} team={homeTeam} isHome />
-        <GameFeed game={gameData} />
+        <GameFeed game={gameData} canEdit={canEdit} />
       </article>
     </>
   );
