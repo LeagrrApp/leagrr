@@ -45,7 +45,7 @@ type DivisionFormState =
 
 export async function createDivision(
   state: DivisionFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<DivisionFormState> {
   // check user is logged in
   await verifySession();
@@ -120,7 +120,7 @@ export async function createDivision(
 
   if (insertResult?.data)
     redirect(
-      `/dashboard/l/${insertResult?.data.league_slug}/s/${insertResult?.data.season_slug}/d/${insertResult?.data.slug}`
+      `/dashboard/l/${insertResult?.data.league_slug}/s/${insertResult?.data.season_slug}/d/${insertResult?.data.slug}`,
     );
 
   return insertResult;
@@ -169,7 +169,7 @@ export async function getDivisionsBySeason(season_id: number) {
 export async function getDivision(
   division_slug: string,
   season_slug: string,
-  league_slug: string
+  league_slug: string,
 ): Promise<ResultProps<DivisionData>> {
   // check user is logged in
   await verifySession();
@@ -513,7 +513,7 @@ export async function getDivision(
 
 export async function editDivision(
   state: DivisionFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<DivisionFormState> {
   // check user is logged in
   await verifySession();
