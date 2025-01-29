@@ -114,6 +114,7 @@ export default async function GameFeed({
                             isHome ? game.home_team_color : game.away_team_color
                           }
                           canEdit={canEdit}
+                          backLink={backLink}
                         />
                       );
                     })}

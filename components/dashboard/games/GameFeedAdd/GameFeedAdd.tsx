@@ -85,7 +85,6 @@ export default function GameFeedAdd({
   }, [team]);
 
   useEffect(() => {
-    console.log("updating assist options");
     const baseList = team === game.home_team_id ? home_players : away_players;
 
     const filteredList = baseList.filter((p) => p.value !== player);

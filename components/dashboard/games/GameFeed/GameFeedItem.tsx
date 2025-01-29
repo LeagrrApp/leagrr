@@ -7,13 +7,15 @@ import {
 import { apply_classes } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
 import css from "./gameFeed.module.css";
-import GameFeedItemDelete from "./GameFeedItemDelete";
+import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
+import { deleteFeedItem } from "@/actions/games";
 
 interface GameFeedItemProps {
   item: StatsData;
   isHome: boolean;
   teamColor: string;
   canEdit: boolean;
+  backLink: string;
 }
 
 export default function GameFeedItem({
@@ -21,6 +23,7 @@ export default function GameFeedItem({
   isHome,
   teamColor,
   canEdit,
+  backLink,
 }: GameFeedItemProps) {
   const {
     period,
@@ -147,7 +150,27 @@ export default function GameFeedItem({
       >
         <Icon icon={icon.icon} label={icon.label} hideLabel size="h4" />
       </div>
-      {/* {canEdit && <GameFeedItemDelete id={item.item_id} type={item.type} />} */}
+      {canEdit && (
+        <ModalConfirmAction
+          defaultState={{
+            id: item.item_id,
+            type: item.type,
+            backLink,
+          }}
+          actionFunction={deleteFeedItem}
+          confirmationHeading={`Are you sure you want to delete this feed item?`}
+          trigger={{
+            classes: css.game_feed_item_delete,
+            icon: "delete",
+            label: "Delete Item",
+            hideLabel: true,
+            buttonStyles: {
+              variant: "danger",
+              padding: ["xs"],
+            },
+          }}
+        />
+      )}
     </li>
   );
 }

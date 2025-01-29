@@ -7,6 +7,7 @@ import Button, { ButtonProps } from "@/components/ui/Button/Button";
 import { apply_classes } from "@/utils/helpers/html-attributes";
 import Alert from "@/components/ui/Alert/Alert";
 import Dialog from "@/components/ui/Dialog/Dialog";
+import Icon from "@/components/ui/Icon/Icon";
 
 interface ModalConfirmActionProps {
   defaultState?: any;
@@ -18,6 +19,7 @@ interface ModalConfirmActionProps {
   trigger: {
     classes?: string | string[];
     label: string;
+    hideLabel?: boolean;
     icon?: string;
     buttonStyles?: ButtonProps;
   };
@@ -44,12 +46,18 @@ export default function ModalConfirmAction({
         outline={trigger?.buttonStyles?.outline}
         size={trigger?.buttonStyles?.size}
         fullWidth={trigger?.buttonStyles?.fullWidth}
+        padding={trigger?.buttonStyles?.padding}
         asSpan={trigger?.buttonStyles?.asSpan}
       >
-        {trigger.icon && (
-          <i className="material-symbols-outlined">{trigger.icon}</i>
+        {trigger.icon ? (
+          <Icon
+            icon={trigger.icon}
+            label={trigger.label}
+            hideLabel={trigger.hideLabel}
+          />
+        ) : (
+          <>{trigger.label}</>
         )}
-        {trigger.label}
       </Button>
 
       <Dialog className={css.dialog} ref={dialogRef}>
