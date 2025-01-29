@@ -1,12 +1,12 @@
 .division_grid {
   display: grid;
   grid-template-areas:
-    "standings"
     "schedule"
+    "standings"
     "stats";
   gap: var(--spacer-l) var(--spacer-base);
 
   @container main (min-width: 70rem) {
-    grid-template: "standings schedule" auto "stats schedule" 1fr / 1fr 1fr;
+    grid-template: "schedule stats" auto "standings stats" 1fr / 1fr 1fr;
   }
 }

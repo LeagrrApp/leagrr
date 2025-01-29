@@ -172,6 +172,14 @@ type StatsData = {
   minutes?: number;
 };
 
+type StatLeaderBoardItem = {
+  team: string;
+  first_name: string;
+  last_name: string;
+  username: string;
+  count: number;
+};
+
 // type ShotStatData = BaseStatsData & {
 //   shot_id: number;
 // };

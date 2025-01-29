@@ -1,0 +1,8 @@
+.profile_img {
+  margin-block-end: var(--spacer-ml);
+
+  & img {
+    border-radius: 50%;
+    object-fit: cover;
+  }
+}

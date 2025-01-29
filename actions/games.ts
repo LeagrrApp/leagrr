@@ -1057,36 +1057,6 @@ export async function addToGameFeed(
       // if goal adding was successful, update the game score
       if (goalResult.data) {
         inserted_goal_id = goalResult.data.goal_id;
-
-        const updateGameScoreSql = `
-          UPDATE league_management.games AS g
-          SET
-            home_team_score = (SELECT COUNT(*) FROM stats.goals AS goals WHERE goals.team_id = g.home_team_id AND goals.game_id = $1),
-            away_team_score = (SELECT COUNT(*) FROM stats.goals AS goals WHERE goals.team_id = g.away_team_id AND goals.game_id = $1)
-          WHERE
-            g.game_id = $1
-        `;
-
-        const updateGameScoreResult = await db
-          .query(updateGameScoreSql, [feedItemData.game_id])
-          .then(() => {
-            return {
-              message: "Game score updated!",
-              status: 200,
-            };
-          })
-          .catch((err) => {
-            return {
-              message: err.message,
-              status: 400,
-            };
-          });
-
-        // TODO: improve update game score error handling
-        if (updateGameScoreResult.status === 400) {
-          throw new Error(updateGameScoreResult.message);
-        }
-
         messages.push(`A goal with id ${inserted_goal_id}`);
       } else {
         return goalResult;
@@ -1333,7 +1303,6 @@ export async function deleteFeedItem(
       sql = `
         DELETE FROM stats.goals
         WHERE goal_id = $1
-        RETURNING game_id
       `;
       break;
     case "stats.saves":
@@ -1356,13 +1325,12 @@ export async function deleteFeedItem(
       break;
   }
 
-  const deleteResult: ResultProps<{ game_id: number }> = await db
+  await db
     .query(sql, [state.id])
-    .then((res) => {
+    .then(() => {
       return {
         message: "Feed item deleted!",
         status: 200,
-        data: res.rows[0],
       };
     })
     .catch((err) => {
@@ -1371,37 +1339,6 @@ export async function deleteFeedItem(
         status: 400,
       };
     });
-
-  if (state.type === "stats.goals" && deleteResult.data?.game_id) {
-    const updateGameScoreSql = `
-          UPDATE league_management.games AS g
-          SET
-            home_team_score = (SELECT COUNT(*) FROM stats.goals AS goals WHERE goals.team_id = g.home_team_id AND goals.game_id = $1),
-            away_team_score = (SELECT COUNT(*) FROM stats.goals AS goals WHERE goals.team_id = g.away_team_id AND goals.game_id = $1)
-          WHERE
-            g.game_id = $1
-        `;
-
-    const updateGameScoreResult = await db
-      .query(updateGameScoreSql, [deleteResult.data.game_id])
-      .then(() => {
-        return {
-          message: "Game score updated!",
-          status: 200,
-        };
-      })
-      .catch((err) => {
-        return {
-          message: err.message,
-          status: 400,
-        };
-      });
-
-    // TODO: improve update game score error handling
-    if (updateGameScoreResult.status === 400) {
-      throw new Error(updateGameScoreResult.message);
-    }
-  }
 
   state.backLink && redirect(state.backLink);
 }

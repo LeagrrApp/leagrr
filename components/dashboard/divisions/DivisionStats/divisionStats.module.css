@@ -1,0 +1,41 @@
+.stats_grid {
+  --cols: 1;
+
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  gap: var(--spacer-base);
+
+  @container (width >= 30rem) {
+    --cols: 2;
+  }
+}
+
+.stats_card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  /* gap: var(--spacer-ml); */
+}
+
+.stats_card_title {
+  text-transform: uppercase;
+  font-size: var(--type-scale-h5);
+  letter-spacing: 0.0625rem;
+  margin-block-end: var(--spacer-m);
+}
+
+.stats_card_name {
+  font-size: var(--type-scale-h4);
+  color: var(--color-primary);
+}
+
+.stats_card_team {
+  font-size: var(--type-scale-s);
+}
+
+.stats_card_count {
+  font-size: var(--type-scale-xxl);
+  font-weight: bold;
+  color: var(--color-primary);
+}

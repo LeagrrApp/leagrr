@@ -700,6 +700,253 @@ export async function editDivision(
   return { ...updateResult };
 }
 
+export async function getDivisionStatLeaders(
+  division_id: number,
+  limit?: number,
+): Promise<
+  ResultProps<{
+    [key: string]: StatLeaderBoardItem[];
+    points: StatLeaderBoardItem[];
+    goals: StatLeaderBoardItem[];
+    assists: StatLeaderBoardItem[];
+    shutouts: StatLeaderBoardItem[];
+  }>
+> {
+  // Verify user session
+  await verifySession();
+
+  const pointsSql = `
+    SELECT
+      t.name AS team,
+      u.first_name,
+      u.last_name,
+      u.username,
+      (
+        (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = u.user_id AND g.game_id IN (SELECT game_id FROM league_management.games WHERE division_id = $1 AND status IN ('completed', 'archived'))) +
+        (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = u.user_id AND a.game_id IN (SELECT game_id FROM league_management.games WHERE division_id = $1 AND status IN ('completed', 'archived')))	
+      )::int AS count
+    FROM
+      admin.users AS u
+    JOIN
+      league_management.team_memberships AS tm
+    ON
+      u.user_id = tm.user_id
+    JOIN
+      league_management.teams AS t
+    ON
+      t.team_id = tm.team_id
+    JOIN
+      league_management.division_teams AS dt
+    ON
+      t.team_id = dt.team_id
+    WHERE
+      dt.division_id = $1
+    ORDER BY count DESC, u.last_name ASC, u.first_name ASC
+    LIMIT $2
+  `;
+
+  const pointsResult: ResultProps<StatLeaderBoardItem[]> = await db
+    .query(pointsSql, [division_id, limit || 10])
+    .then((res) => {
+      return {
+        message: "Points loaded.",
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  // TODO: improve update game score error handling
+  if (!pointsResult.data) {
+    throw new Error(pointsResult.message);
+  }
+
+  const goalsSql = `
+    SELECT
+      t.name AS team,
+      u.first_name,
+      u.last_name,
+      u.username,
+      count(*) AS count
+    FROM
+      stats.goals AS g
+    JOIN
+      admin.users AS u
+    ON
+      g.user_id = u.user_id
+    JOIN
+      league_management.games AS ga
+    ON
+      ga.game_id = g.game_id
+    JOIN
+      league_management.team_memberships as tm
+    ON
+      u.user_id = tm.user_id
+    JOIN
+      league_management.teams as t
+    ON
+      t.team_id = tm.team_id
+    WHERE
+      ga.division_id = $1
+      AND
+      ga.status IN ('completed', 'Archived')
+    GROUP BY team, u.username, u.first_name, u.last_name
+    ORDER BY count DESC, u.last_name ASC, u.first_name ASC
+    LIMIT $2
+  `;
+
+  const goalsResult: ResultProps<StatLeaderBoardItem[]> = await db
+    .query(goalsSql, [division_id, limit || 10])
+    .then((res) => {
+      return {
+        message: "Goals loaded.",
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  // TODO: improve update game score error handling
+  if (!goalsResult.data) {
+    throw new Error(goalsResult.message);
+  }
+
+  const assistsSql = `
+    SELECT
+      t.name AS team,
+      u.first_name,
+      u.last_name,
+      u.username,
+      count(*) AS count
+    FROM
+      stats.assists AS a
+    JOIN
+      admin.users AS u
+    ON
+      a.user_id = u.user_id
+    JOIN
+      league_management.games AS ga
+    ON
+      ga.game_id = a.game_id
+    JOIN
+      league_management.team_memberships as tm
+    ON
+      u.user_id = tm.user_id
+    JOIN
+      league_management.teams as t
+    ON
+      t.team_id = tm.team_id
+    WHERE
+      ga.division_id = $1
+      AND
+      ga.status IN ('completed', 'Archived')
+    GROUP BY team, u.username, u.first_name, u.last_name
+    ORDER BY count DESC, u.last_name ASC, u.first_name ASC
+    LIMIT $2
+  `;
+
+  const assistsResult: ResultProps<StatLeaderBoardItem[]> = await db
+    .query(assistsSql, [division_id, limit || 10])
+    .then((res) => {
+      return {
+        message: "Assists loaded.",
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  // TODO: improve update game score error handling
+  if (!assistsResult.data) {
+    throw new Error(assistsResult.message);
+  }
+
+  const shutoutsSql = `
+    SELECT
+      t.name AS team,
+      u.first_name,
+      u.last_name,
+      u.username,
+      count(*) AS count
+    FROM
+      league_management.teams AS t
+    JOIN
+      league_management.games AS ga
+    ON
+      t.team_id IN (ga.home_team_id, ga.away_team_id)
+    JOIN
+      league_management.team_memberships AS tm
+    ON
+      tm.team_id = t.team_id
+    JOIN
+      admin.users AS u
+    ON
+      u.user_id = tm.user_id
+    WHERE
+      ga.division_id = $1
+      AND
+      ga.status IN ('completed', 'Archived')
+      AND
+      (
+        ((t.team_id = ga.home_team_id) AND ga.away_team_score = 0)
+        OR
+        ((t.team_id = ga.away_team_id) AND ga.home_team_score = 0)
+      )
+      AND
+      tm.position = 'Goalie'
+    GROUP BY team, u.username, u.first_name, u.last_name
+    ORDER BY count DESC, u.last_name ASC, u.first_name ASC
+    LIMIT $2
+  `;
+
+  const shutoutsResult: ResultProps<StatLeaderBoardItem[]> = await db
+    .query(shutoutsSql, [division_id, limit || 10])
+    .then((res) => {
+      return {
+        message: "Shutouts loaded.",
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  // TODO: improve update game score error handling
+  if (!shutoutsResult.data) {
+    throw new Error(shutoutsResult.message);
+  }
+
+  return {
+    message: "Stats loaded!",
+    status: 200,
+    data: {
+      points: pointsResult.data,
+      goals: goalsResult.data,
+      assists: assistsResult.data,
+      shutouts: shutoutsResult.data,
+    },
+  };
+}
+
 export async function deleteDivision(state: {
   division_id: number;
   league_id: number;
