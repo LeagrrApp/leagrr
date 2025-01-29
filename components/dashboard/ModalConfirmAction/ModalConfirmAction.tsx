@@ -10,7 +10,7 @@ import Dialog from "@/components/ui/Dialog/Dialog";
 
 interface ModalConfirmActionProps {
   defaultState?: any;
-  actionFunction(): any;
+  actionFunction: (state: any, payload: unknown) => any;
   confirmationHeading: string;
   confirmationByline?: string;
   confirmationButton?: string;

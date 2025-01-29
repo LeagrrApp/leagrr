@@ -985,6 +985,7 @@ type AddGameFeedState =
   | {
       errors?: AddGameFeedErrorProps;
       message?: string;
+      status?: number;
       link?: string;
     }
   | undefined;
@@ -992,7 +993,7 @@ type AddGameFeedState =
 export async function addToGameFeed(
   state: AddGameFeedState,
   formData: FormData,
-) {
+): Promise<AddGameFeedState> {
   const messages: string[] = [];
   const type = formData.get("type");
   const feedItemData = {
