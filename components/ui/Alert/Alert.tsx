@@ -7,6 +7,7 @@ interface AlertProps {
   fontSize?: FontSizeOptions;
   marginStart?: SizeOptions;
   marginEnd?: SizeOptions;
+  center?: boolean;
 }
 
 interface AlertStyles extends CSSProperties {
@@ -23,6 +24,7 @@ export default function Alert({
   fontSize,
   marginStart,
   marginEnd,
+  center,
 }: AlertProps) {
   const styles: AlertStyles = {
     "--alert-color": `var(--color-${type || "primary"})`,
@@ -36,6 +38,7 @@ export default function Alert({
   if (marginStart)
     styles["--line-margin-start"] = `var(--spacer-${marginStart})`;
   if (marginEnd) styles["--line-margin-end"] = `var(--spacer-${marginEnd})`;
+  if (center) styles.textAlign = "center";
 
   if (typeof alert === "string")
     return (

@@ -1,5 +1,6 @@
 .division_schedule {
   table-layout: fixed;
+
   & td {
     white-space: nowrap;
     overflow: hidden;
@@ -12,11 +13,16 @@
     &:nth-child(4) {
       text-align: end;
     }
+
     &:nth-child(1),
     &:nth-child(3) {
       text-align: start;
     }
   }
+}
+
+.division_schedule_add {
+  margin-inline-end: auto;
 }
 
 .division_schedule .division_schedule_narrow {
@@ -48,6 +54,7 @@
 .game_list_flag {
   --flag-color: var(--color-grey);
   --flag-text: "Draft";
+
   & td:first-child {
     &::before {
       content: var(--flag-text);
@@ -71,6 +78,7 @@
       padding-inline-end: var(--spacer-m);
       transition: opacity var(--transition);
     }
+
     &:where(:hover)::before {
       opacity: 0;
     }
@@ -100,6 +108,7 @@
 .game_list_prev,
 .game_list_next {
   color: var(--color-primary);
+
   &:where(:hover, :focus-visible) {
     color: var(--color-primary-dark);
   }

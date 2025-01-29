@@ -50,4 +50,11 @@ type ColorOptions =
   | "warning"
   | "caution"
   | "danger"
+  | "white"
+  | "black"
   | "grey";
+
+type SelectOption = {
+  label: string;
+  value: string | number;
+};

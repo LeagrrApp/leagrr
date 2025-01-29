@@ -128,6 +128,15 @@ export const status_options: readonly [string, ...string[]] = [
   "archived",
 ];
 
+export const game_status_options: readonly [string, ...string[]] = [
+  "draft",
+  "public",
+  "archived",
+  "completed",
+  "cancelled",
+  "postponed",
+];
+
 export const gender_options: readonly [string, ...string[]] = [
   "all",
   "men",

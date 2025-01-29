@@ -17,6 +17,7 @@
 .switch_label {
   --switch-color: var(--color-grey-dark);
   --switch-bg: transparent;
+
   display: flex;
   gap: var(--spacer-m);
   align-items: center;
@@ -43,7 +44,9 @@
   border: 0.0625rem solid var(--switch-color);
   background-color: var(--switch-bg);
   border-radius: 3rem;
-  transition: border-color var(--transition), background-color var(--transition);
+  transition:
+    border-color var(--transition),
+    background-color var(--transition);
 }
 
 .switch_toggle {

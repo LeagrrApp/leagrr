@@ -45,7 +45,7 @@ type DivisionFormState =
 
 export async function createDivision(
   state: DivisionFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<DivisionFormState> {
   // check user is logged in
   await verifySession();
@@ -60,7 +60,7 @@ export async function createDivision(
     join_code: formData.get("join_code"),
   };
 
-  // Check to see if the user is allowed to create a season for this league
+  // Check to see if the user is allowed to create a division for this season
   const { canEdit } = await canEditLeague(divisionData.league_id);
 
   if (!canEdit) {
@@ -120,7 +120,7 @@ export async function createDivision(
 
   if (insertResult?.data)
     redirect(
-      `/dashboard/l/${insertResult?.data.league_slug}/s/${insertResult?.data.season_slug}/d/${insertResult?.data.slug}`
+      `/dashboard/l/${insertResult?.data.league_slug}/s/${insertResult?.data.season_slug}/d/${insertResult?.data.slug}`,
     );
 
   return insertResult;
@@ -169,7 +169,7 @@ export async function getDivisionsBySeason(season_id: number) {
 export async function getDivision(
   division_slug: string,
   season_slug: string,
-  league_slug: string
+  league_slug: string,
 ): Promise<ResultProps<DivisionData>> {
   // check user is logged in
   await verifySession();
@@ -511,9 +511,116 @@ export async function getDivision(
   return fullDivisionData;
 }
 
+export async function getDivisionMetaInfo(
+  division_slug: string,
+  season_slug: string,
+  league_slug: string,
+): Promise<
+  ResultProps<{
+    title: string;
+    description?: string;
+  }>
+> {
+  // check user is logged in
+  await verifySession();
+
+  const sql = `
+    SELECT
+      d.name AS division_name,
+      (
+        SELECT
+        s.name
+        FROM
+        league_management.seasons AS s
+        WHERE
+        s.slug = $2
+        AND
+        league_id = (
+          SELECT
+          league_id
+          FROM
+          league_management.leagues AS l
+          WHERE
+          l.slug = $3
+        )
+      ) AS season_name,
+      (
+        SELECT
+        l.name
+        FROM
+        league_management.leagues AS l
+        WHERE
+        l.slug = $3
+      ) AS league_name,
+      d.description
+    FROM
+      divisions AS d
+    WHERE
+      slug = $1
+      AND
+      season_id = (
+        SELECT
+        season_id
+        FROM
+        league_management.seasons AS s
+        WHERE
+        s.slug = $2
+        AND
+        league_id = (
+          SELECT
+          league_id
+          FROM
+          league_management.leagues AS l
+          WHERE
+          l.slug = $3
+        )
+      )
+  `;
+
+  const result: ResultProps<{
+    division_name: string;
+    season_name: string;
+    league_name: string;
+    description?: string;
+  }> = await db
+    .query(sql, [division_slug, season_slug, league_slug])
+    .then((res) => {
+      return {
+        data: res.rows[0],
+        message: "Division meta data found.",
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (!result.data)
+    return {
+      message: result.message,
+      status: result.status,
+    };
+
+  const { division_name, season_name, league_name, description } = result.data;
+
+  const metaData = {
+    title: `${division_name} | ${season_name} | ${league_name} | Dashboard | Leagrr`,
+    description,
+  };
+
+  return {
+    message: result.message,
+    status: result.status,
+    data: metaData,
+  };
+}
+
 export async function editDivision(
   state: DivisionFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<DivisionFormState> {
   // check user is logged in
   await verifySession();

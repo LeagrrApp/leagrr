@@ -4,13 +4,14 @@
   margin-inline: auto;
   width: min(var(--container-width, var(--container)), 100%);
 
-  @media only screen and (min-width: 60rem) {
+  @media only screen and (width >= 60rem) {
     padding-inline: var(--spacer-l);
   }
 }
 
 .container_grid {
   --display: grid;
+
   grid-template-columns: repeat(12, 1fr);
   column-gap: var(--spacer-base);
 

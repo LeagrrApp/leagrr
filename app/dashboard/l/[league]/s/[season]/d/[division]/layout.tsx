@@ -12,9 +12,14 @@ export default async function Layout({
   children,
   params,
 }: PropsWithChildren<{
-  params: Promise<{ division: string; season: string; league: string }>;
+  params: Promise<{
+    division: string;
+    season: string;
+    league: string;
+    game_id: string;
+  }>;
 }>) {
-  const { division, season, league } = await params;
+  const { division, season, league, game_id } = await params;
 
   const { data: seasonData } = await getSeason(season, league, true);
   const { data: divisionData } = await getDivision(division, season, league);

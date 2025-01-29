@@ -1,19 +1,10 @@
 .league_header {
   margin-block-end: var(--spacer-l);
-  /* @container (min-width: 60rem) {
-    .league_header_headline {
-      grid-column: span 8;
-    }
-
-    .league_header_unit {
-      grid-column: span 6;
-      align-self: end;
-    }
-  } */
 }
 
 .league_header_container {
   --display: grid;
+
   grid-template-columns: repeat(12, 1fr);
   container-type: inline-size;
   gap: var(--spacer-base) var(--spacer-ml);

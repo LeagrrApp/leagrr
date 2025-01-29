@@ -1,4 +1,5 @@
 :root {
+  /* Colors */
   --color-primary: #056cf2;
   --color-primary-pale: hsl(
     from var(--color-primary) h calc(s - 40) calc(l + 45)
@@ -28,6 +29,10 @@
   --color-warning-pale: hsl(from var(--color-warning) h s calc(l + 23));
   --color-warning-dark: hsl(from var(--color-warning) h s calc(l - 20));
   --color-warning-darker: hsl(from var(--color-warning) h s calc(l - 40));
+  --color-caution: #f2bd88;
+  --color-caution-pale: hsl(from var(--color-caution) h s calc(l + 23));
+  --color-caution-dark: hsl(from var(--color-caution) h s calc(l - 20));
+  --color-caution-darker: hsl(from var(--color-caution) h s calc(l - 40));
   --color-danger: #f28d88;
   --color-danger-pale: hsl(from var(--color-danger) h s calc(l + 20));
   --color-danger-dark: hsl(from var(--color-danger) h s calc(l - 20));
@@ -35,17 +40,18 @@
   --color-grey-light: hsl(from var(--color-grey) h s calc(l + 6));
   --color-grey-dark: hsl(from var(--color-grey) h s calc(l - 20));
   --color-grey-darker: hsl(from var(--color-grey) h s calc(l - 30));
-
   --color-white: #fff;
   --color-black: #000;
-
   --color-foreground: var(--color-black);
+
   /* --color-background: var(--color-white); */
   --color-background: var(--color-primary-paler);
 
+  /* containers */
   --container: 75rem;
   --container-narrow: 35rem;
 
+  /* Spacers */
   --spacer: 1;
   --spacer-xs: calc(var(--spacer) * 1rem / 6);
   --spacer-s: calc(var(--spacer) * 1rem / 3);
@@ -62,6 +68,7 @@
   --spacer-em-l: calc(var(--spacer) * 1em * 2);
   --spacer-em-xl: calc(var(--spacer) * 1em * 3);
 
+  /* Type Scales */
   --type-scale-xxxl: clamp(2.566rem, 8.526cqi, 5.96rem);
   --type-scale-xxl: clamp(2.281rem, 7.049cqi, 4.768rem);
   --type-scale-xl: clamp(2.027rem, 5.842cqi, 3.815rem);
@@ -75,13 +82,14 @@
   --type-scale-s: 0.875rem;
   --type-scale-xs: 0.75rem;
 
+  /* Generic */
   --radius: calc(var(--spacer) * 1em / 3);
   --radius-s: calc(var(--radius) / 2);
   --radius-l: calc(var(--radius) * 2);
-
   --shadow: 0 var(--spacer-xs) var(--spacer-m) #0002;
-
   --transition: 0.2s;
+
+  accent-color: var(--color-primary);
 }
 
 /*
@@ -100,8 +108,6 @@ Adapted from: https://piccalil.li/blog/a-more-modern-css-reset/
 
 /* Prevent font size inflation */
 html {
-  -moz-text-size-adjust: none;
-  -webkit-text-size-adjust: none;
   text-size-adjust: none;
   font-family: var(--font-primary);
   line-height: 1.5;
@@ -173,7 +179,7 @@ svg {
 }
 
 svg {
-  fill: currentColor;
+  fill: currentcolor;
 }
 
 svg:not(:root) {
@@ -289,10 +295,44 @@ button {
   transition: all var(--transition);
 }
 
+fieldset {
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+legend {
+  padding: 0;
+}
+
+.label {
+  width: 100%;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.0625rem;
+  display: block;
+  line-height: 1.1;
+  margin-block-end: var(--spacer-s);
+}
+
+select[multiple] {
+  display: block;
+  width: 100%;
+  padding: var(--spacer-s);
+  background-color: #fff;
+  border: 0.0625rem solid var(--color-grey-dark);
+  border-radius: var(--spacer-xs);
+  font: inherit;
+}
+
 /* --------- Icons ---------- */
 
 .material-symbols-outlined {
-  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
   font-size: var(--icon-size, 1.25em) !important;
 }
 

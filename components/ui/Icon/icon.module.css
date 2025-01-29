@@ -5,9 +5,11 @@
   text-decoration: none;
   padding: var(--icon-padding, 0);
   gap: var(--icon-gap, var(--spacer-em-base));
+
   &:where(a) {
     transition: all var(--transition);
   }
+
   &:where(a:hover, a:focus-visible) {
     color: var(--color-primary-dark);
   }

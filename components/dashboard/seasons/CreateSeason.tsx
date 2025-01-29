@@ -4,6 +4,7 @@ import { createSeason } from "@/actions/seasons";
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/forms/Input";
 import TextArea from "@/components/ui/forms/TextArea";
+import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { useRouter } from "next/navigation";
@@ -57,7 +58,7 @@ export default function CreateSeason({ league_id }: CreateSeasonProps) {
         <input type="hidden" name="league_id" value={league_id} />
         <Col>
           <Button type="submit" fullWidth disabled={pending}>
-            Create Season
+            <Icon icon="add_circle" label="Create Season" />
           </Button>
         </Col>
         <Col>
@@ -67,7 +68,7 @@ export default function CreateSeason({ league_id }: CreateSeasonProps) {
             variant="grey"
             fullWidth
           >
-            Cancel
+            <Icon icon="cancel" label="Cancel" />
           </Button>
         </Col>
       </Grid>

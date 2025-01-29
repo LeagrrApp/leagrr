@@ -1,4 +1,4 @@
-import { getDivision } from "@/actions/divisions";
+import { getDivision, getDivisionMetaInfo } from "@/actions/divisions";
 import DivisionStandings from "@/components/dashboard/divisions/DivisionStandings/DivisionStandings";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
@@ -10,6 +10,23 @@ import Button from "@/components/ui/Button/Button";
 import DivisionSchedule from "@/components/dashboard/divisions/DivisionSchedule/DivisionSchedule";
 import DashboardUnit from "@/components/dashboard/DashboardUnit/DashboardUnit";
 import DashboardUnitHeader from "@/components/dashboard/DashboardUnitHeader/DashboardUnitHeader";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ division: string; season: string; league: string }>;
+}) {
+  const { division, season, league } = await params;
+
+  const { data: divisionMetaData } = await getDivisionMetaInfo(
+    division,
+    season,
+    league,
+  );
+
+  return divisionMetaData;
+}
 
 export default async function Page({
   params,
@@ -39,7 +56,16 @@ export default async function Page({
           </DashboardUnitHeader>
           <Card padding="base">
             <p className="push">There are no teams in this division yet!</p>
-            {canEdit && <Button href="#">Invite teams</Button>}
+            {canEdit && (
+              <Button
+                href={createDashboardUrl(
+                  { l: league, s: season, d: division },
+                  "t",
+                )}
+              >
+                Invite teams
+              </Button>
+            )}
           </Card>
         </DashboardUnit>
       )}
@@ -48,12 +74,23 @@ export default async function Page({
         <DivisionSchedule games={games} canEdit={canEdit} />
       ) : (
         <DashboardUnit gridArea="schedule">
-          <h3>
-            <Icon icon="calendar_month" label="Schedule" labelFirst />
-          </h3>
+          <DashboardUnitHeader>
+            <h3>
+              <Icon icon="calendar_month" label="Schedule" labelFirst />
+            </h3>
+          </DashboardUnitHeader>
           <Card padding="base">
             <p className="push">There are no upcoming games schedule!</p>
-            {canEdit && <Button href="#">Add games</Button>}
+            {canEdit && (
+              <Button
+                href={createDashboardUrl(
+                  { l: league, s: season, d: division },
+                  "g",
+                )}
+              >
+                Add games
+              </Button>
+            )}
           </Card>
         </DashboardUnit>
       )}

@@ -1,6 +1,6 @@
 export function apply_classes(
   initialClass: string | string[],
-  additionalClass?: string | string[]
+  additionalClass?: string | string[],
 ): string {
   // convert provided classes to arrays if provided as a string
   const initialAsArray: string[] =
@@ -20,7 +20,7 @@ export function apply_classes(
 }
 
 export function paddingString(
-  paddings: [SizeOptions, SizeOptions?, SizeOptions?, SizeOptions?]
+  paddings: [SizeOptions, SizeOptions?, SizeOptions?, SizeOptions?],
 ): string {
   const paddingVariableArray: string[] = [];
 

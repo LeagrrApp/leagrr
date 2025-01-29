@@ -63,7 +63,7 @@ export default function EditDivisionInfo({
           name="gender"
           label="Gender"
           choices={gender_options}
-          value={division.gender}
+          selected={division.gender}
           errors={{ errs: state?.errors?.gender, type: "danger" }}
           required
         />
@@ -80,7 +80,7 @@ export default function EditDivisionInfo({
           label="Status"
           choices={status_options}
           errors={{ errs: state?.errors?.status, type: "danger" }}
-          value={division.status}
+          selected={division.status}
         />
         <input type="hidden" value={division.division_id} name="division_id" />
         <input type="hidden" value={division.league_id} name="league_id" />

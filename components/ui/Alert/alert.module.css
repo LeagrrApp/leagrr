@@ -6,6 +6,7 @@
   background-color: var(--alert-bg, var(--color-primary-pale));
   font-size: var(--alert-font-size, var(--type-scale-s));
   margin-block: var(--line-margin-start, 0) var(--line-margin-end, 0);
+
   &:where(ul) {
     padding-inline-start: var(--spacer-em-base);
   }

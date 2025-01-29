@@ -10,14 +10,15 @@ import Dialog from "@/components/ui/Dialog/Dialog";
 
 interface ModalConfirmActionProps {
   defaultState?: any;
-  actionFunction(): any;
+  actionFunction: (state: any, payload: unknown) => any;
   confirmationHeading: string;
   confirmationByline?: string;
   confirmationButton?: string;
+  confirmationButtonVariant?: ColorOptions;
   trigger: {
     classes?: string | string[];
     label: string;
-    icon: string;
+    icon?: string;
     buttonStyles?: ButtonProps;
   };
 }
@@ -28,6 +29,7 @@ export default function ModalConfirmAction({
   confirmationHeading,
   confirmationByline,
   confirmationButton,
+  confirmationButtonVariant,
   trigger,
 }: ModalConfirmActionProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -36,7 +38,7 @@ export default function ModalConfirmAction({
   return (
     <>
       <Button
-        className={apply_classes(css.trigger, trigger?.classes)}
+        className={trigger?.classes ? apply_classes(trigger?.classes) : ""}
         onClick={() => dialogRef?.current?.showModal()}
         variant={trigger?.buttonStyles?.variant || "transparent"}
         outline={trigger?.buttonStyles?.outline}
@@ -57,7 +59,10 @@ export default function ModalConfirmAction({
             <p className={css.dialog_byline}>{confirmationByline}</p>
           )}
           <Grid cols={2} gap="base">
-            <Button type="submit" variant="danger">
+            <Button
+              type="submit"
+              variant={confirmationButtonVariant || "danger"}
+            >
               {confirmationButton || "Confirm"}
             </Button>
             <Button

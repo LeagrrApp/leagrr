@@ -9,7 +9,7 @@
 
 .skip_link {
   position: absolute;
-  inset: 0 0 auto 0;
+  inset: 0 0 auto;
   display: inline-block;
   text-align: center;
   translate: 0 -100%;

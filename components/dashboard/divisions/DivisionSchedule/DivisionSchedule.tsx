@@ -5,14 +5,13 @@ import Card from "@/components/ui/Card/Card";
 import Icon from "@/components/ui/Icon/Icon";
 import Table from "@/components/ui/Table/Table";
 import Switch from "@/components/ui/forms/Switch/Switch";
-import { CSSProperties, useEffect, useState } from "react";
-import css from "./divisionSchedule.module.css";
-import DashboardUnit from "../../DashboardUnit/DashboardUnit";
-import DashboardUnitHeader from "../../DashboardUnitHeader/DashboardUnitHeader";
 import { apply_classes } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Button from "@/components/ui/Button/Button";
+import { useEffect, useState } from "react";
+import DashboardUnit from "../../DashboardUnit/DashboardUnit";
+import DashboardUnitHeader from "../../DashboardUnitHeader/DashboardUnitHeader";
+import css from "./divisionSchedule.module.css";
 
 type DivisionGamesProps = {
   games: GameData[];
@@ -25,7 +24,7 @@ export default function DivisionSchedule({
 }: DivisionGamesProps) {
   const pathname = usePathname();
 
-  const [showCompleted, setShowComplete] = useState(false);
+  const [showPastGames, setShowPastGames] = useState(false);
   const [gameList, setGameList] = useState<GameData[]>(() => {
     return games
       .filter((g) => {
@@ -54,22 +53,22 @@ export default function DivisionSchedule({
         const gameTime = new Date(g.date_time);
         const now = new Date(Date.now());
 
-        if (showCompleted) return gameTime < now;
+        if (showPastGames) return gameTime < now;
         return gameTime > now;
       })
       .toReversed();
 
-    if (showCompleted) {
+    if (showPastGames) {
       updatedGamesList.reverse();
       setGameList(
-        updatedGamesList.slice(gameListOffset, gameListOffset + gamesPerPage)
+        updatedGamesList.slice(gameListOffset, gameListOffset + gamesPerPage),
       );
     } else {
       setGameList(updatedGamesList);
     }
 
     setGameCount(updatedGamesList.length);
-  }, [showCompleted, gameListOffset]);
+  }, [showPastGames, gameListOffset]);
 
   return (
     <DashboardUnit gridArea="schedule">
@@ -77,11 +76,21 @@ export default function DivisionSchedule({
         <h3>
           <Icon icon="calendar_month" label="Schedule" labelFirst />
         </h3>
+        {canEdit && (
+          <Icon
+            className={css.division_schedule_add}
+            icon="add_circle"
+            label="Add Game"
+            hideLabel
+            href={`${pathname}/g`}
+            size="h2"
+          />
+        )}
         <Switch
-          name="showCompleted"
-          label="Show completed games"
-          checked={showCompleted}
-          onChange={() => setShowComplete(!showCompleted)}
+          name="showPastGames"
+          label="Show past games"
+          checked={showPastGames}
+          onChange={() => setShowPastGames(!showPastGames)}
           noSpread
           className={css.division_schedule_switch}
         />
@@ -96,16 +105,16 @@ export default function DivisionSchedule({
               <th
                 className={css.division_schedule_wide}
                 scope="col"
-                title="Home Team"
+                title="Away Team"
               >
-                <span aria-hidden="true">Home</span>
+                <span aria-hidden="true">Away</span>
               </th>
               <th
                 className={css.division_schedule_wide}
                 scope="col"
-                title="Away Team"
+                title="Home Team"
               >
-                <span aria-hidden="true">Away</span>
+                <span aria-hidden="true">Home</span>
               </th>
               <th className={css.division_schedule_narrow}>Location</th>
             </tr>
@@ -124,7 +133,7 @@ export default function DivisionSchedule({
               if (g.status !== "public" && g.status !== "completed") {
                 rowClasses.push(
                   css.game_list_flag,
-                  css[`game_list_flag_${g.status}`]
+                  css[`game_list_flag_${g.status}`],
                 );
               }
 
@@ -134,30 +143,36 @@ export default function DivisionSchedule({
                     {gameTime}
                     <Link href={`${pathname}/g/${g.game_id}`}>
                       <span className="srt">
-                        View game between {g.home_team} and
-                        {g.away_team} taking place {gameTime}
+                        View game between {g.away_team} and
+                        {g.home_team} taking place {gameTime}
                       </span>
                     </Link>
                   </td>
                   <td
                     className={
-                      g.home_team_score > g.away_team_score
+                      g.away_team_score > g.home_team_score &&
+                      g.status === "completed"
                         ? css.division_winner
                         : undefined
                     }
                   >
-                    {g.home_team}{" "}
-                    {showCompleted && <strong>{g.home_team_score}</strong>}
+                    {g.away_team}{" "}
+                    {g.status === "completed" && (
+                      <strong>{g.away_team_score}</strong>
+                    )}
                   </td>
                   <td
                     className={
-                      g.away_team_score > g.home_team_score
+                      g.home_team_score > g.away_team_score &&
+                      g.status === "completed"
                         ? css.division_winner
                         : undefined
                     }
                   >
-                    {showCompleted && <strong>{g.away_team_score}</strong>}{" "}
-                    {g.away_team}
+                    {g.status === "completed" && (
+                      <strong>{g.home_team_score}</strong>
+                    )}{" "}
+                    {g.home_team}
                   </td>
                   <td title={`${g.arena} - ${g.venue}`}>
                     {g.arena} - {g.venue}
@@ -192,7 +207,6 @@ export default function DivisionSchedule({
           )}
         </div>
       )}
-      {canEdit && <Button href={`${pathname}/g`}>Add Game</Button>}
     </DashboardUnit>
   );
 }

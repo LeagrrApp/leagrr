@@ -9,15 +9,16 @@
   padding-block: var(--spacer-s);
   isolation: isolate;
 
-  @media only screen and (min-width: 60rem) {
+  @media only screen and (width >= 60rem) {
     flex-direction: column;
     border-inline-end: 0.125rem solid var(--color-primary-dark);
-    position: static;
+    position: sticky;
+    inset-block-start: 0;
     isolation: unset;
-    inset-block-start: unset;
     z-index: auto;
     padding: 0;
     align-items: unset;
+    height: 100dvh;
   }
 }
 
@@ -34,7 +35,7 @@
     color: var(--color-secondary-light);
   }
 
-  @media only screen and (min-width: 60rem) {
+  @media only screen and (width >= 60rem) {
     margin-inline-end: unset;
     padding-inline: var(--spacer-base);
     padding-block: var(--spacer-s);
@@ -43,7 +44,7 @@
 }
 
 .menu .menu_toggle {
-  @media only screen and (min-width: 60rem) {
+  @media only screen and (width >= 60rem) {
     display: none;
   }
 }
@@ -56,11 +57,13 @@
   padding-inline: var(--spacer-em-base);
   padding-block: var(--spacer-em-ml);
   gap: var(--spacer-em-base);
+
   &:where([aria-current="true"]) {
     background-color: hsla(from var(--color-primary-dark) h s l / 0.5);
   }
+
   &:where(a:hover, a:focus-visible) {
-    @media only screen and (min-width: 60rem) {
+    @media only screen and (width >= 60rem) {
       background-color: var(--color-primary-dark);
     }
   }
@@ -96,7 +99,6 @@
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-
   position: absolute;
   width: 100%;
   height: 100dvh;
@@ -108,7 +110,7 @@
   translate: -100%;
   transition: all var(--transition);
 
-  @media only screen and (min-width: 60rem) {
+  @media only screen and (width >= 60rem) {
     position: static;
     width: unset;
     height: unset;
@@ -135,6 +137,7 @@
   gap: var(--spacer-s);
   margin-block: var(--spacer-ml) var(--spacer-m);
   color: var(--color-white);
+
   &::after {
     content: " ";
     display: block;
@@ -165,6 +168,7 @@
   border-color: var(--color-primary-darker);
   border-radius: 0;
   justify-content: flex-start;
+
   &:where(:hover, :focus-visible) {
     background-color: var(--color-danger-dark);
     border-color: var(--color-danger-dark);
