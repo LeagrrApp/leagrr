@@ -375,8 +375,6 @@ export async function editGame(
     status: formData.get("status") as string,
   };
 
-  console.log(formData.get("home_team_id"), formData.get("away_team_id"));
-
   // Check to see if the user is allowed to create a season for this league
   const { canEdit } = await canEditLeague(gameData.league_id);
 
@@ -454,8 +452,6 @@ export async function editGame(
         status: 400,
       };
     });
-
-  console.log(updateResult);
 
   if (updateResult.status === 400) {
     return {
@@ -614,10 +610,10 @@ export async function getTeamGameStats(game_id: number, team_id: number) {
 
 export async function getGameFeed(game_id: number): Promise<
   ResultProps<{
-    period1: GameFeedItemData[];
-    period2: GameFeedItemData[];
-    period3: GameFeedItemData[];
-    [key: string]: GameFeedItemData[];
+    period1: StatsData[];
+    period2: StatsData[];
+    period3: StatsData[];
+    [key: string]: StatsData[];
   }>
 > {
   // verify user is signed in
@@ -632,7 +628,7 @@ export async function getGameFeed(game_id: number): Promise<
   const shotsSql = `
     SELECT
       tableoid::regclass AS type,
-      s.shot_id,
+      s.shot_id AS item_id,
       s.user_id,
       (SELECT username FROM admin.users AS u WHERE u.user_id = s.user_id) AS username,
       (SELECT last_name FROM admin.users AS u WHERE u.user_id = s.user_id) AS user_last_name,
@@ -648,7 +644,7 @@ export async function getGameFeed(game_id: number): Promise<
       period ASC, period_time ASC
   `;
 
-  const shotsResult: ResultProps<ShotStatData[]> = await db
+  const shotsResult: ResultProps<StatsData[]> = await db
     .query(shotsSql, [game_id])
     .then((res) => {
       return {
@@ -675,7 +671,7 @@ export async function getGameFeed(game_id: number): Promise<
   const goalsSql = `
     SELECT
       tableoid::regclass AS type,
-      g.goal_id,
+      g.goal_id AS item_id,
       g.user_id,
       (SELECT username FROM admin.users AS u WHERE u.user_id = g.user_id) AS username,
       (SELECT last_name FROM admin.users AS u WHERE u.user_id = g.user_id) AS user_last_name,
@@ -694,7 +690,7 @@ export async function getGameFeed(game_id: number): Promise<
       period ASC, period_time ASC
   `;
 
-  const goalsResult: ResultProps<GoalStatData[]> = await db
+  const goalsResult: ResultProps<StatsData[]> = await db
     .query(goalsSql, [game_id])
     .then((res) => {
       return {
@@ -718,7 +714,7 @@ export async function getGameFeed(game_id: number): Promise<
   const assistsSql = `
     SELECT
       tableoid::regclass AS type,
-      a.assist_id,
+      a.assist_id AS item_id,
       a.goal_id,
       a.user_id,
       (SELECT username FROM admin.users AS u WHERE u.user_id = a.user_id) AS username,
@@ -734,7 +730,7 @@ export async function getGameFeed(game_id: number): Promise<
       goal_id ASC, primary_assist DESC
   `;
 
-  const assistsResult: ResultProps<AssistStatData[]> = await db
+  const assistsResult: ResultProps<StatsData[]> = await db
     .query(assistsSql, [game_id])
     .then((res) => {
       return {
@@ -758,7 +754,7 @@ export async function getGameFeed(game_id: number): Promise<
   const savesSql = `
     SELECT
       tableoid::regclass AS type,
-      s.save_id,
+      s.save_id AS item_id,
       s.user_id,
       (SELECT username FROM admin.users AS u WHERE u.user_id = s.user_id) AS username,
       (SELECT last_name FROM admin.users AS u WHERE u.user_id = s.user_id) AS user_last_name,
@@ -776,7 +772,7 @@ export async function getGameFeed(game_id: number): Promise<
       period ASC, period_time ASC
   `;
 
-  const savesResult: ResultProps<SaveStatData[]> = await db
+  const savesResult: ResultProps<StatsData[]> = await db
     .query(savesSql, [game_id])
     .then((res) => {
       return {
@@ -800,7 +796,7 @@ export async function getGameFeed(game_id: number): Promise<
   const penaltiesSql = `
     SELECT
       tableoid::regclass AS type,
-      p.penalty_id,
+      p.penalty_id AS item_id,
       p.user_id,
       (SELECT username FROM admin.users AS u WHERE u.user_id = p.user_id) AS username,
       (SELECT last_name FROM admin.users AS u WHERE u.user_id = p.user_id) AS user_last_name,
@@ -818,7 +814,7 @@ export async function getGameFeed(game_id: number): Promise<
       period ASC, period_time ASC
   `;
 
-  const penaltiesResult: ResultProps<PenaltyStatData[]> = await db
+  const penaltiesResult: ResultProps<StatsData[]> = await db
     .query(penaltiesSql, [game_id])
     .then((res) => {
       return {
@@ -835,12 +831,11 @@ export async function getGameFeed(game_id: number): Promise<
     });
 
   if (!penaltiesResult.data) {
-    console.log(penaltiesResult);
     return errorResponse;
   }
 
   // attach assists to goals
-  const goalsWithAssists: GoalStatData[] = [];
+  const goalsWithAssists: StatsData[] = [];
   const goals = goalsResult.data;
   const assists = assistsResult.data;
 
@@ -881,10 +876,10 @@ export async function getGameFeed(game_id: number): Promise<
   );
 
   const gameFeed: {
-    period1: GameFeedItemData[];
-    period2: GameFeedItemData[];
-    period3: GameFeedItemData[];
-    [key: string]: GameFeedItemData[];
+    period1: StatsData[];
+    period2: StatsData[];
+    period3: StatsData[];
+    [key: string]: StatsData[];
   } = {
     period1: gameFeedItems.filter((g) => g.period === 1),
     period2: gameFeedItems.filter((g) => g.period === 2),
@@ -1014,8 +1009,6 @@ export async function addToGameFeed(
     opposition_id: parseInt(formData.get("opposition_id") as string),
   };
 
-  console.log(feedItemData.minutes, feedItemData.seconds);
-
   const period_time = createPeriodTimeString(
     feedItemData.minutes,
     feedItemData.seconds,
@@ -1036,7 +1029,6 @@ export async function addToGameFeed(
           goal_id
       `;
 
-      console.log(period_time);
       const goalResult: ResultProps<{ goal_id: number }> = await db
         .query(goalSql, [
           feedItemData.game_id,
@@ -1310,4 +1302,76 @@ export default async function endGame(state: {
   }
 
   redirect(state.backLink);
+}
+
+type DeleteFeedItemState =
+  | {
+      id: number;
+      type: string;
+      message?: string;
+      status?: number;
+    }
+  | undefined;
+
+export async function deleteFeedItem(
+  state: DeleteFeedItemState,
+): Promise<DeleteFeedItemState> {
+  if (!state?.id || !state?.type)
+    return {
+      id: state?.id || 0,
+      type: state?.type || "stats.goal",
+      message: "Missing necessary data to delete feed item!",
+      status: 400,
+    };
+
+  let sql: string;
+
+  switch (state.type) {
+    case "stats.goals":
+      sql = `
+        DELETE FROM stats.goals
+        WHERE goal_id = $1
+      `;
+      break;
+    case "stats.saves":
+      sql = `
+        DELETE FROM stats.shots
+        WHERE shot_id = $1
+      `;
+      break;
+    case "stats.penalties":
+      sql = `
+        DELETE FROM stats.penalties
+        WHERE penalty_id = $1
+      `;
+      break;
+    default:
+      sql = `
+        DELETE FROM stats.shots
+        WHERE shot_id = $1
+      `;
+      break;
+  }
+
+  const deleteResult = await db
+    .query(sql, [state.id])
+    .then((res) => {
+      return {
+        message: "Feed item deleted!",
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  return {
+    id: state?.id || 0,
+    type: state?.type || "stats.goal",
+    message: "Testing!",
+    status: 200,
+  };
 }

@@ -1,14 +1,11 @@
 import endGame, { getGameFeed, getGameTeamRosters } from "@/actions/games";
 import Card from "@/components/ui/Card/Card";
 import Icon from "@/components/ui/Icon/Icon";
-import css from "./gameFeed.module.css";
-import GameFeedAdd from "../GameFeedAdd/GameFeedAdd";
-import GameFeedGoal from "./GameFeedGoal";
-import GameFeedPenalty from "./GameFeedPenalty";
-import GameFeedSave from "./GameFeedSave";
-import GameFeedShot from "./GameFeedShot";
-import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
 import Grid from "@/components/ui/layout/Grid";
+import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
+import GameFeedAdd from "../GameFeedAdd/GameFeedAdd";
+import css from "./gameFeed.module.css";
+import GameFeedItem from "./GameFeedItem";
 
 interface GameFeedProps {
   game: GameData;
@@ -16,11 +13,11 @@ interface GameFeedProps {
   backLink: string;
 }
 
-export default async function GameFeed(props: GameFeedProps) {
-  const { game, canEdit, backLink } = props;
-
-  console.log(props);
-
+export default async function GameFeed({
+  game,
+  canEdit,
+  backLink,
+}: GameFeedProps) {
   const { data: gameFeed } = await getGameFeed(game.game_id);
 
   const { data: teamRosters } = await getGameTeamRosters(
@@ -105,64 +102,20 @@ export default async function GameFeed(props: GameFeedProps) {
                 </h4>
                 {gameFeed[p].length > 1 ? (
                   <ol className={css.game_feed_feed}>
-                    {gameFeed[p].map((item: GameFeedItemData) => {
+                    {gameFeed[p].map((item: StatsData) => {
                       const isHome = game.home_team_id === item.team_id;
-                      switch (item.type) {
-                        case "stats.shots":
-                          return (
-                            <GameFeedShot
-                              key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
-                              item={item}
-                              isHome={isHome}
-                              teamColor={
-                                isHome
-                                  ? game.home_team_color
-                                  : game.away_team_color
-                              }
-                            />
-                          );
-                        case "stats.goals":
-                          return (
-                            <GameFeedGoal
-                              key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
-                              item={item}
-                              isHome={isHome}
-                              teamColor={
-                                isHome
-                                  ? game.home_team_color
-                                  : game.away_team_color
-                              }
-                            />
-                          );
-                        case "stats.saves":
-                          return (
-                            <GameFeedSave
-                              key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
-                              item={item}
-                              isHome={isHome}
-                              teamColor={
-                                isHome
-                                  ? game.home_team_color
-                                  : game.away_team_color
-                              }
-                            />
-                          );
-                        case "stats.penalties":
-                          return (
-                            <GameFeedPenalty
-                              key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
-                              item={item}
-                              isHome={isHome}
-                              teamColor={
-                                isHome
-                                  ? game.home_team_color
-                                  : game.away_team_color
-                              }
-                            />
-                          );
-                        default:
-                          return null;
-                      }
+
+                      return (
+                        <GameFeedItem
+                          key={`${item.type}-${item.period}-${item.period_time.minutes}-${item.period_time.seconds}`}
+                          item={item}
+                          isHome={isHome}
+                          teamColor={
+                            isHome ? game.home_team_color : game.away_team_color
+                          }
+                          canEdit={canEdit}
+                        />
+                      );
                     })}
                   </ol>
                 ) : (

@@ -88,6 +88,8 @@
   --radius-l: calc(var(--radius) * 2);
   --shadow: 0 var(--spacer-xs) var(--spacer-m) #0002;
   --transition: 0.2s;
+
+  accent-color: var(--color-primary);
 }
 
 /*

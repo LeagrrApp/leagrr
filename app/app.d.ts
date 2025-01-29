@@ -147,8 +147,9 @@ type PlayerStats = {
   penalties_in_minutes: number;
 };
 
-type BaseStatsData = {
+type StatsData = {
   type: string;
+  item_id: number;
   user_id: number;
   username: string;
   user_last_name: string;
@@ -159,43 +160,53 @@ type BaseStatsData = {
     minutes: number;
     seconds: number;
   };
-};
-
-type ShotStatData = BaseStatsData & {
-  shot_id: number;
-};
-
-type GoalStatData = BaseStatsData & {
-  goal_id: number;
-  shorthanded: boolean;
-  power_play: boolean;
-  empty_net: boolean;
+  shorthanded?: boolean;
+  power_play?: boolean;
+  empty_net?: boolean;
   assists?: AssistStatData[];
+  goal_id?: number;
+  primary_assist?: boolean;
+  penalty_kill?: boolean;
+  rebound?: boolean;
+  infraction?: string;
+  minutes?: number;
 };
 
-type AssistStatData = Omit<BaseStatsData, "period" | "period_time"> & {
-  assist_id: number;
-  goal_id: number;
-  primary_assist: boolean;
-};
+// type ShotStatData = BaseStatsData & {
+//   shot_id: number;
+// };
 
-type SaveStatData = BaseStatsData & {
-  save_id: number;
-  penalty_kill: boolean;
-  rebound: boolean;
-};
+// type GoalStatData = BaseStatsData & {
+//   goal_id: number;
+//   shorthanded: boolean;
+//   power_play: boolean;
+//   empty_net: boolean;
+//   assists?: AssistStatData[];
+// };
 
-type PenaltyStatData = BaseStatsData & {
-  penalty_id: number;
-  infraction: string;
-  minutes: number;
-};
+// type AssistStatData = Omit<BaseStatsData, "period" | "period_time"> & {
+//   assist_id: number;
+//   goal_id: number;
+//   primary_assist: boolean;
+// };
 
-type GameFeedItemData = BaseStatsData &
-  Partial<ShotStatData> &
-  Partial<GoalStatData> &
-  Partial<SaveStatData> &
-  Partial<PenaltyStatData>;
+// type SaveStatData = BaseStatsData & {
+//   save_id: number;
+//   penalty_kill: boolean;
+//   rebound: boolean;
+// };
+
+// type PenaltyStatData = BaseStatsData & {
+//   penalty_id: number;
+//   infraction: string;
+//   minutes: number;
+// };
+
+// type GameFeedItemData = BaseStatsData &
+//   Partial<ShotStatData> &
+//   Partial<GoalStatData> &
+//   Partial<SaveStatData> &
+//   Partial<PenaltyStatData>;
 
 type AdminRole = {
   league_role_id: number | undefined;

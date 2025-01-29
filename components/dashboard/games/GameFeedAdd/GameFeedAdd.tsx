@@ -13,6 +13,8 @@ import Switch from "@/components/ui/forms/Switch/Switch";
 import { addToGameFeed } from "@/actions/games";
 import Input from "@/components/ui/forms/Input";
 import { usePathname } from "next/navigation";
+import Checkbox from "@/components/ui/forms/Checkbox";
+import Grid from "@/components/ui/layout/Grid";
 
 interface GameFeedAddProps {
   game: GameData;
@@ -41,10 +43,6 @@ export default function GameFeedAdd({
     link: pathname,
   });
 
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
-
   const away_players: Choice[] = [
     ...teamRosters?.away_roster.map((p) => {
       return {
@@ -63,7 +61,7 @@ export default function GameFeedAdd({
     }),
   ];
 
-  const [adding, setAdding] = useState<boolean>(true);
+  const [adding, setAdding] = useState<boolean>(false);
   const [type, setType] = useState<string>("shot");
   const [team, setTeam] = useState<number>(game.away_team_id);
   const [player, setPlayer] = useState<number>(away_players[0].value);
@@ -169,6 +167,19 @@ export default function GameFeedAdd({
             required
           />
         </fieldset>
+        {(type === "goal" || type === "shot") && (
+          <fieldset>
+            <legend className="label">More Details</legend>
+            <Checkbox name="power_play" value="true" label="Power Play" />
+            <Checkbox name="shorthanded" value="true" label="Shorthanded" />
+            {type === "goal" && (
+              <Checkbox name="empty_net" value="true" label="Empty Net" />
+            )}
+            {type === "shot" && (
+              <Checkbox name="rebound" value="true" label="Rebound" />
+            )}
+          </fieldset>
+        )}
         {type === "goal" && (
           <>
             <div>
@@ -191,57 +202,13 @@ export default function GameFeedAdd({
             </div>
           </>
         )}
-        {(type === "goal" || type === "shot") && (
-          <fieldset>
-            <legend className="label">More Details</legend>
-            <div>
-              <input
-                type="checkbox"
-                name="power_play"
-                id="power_play"
-                value="true"
-              />
-              <label htmlFor="power_play">Power Player</label>
-            </div>
-            <div>
-              <input
-                type="checkbox"
-                name="shorthanded"
-                id="shorthanded"
-                value="true"
-              />
-              <label htmlFor="shorthanded">Shorthanded</label>
-            </div>
-            {type === "goal" && (
-              <div>
-                <input
-                  type="checkbox"
-                  name="empty_net"
-                  id="empty_net"
-                  value="true"
-                />
-                <label htmlFor="empty_net">Empty Net</label>
-              </div>
-            )}
-            {type === "shot" && (
-              <div>
-                <input
-                  type="checkbox"
-                  name="rebound"
-                  id="rebound"
-                  value="true"
-                />
-                <label htmlFor="rebound">Rebound</label>
-              </div>
-            )}
-          </fieldset>
-        )}
         {type === "penalty" && (
           <>
             <Input
               name="penalty_minutes"
               label="Length"
               type="number"
+              defaultValue="2"
               required
             />
             <Input name="infraction" label="Infraction" required />
@@ -257,10 +224,18 @@ export default function GameFeedAdd({
         />
         <input type="hidden" name="goalie_id" value={goalie} />
         <Col fullSpan>
-          <Button type="submit">Add to feed</Button>
-          <Button type="button" onClick={() => setAdding(false)} variant="grey">
-            Cancel
-          </Button>
+          <Grid cols={2} gap="base">
+            <Button type="submit">
+              <Icon label="Add to feed" icon="dynamic_feed" />
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setAdding(false)}
+              variant="grey"
+            >
+              <Icon label="Cancel" icon="cancel" />
+            </Button>
+          </Grid>
         </Col>
       </form>
     );

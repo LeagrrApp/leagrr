@@ -165,7 +165,7 @@
   justify-content: center;
 }
 
-.game_feed_item_type_goal {
+.game_feed_item_type_highlight {
   color: var(--color-danger-dark);
 }
 
@@ -180,4 +180,10 @@
 
 .game_feed_winner {
   color: var(--color-primary);
+}
+
+.game_feed_item_delete {
+  position: absolute;
+  inset: 0;
+  background-color: hsla(from var(--color-grey) h s l / 0.5);
 }

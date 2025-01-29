@@ -4,6 +4,12 @@
   gap: var(--spacer-s);
 }
 
+.unit_checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--spacer-ml);
+}
+
 .field {
   display: block;
   width: 100%;
@@ -26,6 +32,12 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
+}
+
+.checkbox,
+.radio {
+  width: 1.5em;
+  height: 1.5em;
 }
 
 .label {
