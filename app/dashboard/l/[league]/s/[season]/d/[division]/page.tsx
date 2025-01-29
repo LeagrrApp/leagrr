@@ -1,4 +1,4 @@
-import { getDivision } from "@/actions/divisions";
+import { getDivision, getDivisionMetaInfo } from "@/actions/divisions";
 import DivisionStandings from "@/components/dashboard/divisions/DivisionStandings/DivisionStandings";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
@@ -11,6 +11,22 @@ import DivisionSchedule from "@/components/dashboard/divisions/DivisionSchedule/
 import DashboardUnit from "@/components/dashboard/DashboardUnit/DashboardUnit";
 import DashboardUnitHeader from "@/components/dashboard/DashboardUnitHeader/DashboardUnitHeader";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ division: string; season: string; league: string }>;
+}) {
+  const { division, season, league } = await params;
+
+  const { data: divisionMetaData } = await getDivisionMetaInfo(
+    division,
+    season,
+    league,
+  );
+
+  return divisionMetaData;
+}
 
 export default async function Page({
   params,
