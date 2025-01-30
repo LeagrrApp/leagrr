@@ -1,0 +1,12 @@
+.add_team_grid {
+  --cols: 1;
+
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  gap: var(--spacer-xl);
+  align-items: flex-start;
+
+  @container (width >= 45rem) {
+    --cols: 2;
+  }
+}
