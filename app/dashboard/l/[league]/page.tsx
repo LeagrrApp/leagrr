@@ -36,7 +36,7 @@ export default async function Page({
 
   return (
     <Container>
-      <h2>It looks like this leagueData doesn't have any seasons yet...</h2>
+      <h2>It looks like this league doesn't have any seasons yet...</h2>
       <Button href={`./${league}/s/`}>Add Season</Button>
     </Container>
   );

@@ -166,13 +166,86 @@ CREATE TABLE league_management.teams (
 ALTER TABLE IF EXISTS league_management.teams
     ADD CONSTRAINT team_status_enum CHECK (status IN ('active', 'inactive', 'suspended', 'banned'));
 
+CREATE OR REPLACE FUNCTION generate_team_slug()
+RETURNS TRIGGER AS $$
+DECLARE
+    base_slug TEXT;
+    temp_slug TEXT;
+    final_slug TEXT;
+    slug_rank INT;
+    exact_match INT;
+BEGIN
+	IF NEW.name <> OLD.name OR tg_op = 'INSERT' THEN
+	    -- Generate the initial slug by processing the name
+	    base_slug := lower(
+	                      regexp_replace(
+	                          regexp_replace(
+	                              regexp_replace(NEW.name, '\s+', '-', 'g'),
+	                              '[^a-zA-Z0-9\-]', '', 'g'
+	                          ),
+	                      '-+', '-', 'g')
+	                  );
+	
+	    -- Check if this slug already exists and if so, append a number to ensure uniqueness
+	
+		-- this SELECT checks if there are other EXACT slug matches
+	    SELECT COUNT(*) INTO exact_match
+	    FROM league_management.teams
+	    WHERE slug = base_slug;
+	
+	    IF exact_match = 0 THEN
+	        -- No duplicates found, assign base slug
+	        final_slug := base_slug;
+	    ELSE
+			-- this SELECT checks if there are teams with slugs starting with the base_slug
+		    SELECT COUNT(*) INTO slug_rank
+		    FROM league_management.teams
+		    WHERE slug LIKE base_slug || '%';
+			
+	        -- Duplicates found, append the count as a suffix
+	        temp_slug := base_slug || '-' || slug_rank;
+			
+			-- check if exact match of temp_slug found
+			SELECT COUNT(*) INTO exact_match
+		    FROM league_management.teams
+		    WHERE slug = temp_slug;
+	
+			IF exact_match = 1 THEN
+				-- increase slug_rank by 1 and create final slug
+				final_slug := base_slug || '-' || (slug_rank + 1);
+			ELSE
+				-- change temp slug to final slug
+				final_slug = temp_slug;
+			END IF;
+	    END IF;
+	
+	    -- Assign the final slug to the new record
+	    NEW.slug := final_slug;
+
+	END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER set_teams_slug
+    BEFORE INSERT ON league_management.teams
+	FOR EACH ROW
+	EXECUTE FUNCTION generate_team_slug();
+
+CREATE OR REPLACE TRIGGER update_teams_slug
+    BEFORE UPDATE OF name ON league_management.teams
+	FOR EACH ROW
+	EXECUTE FUNCTION generate_team_slug();
+
+
 -- Create league_management.team_memberships
 -- Joiner table adding users to teams with a specific team role
 CREATE TABLE league_management.team_memberships (
   team_membership_id    SERIAL NOT NULL PRIMARY KEY,
   user_id               INT NOT NULL,
   team_id               INT NOT NULL,
-  team_role             INT DEFAULT 1,
+  team_role             INT DEFAULT 5,
   position              VARCHAR(50),
   number                INT,
   created_on            TIMESTAMP DEFAULT NOW()
@@ -535,78 +608,6 @@ ADD CONSTRAINT fk_division_teams_division_id FOREIGN KEY (division_id)
 ALTER TABLE league_management.division_teams
 ADD CONSTRAINT fk_division_teams_team_id FOREIGN KEY (team_id)
     REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
-
-CREATE OR REPLACE FUNCTION generate_team_slug()
-RETURNS TRIGGER AS $$
-DECLARE
-    base_slug TEXT;
-    temp_slug TEXT;
-    final_slug TEXT;
-    slug_rank INT;
-    exact_match INT;
-BEGIN
-	IF NEW.name <> OLD.name OR tg_op = 'INSERT' THEN
-	    -- Generate the initial slug by processing the name
-	    base_slug := lower(
-	                      regexp_replace(
-	                          regexp_replace(
-	                              regexp_replace(NEW.name, '\s+', '-', 'g'),
-	                              '[^a-zA-Z0-9\-]', '', 'g'
-	                          ),
-	                      '-+', '-', 'g')
-	                  );
-	
-	    -- Check if this slug already exists and if so, append a number to ensure uniqueness
-	
-		-- this SELECT checks if there are other EXACT slug matches
-	    SELECT COUNT(*) INTO exact_match
-	    FROM league_management.teams
-	    WHERE slug = base_slug;
-	
-	    IF exact_match = 0 THEN
-	        -- No duplicates found, assign base slug
-	        final_slug := base_slug;
-	    ELSE
-			-- this SELECT checks if there are teams with slugs starting with the base_slug
-		    SELECT COUNT(*) INTO slug_rank
-		    FROM league_management.teams
-		    WHERE slug LIKE base_slug || '%';
-			
-	        -- Duplicates found, append the count as a suffix
-	        temp_slug := base_slug || '-' || slug_rank;
-			
-			-- check if exact match of temp_slug found
-			SELECT COUNT(*) INTO exact_match
-		    FROM league_management.teams
-		    WHERE slug = temp_slug;
-	
-			IF exact_match = 1 THEN
-				-- increase slug_rank by 1 and create final slug
-				final_slug := base_slug || '-' || (slug_rank + 1);
-			ELSE
-				-- change temp slug to final slug
-				final_slug = temp_slug;
-			END IF;
-	    END IF;
-	
-	    -- Assign the final slug to the new record
-	    NEW.slug := final_slug;
-
-	END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE TRIGGER set_teams_slug
-    BEFORE INSERT ON league_management.teams
-	FOR EACH ROW
-	EXECUTE FUNCTION generate_team_slug();
-
-CREATE OR REPLACE TRIGGER update_teams_slug
-    BEFORE UPDATE OF name ON league_management.teams
-	FOR EACH ROW
-	EXECUTE FUNCTION generate_team_slug();
 
 -- Create league_management.division_rosters
 -- Joiner table assigning players to a team within divisions
@@ -975,11 +976,11 @@ ADD CONSTRAINT fk_shutouts_team_id FOREIGN KEY (team_id)
 -- INSERT INTO admin.team_roles
 --   (name)
 -- VALUES
---   ('Player'),
 --   ('Manager'),
 --   ('Coach'),
 --   ('Captain'),
 --   ('Alternate Captain'),
+--   ('Player'),
 --   ('Spare')
 -- ;
 
@@ -1169,14 +1170,14 @@ VALUES
 INSERT INTO league_management.team_memberships
   (user_id, team_id, team_role, position, number)
 VALUES
-  (6, 1, 4, 'Center', 30), -- Stephen
-  (7, 1, 5, 'Defense', 25), -- Levi
-  (10, 2, 4, 'Defense', 18), -- Jayce
-  (3, 2, 5, 'Defense', 47), -- Aida
-  (8, 3, 4, 'Center', 12), -- Cheryl
-  (11, 3, 5, 'Left Wing', 9), -- Britt
-  (9, 4, 4, 'Right Wing', 8), -- Mason
-  (5, 4, 5, 'Defense', 10)  -- Kat
+  (6, 1, 3, 'Center', 30), -- Stephen
+  (7, 1, 4, 'Defense', 25), -- Levi
+  (10, 2, 3, 'Defense', 18), -- Jayce
+  (3, 2, 4, 'Defense', 47), -- Aida
+  (8, 3, 3, 'Center', 12), -- Cheryl
+  (11, 3, 4, 'Left Wing', 9), -- Britt
+  (9, 4, 3, 'Right Wing', 8), -- Mason
+  (5, 4, 4, 'Defense', 10)  -- Kat
 ;
 
 -- Add sample players to OPH teams as players
@@ -1240,11 +1241,11 @@ VALUES
 INSERT INTO league_management.team_memberships
   (user_id, team_id, team_role)
 VALUES
-  (1, 5, 4), -- Adam
-  (12, 6, 4), -- Zach
-  (13, 7, 4), -- Andrew
-  (4, 8, 4), -- Caleb
-  (14, 9, 4) -- Tim
+  (1, 5, 3), -- Adam
+  (12, 6, 3), -- Zach
+  (13, 7, 3), -- Andrew
+  (4, 8, 3), -- Caleb
+  (14, 9, 3) -- Tim
 ;
 
 INSERT INTO league_management.team_memberships

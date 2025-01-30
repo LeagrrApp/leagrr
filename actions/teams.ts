@@ -1,6 +1,8 @@
 "use server";
+import { db } from "@/db/pg";
 import { verifySession } from "@/lib/session";
 import { check_string_is_color_hex } from "@/utils/helpers/validators";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 const TeamFormSchema = z.object({
@@ -62,7 +64,8 @@ export async function createTeam(
     };
   }
 
-  const sql = `
+  // create insert statement
+  const teamInsertSql = `
     INSERT INTO league_management.teams
       (name, description, color, join_code)
     VALUES
@@ -71,9 +74,112 @@ export async function createTeam(
       slug, team_id
   `;
 
-  return {
-    data: teamData,
-    message: "Testing!",
-    status: 200,
-  };
+  // Value clean up to insure they are null in database not empty strings
+  let color: string | null =
+    teamData.color !== "custom" ? teamData.color : teamData.custom_color;
+  if (color === "") color = null;
+
+  const join_code = teamData.join_code !== "" ? teamData.join_code : null;
+
+  // query database
+  const teamInsertResult: ResultProps<{ slug: string; team_id: number }> =
+    await db
+      .query(teamInsertSql, [
+        teamData.name,
+        teamData.description,
+        color,
+        join_code,
+      ])
+      .then((res) => {
+        return {
+          message: `${teamData.name} successfully created!`,
+          status: 200,
+          data: res.rows[0],
+        };
+      })
+      .catch((err) => {
+        return {
+          message: err.message,
+          status: 400,
+        };
+      });
+
+  if (!teamInsertResult.data) {
+    return teamInsertResult;
+  }
+  // add user to team as manager (1)
+  const teamMembershipSql = `
+    INSERT INTO league_management.team_memberships
+      (user_id, team_id, team_role)
+    VALUES
+      ($1, $2, 1)
+  `;
+
+  const teamMembershipInsertResult = await db
+    .query(teamMembershipSql, [teamData.user_id, teamInsertResult.data.team_id])
+    .then((res) => {
+      return {
+        message: `Team member added!`,
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  // Failed to add user as team admin, delete the team and return error
+  if (teamMembershipInsertResult.status === 400) {
+    // TODO: delete the league on this error
+
+    return teamMembershipInsertResult;
+  }
+
+  // Success route, redirect to the new league page
+  redirect(`/dashboard/t/${teamInsertResult.data}`);
+}
+
+export async function getTeam(
+  slug: string,
+): Promise<ResultProps<TeamPageData>> {
+  // verify logged in
+  await verifySession();
+
+  const teamSql = `
+    SELECT
+      team_id,
+      slug,
+      name,
+      description,
+      join_code,
+      status,
+      color
+    FROM
+      league_management.teams
+    WHERE slug = $1
+  `;
+
+  const teamResult = await db
+    .query(teamSql, [slug])
+    .then((res) => {
+      if (res.rowCount === 0) {
+        throw new Error("Team not found!");
+      }
+
+      return {
+        message: `Team data found!`,
+        status: 200,
+        data: res.rows[0],
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  return teamResult;
 }

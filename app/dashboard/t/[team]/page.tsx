@@ -1,7 +1,23 @@
-export default function Page() {
+import { getTeam } from "@/actions/teams";
+import TeamHeader from "@/components/dashboard/teams/TeamHeader/TeamHeader";
+import { notFound } from "next/navigation";
+
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ team: string }>;
+}) {
+  const { team } = await params;
+
+  const { data: teamData } = await getTeam(team);
+
+  console.log(teamData);
+
+  if (!teamData) notFound();
+
   return (
-    <div className="this_is_the_team_page">
-      <h1>Team Page</h1>
-    </div>
+    <>
+      <TeamHeader team={teamData} canEdit={true} />
+    </>
   );
 }

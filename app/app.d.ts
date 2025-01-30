@@ -22,8 +22,12 @@ type TeamData = {
   name: string;
   description?: string;
   join_code?: string;
-  status?: string;
+  status?: "active" | "inactive" | "suspended" | "banned";
   color?: string;
+};
+
+type TeamPageData = TeamData & {
+  members: Omit<UserData, "password_hash">[];
 };
 
 type TeamStandingsData = Pick<
@@ -54,7 +58,7 @@ type LeagueData = {
   slug: string;
   name: string;
   description?: string;
-  sport: string;
+  sport: "hockey" | "soccer" | "basketball" | "pickleball" | "badminton";
   status: string;
   seasons?: SeasonData[];
   league_role_id?: number;
