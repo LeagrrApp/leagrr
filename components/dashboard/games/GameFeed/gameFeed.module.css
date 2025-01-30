@@ -183,7 +183,32 @@
 }
 
 .game_feed_item_delete {
+  /* grid-column: 1 / -1; */
+
   position: absolute;
   inset: 0;
-  background-color: hsla(from var(--color-grey) h s l / 0.5);
+  opacity: 0;
+
+  &:where(:hover, :focus-visible) {
+    opacity: 0.9;
+  }
+
+  @container (width >= 45rem) {
+    --btn-bg-color: var(--color-grey);
+    --btn-border-color: var(--color-grey-dark);
+    --btn-text-color: var(--color-black);
+
+    inset: auto auto auto calc(100% + var(--spacer-base));
+    opacity: 1;
+
+    &:where(:hover, :focus-visible) {
+      --btn-bg-color: var(--color-danger-dark);
+      --btn-border-color: var(--color-danger-dark);
+      --btn-text-color: var(--color-white);
+    }
+
+    .game_feed_home & {
+      inset: auto calc(100% + var(--spacer-base)) auto auto;
+    }
+  }
 }
