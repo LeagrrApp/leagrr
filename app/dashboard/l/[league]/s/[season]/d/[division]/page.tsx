@@ -53,8 +53,6 @@ export default async function Page({
     1,
   );
 
-  console.log(statLeaders);
-
   return (
     <div className={css.division_grid}>
       {games && games.length > 0 ? (

@@ -51,7 +51,7 @@ export default function DivisionStats({ statLeaders }: DivisionStatsProps) {
             }
 
             return (
-              <Card padding="ml" className={css.stats_card}>
+              <Card key={type} padding="ml" className={css.stats_card}>
                 <h4 className={css.stats_card_title}>
                   <Icon icon={icon} label={capitalize(type)} gap="s" />
                 </h4>
