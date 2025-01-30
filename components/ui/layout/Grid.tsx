@@ -20,12 +20,12 @@ type ResponsiveColumns = {
 
 interface GridStyles extends CSSProperties {
   "--gap"?: string;
-  "--cols"?: number;
-  "--cols-xs"?: number;
-  "--cols-s"?: number;
-  "--cols-m"?: number;
-  "--cols-l"?: number;
-  "--cols-xl"?: number;
+  "--g-cols"?: number;
+  "--g-cols-xs"?: number;
+  "--g-cols-s"?: number;
+  "--g-cols-m"?: number;
+  "--g-cols-l"?: number;
+  "--g-cols-xl"?: number;
 }
 
 export default function Grid({
@@ -39,12 +39,12 @@ export default function Grid({
   if (gap) styles["--gap"] = `var(--spacer-${gap})`;
   if (cols) {
     if (typeof cols === "number") {
-      styles["--cols"] = cols;
+      styles["--g-cols"] = cols;
     }
 
     if (typeof cols === "object") {
       Object.keys(cols).forEach((size) => {
-        styles[`--cols-${size}`] = cols[size as keyof ResponsiveColumns];
+        styles[`--g-cols-${size}`] = cols[size as keyof ResponsiveColumns];
       });
     }
   }

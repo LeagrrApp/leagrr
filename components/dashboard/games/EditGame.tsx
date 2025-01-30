@@ -89,7 +89,9 @@ export default function EditGame({
         )}
         <Col fullSpan>
           <small>
-            Note: once the game has been published, the teams cannot be changed.
+            Note: once the game has been published, the teams cannot be changed.{" "}
+            {gameData.status !== "draft" &&
+              'If you need to change the teams, mark this game as "Archived" to remove it from the teams\' schedule and standings then create a new game.'}
           </small>
         </Col>
         <Input

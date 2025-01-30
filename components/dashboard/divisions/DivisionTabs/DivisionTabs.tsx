@@ -36,7 +36,7 @@ export default function DivisionTabs({ divisions, canAdd }: DivisionProps) {
               <Link
                 className={css.division_tabs_item}
                 href={url}
-                aria-current={pathname.includes(url) ? "page" : undefined}
+                aria-current={pathname === url ? "page" : undefined}
               >
                 <div className={css.division_tabs_item_inner}>
                   <span>{div.name}</span>

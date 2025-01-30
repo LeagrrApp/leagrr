@@ -23,6 +23,7 @@ type TeamData = {
   description?: string;
   join_code?: string;
   status?: string;
+  color?: string;
 };
 
 type TeamStandingsData = Pick<
@@ -53,8 +54,7 @@ type LeagueData = {
   slug: string;
   name: string;
   description?: string;
-  sport_id: number;
-  sport?: string;
+  sport: string;
   status: string;
   seasons?: SeasonData[];
   league_role_id?: number;

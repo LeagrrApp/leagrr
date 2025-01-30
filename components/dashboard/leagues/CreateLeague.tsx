@@ -39,7 +39,7 @@ export default function CreateLeague({ user_id }: CreateLeagueProps) {
         />
         <Select
           label="Sport"
-          name="sport_id"
+          name="sport"
           choices={sports_options}
           errors={{ errs: state?.errors?.status, type: "danger" }}
         />

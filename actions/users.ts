@@ -174,16 +174,11 @@ export async function getUserRole(): Promise<number> {
 
   const sql = `
     SELECT
-      u.user_role,
-      r.name as role_name
+      user_role
     FROM
       admin.users as u
-    JOIN
-      admin.user_roles as r
-    ON
-      u.user_role = r.user_role_id
     WHERE
-      u.user_id = $1
+      user_id = $1
   `;
 
   const result: number = await db

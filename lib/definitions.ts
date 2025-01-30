@@ -45,31 +45,6 @@ export type SignInUpFormState =
     }
   | undefined;
 
-export const LeagueFormSchema = z.object({
-  name: z
-    .string()
-    .min(2, { message: "Name must be at least 2 characters long." })
-    .trim(),
-  description: z.string().trim().optional(),
-  sport_id: z.number(),
-  status: z.enum(["draft", "public", "archived"]).optional(),
-});
-
-interface LeagueErrorProps {
-  name?: string[] | undefined;
-  description?: string[] | undefined;
-  sport_id?: string[] | undefined;
-  status?: string[] | undefined;
-}
-
-export type LeagueFormState =
-  | {
-      errors?: LeagueErrorProps;
-      message?: string;
-      status?: number;
-    }
-  | undefined;
-
 export const SeasonFormSchema = z.object({
   name: z
     .string()
@@ -99,27 +74,12 @@ export type SeasonFormState =
     }
   | undefined;
 
-export const sports_options = [
-  {
-    value: 1,
-    label: "Hockey",
-  },
-  {
-    value: 2,
-    label: "Soccer",
-  },
-  {
-    value: 3,
-    label: "Basketball",
-  },
-  {
-    value: 4,
-    label: "Pickleball",
-  },
-  {
-    value: 5,
-    label: "Badminton",
-  },
+export const sports_options: readonly [string, ...string[]] = [
+  "hockey",
+  "soccer",
+  "basketball",
+  "pickleball",
+  "badminton",
 ];
 
 export const status_options: readonly [string, ...string[]] = [
@@ -141,6 +101,25 @@ export const gender_options: readonly [string, ...string[]] = [
   "all",
   "men",
   "women",
+];
+
+export const color_options: readonly [string, ...string[]] = [
+  "aqua",
+  "black",
+  "blue",
+  "brown",
+  "cyan",
+  "green",
+  "grey",
+  "indigo",
+  "magenta",
+  "orange",
+  "pink",
+  "purple",
+  "red",
+  "violet",
+  "white",
+  "yellow",
 ];
 
 export const league_roles = new Map<

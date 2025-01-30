@@ -179,3 +179,7 @@ export function createPeriodTimeString(
   console.log(period_time);
   return period_time;
 }
+
+export function createMetaTitle(titles: string[]): string {
+  return `${titles.join(" | ")} | Dashboard | Leagrr`;
+}

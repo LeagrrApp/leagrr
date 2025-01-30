@@ -6,6 +6,7 @@ import { verifySession } from "@/lib/session";
 import { z } from "zod";
 import { canEditLeague } from "./leagues";
 import { redirect } from "next/navigation";
+import { createMetaTitle } from "@/utils/helpers/formatting";
 
 const DivisionFormSchema = z.object({
   division_id: z.number().min(1).optional(),
@@ -464,7 +465,7 @@ export async function getDivision(
     divisionGamesSql = `
       ${divisionGamesSql}
       AND
-      status NOT IN ('draft', 'archived')
+      status = 'completed'
     `;
   }
 
@@ -607,7 +608,7 @@ export async function getDivisionMetaInfo(
   const { division_name, season_name, league_name, description } = result.data;
 
   const metaData = {
-    title: `${division_name} | ${season_name} | ${league_name} | Dashboard | Leagrr`,
+    title: createMetaTitle([division_name, season_name, league_name]),
     description,
   };
 
@@ -695,6 +696,7 @@ export async function editDivision(
       };
     });
 
+  // TODO: get slug for redirect in case of slug change
   if (state?.link) redirect(state?.link);
 
   return { ...updateResult };
@@ -722,8 +724,8 @@ export async function getDivisionStatLeaders(
       u.last_name,
       u.username,
       (
-        (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = u.user_id AND g.game_id IN (SELECT game_id FROM league_management.games WHERE division_id = $1 AND status IN ('completed', 'archived'))) +
-        (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = u.user_id AND a.game_id IN (SELECT game_id FROM league_management.games WHERE division_id = $1 AND status IN ('completed', 'archived')))	
+        (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = u.user_id AND g.game_id IN (SELECT game_id FROM league_management.games WHERE division_id = $1 AND status = 'completed')) +
+        (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = u.user_id AND a.game_id IN (SELECT game_id FROM league_management.games WHERE division_id = $1 AND status = 'completed'))	
       )::int AS count
     FROM
       admin.users AS u
@@ -794,7 +796,7 @@ export async function getDivisionStatLeaders(
     WHERE
       ga.division_id = $1
       AND
-      ga.status IN ('completed', 'Archived')
+      ga.status = 'completed'
     GROUP BY team, u.username, u.first_name, u.last_name
     ORDER BY count DESC, u.last_name ASC, u.first_name ASC
     LIMIT $2
@@ -849,7 +851,7 @@ export async function getDivisionStatLeaders(
     WHERE
       ga.division_id = $1
       AND
-      ga.status IN ('completed', 'Archived')
+      ga.status = 'completed'
     GROUP BY team, u.username, u.first_name, u.last_name
     ORDER BY count DESC, u.last_name ASC, u.first_name ASC
     LIMIT $2
@@ -900,7 +902,7 @@ export async function getDivisionStatLeaders(
     WHERE
       ga.division_id = $1
       AND
-      ga.status IN ('completed', 'Archived')
+      ga.status = 'completed'
       AND
       (
         ((t.team_id = ga.home_team_id) AND ga.away_team_score = 0)

@@ -100,7 +100,7 @@ export default async function GameFeed({
                 <h4 className={css.game_feed_period_heading}>
                   <Icon icon="sports" label={`Period ${i + 1}`} labelFirst />
                 </h4>
-                {gameFeed[p].length > 1 ? (
+                {gameFeed[p].length >= 1 ? (
                   <ol className={css.game_feed_feed}>
                     {gameFeed[p].map((item: StatsData) => {
                       const isHome = game.home_team_id === item.team_id;

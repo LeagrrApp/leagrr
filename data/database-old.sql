@@ -172,7 +172,7 @@ CREATE TABLE league_management.team_memberships (
   team_membership_id    SERIAL NOT NULL PRIMARY KEY,
   user_id               INT NOT NULL,
   team_id               INT NOT NULL,
-  team_role             INT DEFAULT 1,
+  team_role_id          INT DEFAULT 1,
   position              VARCHAR(50),
   number                INT,
   created_on            TIMESTAMP DEFAULT NOW()
@@ -186,9 +186,9 @@ ALTER TABLE league_management.team_memberships
 ADD CONSTRAINT fk_team_memberships_team_id FOREIGN KEY (team_id)
     REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
 
--- ALTER TABLE league_management.team_memberships
--- ADD CONSTRAINT fk_team_memberships_team_role_id FOREIGN KEY (team_role_id)
---     REFERENCES admin.team_roles (team_role_id);
+ALTER TABLE league_management.team_memberships
+ADD CONSTRAINT fk_team_memberships_team_role_id FOREIGN KEY (team_role_id)
+    REFERENCES admin.team_roles (team_role_id);
 
 -- Create league_management.leagues
 -- Define league table structure
@@ -197,7 +197,7 @@ CREATE TABLE league_management.leagues (
   slug            VARCHAR(50) NOT NULL UNIQUE,
   name            VARCHAR(50) NOT NULL,
   description     TEXT,
-  sport           VARCHAR(50),
+  sport_id        INT,
   status          VARCHAR(20) NOT NULL DEFAULT 'draft',
   created_on      TIMESTAMP DEFAULT NOW()
 );
@@ -205,9 +205,9 @@ CREATE TABLE league_management.leagues (
 ALTER TABLE IF EXISTS league_management.leagues
     ADD CONSTRAINT league_status_enum CHECK (status IN ('draft', 'public', 'archived'));
 
--- ALTER TABLE league_management.leagues
--- ADD CONSTRAINT fk_leagues_sport_id FOREIGN KEY (sport_id)
---     REFERENCES admin.sports (sport_id);
+ALTER TABLE league_management.leagues
+ADD CONSTRAINT fk_leagues_sport_id FOREIGN KEY (sport_id)
+    REFERENCES admin.sports (sport_id);
 
 CREATE OR REPLACE FUNCTION generate_league_slug()
 RETURNS TRIGGER AS $$
@@ -285,15 +285,15 @@ CREATE OR REPLACE TRIGGER update_leagues_slug
 -- A joiner table that connects a user with a league and assigns them a specific role
 CREATE TABLE league_management.league_admins (
   league_admin_id     SERIAL NOT NULL PRIMARY KEY,
-  league_role      INT,
+  league_role_id      INT,
   league_id           INT,
   user_id             INT,
   created_on          TIMESTAMP DEFAULT NOW()
 );
 
--- ALTER TABLE league_management.league_admins
--- ADD CONSTRAINT fk_league_admins_league_role_id FOREIGN KEY (league_role_id)
---     REFERENCES admin.league_roles (league_role_id) ON DELETE CASCADE;
+ALTER TABLE league_management.league_admins
+ADD CONSTRAINT fk_league_admins_league_role_id FOREIGN KEY (league_role_id)
+    REFERENCES admin.league_roles (league_role_id) ON DELETE CASCADE;
 
 ALTER TABLE league_management.league_admins
 ADD CONSTRAINT fk_league_admins_league_id FOREIGN KEY (league_id)
@@ -402,15 +402,15 @@ CREATE OR REPLACE TRIGGER update_seasons_slug
 -- A joiner table that connects a user with a season and assigns them a specific role
 CREATE TABLE league_management.season_admins (
   season_admin_id     SERIAL NOT NULL PRIMARY KEY,
-  season_role      INT,
+  season_role_id      INT,
   season_id           INT,
   user_id             INT,
   created_on          TIMESTAMP DEFAULT NOW()
 );
 
--- ALTER TABLE league_management.season_admins
--- ADD CONSTRAINT fk_season_admins_season_role_id FOREIGN KEY (season_role_id)
---     REFERENCES admin.season_roles (season_role_id) ON DELETE CASCADE;
+ALTER TABLE league_management.season_admins
+ADD CONSTRAINT fk_season_admins_season_role_id FOREIGN KEY (season_role_id)
+    REFERENCES admin.season_roles (season_role_id) ON DELETE CASCADE;
 
 ALTER TABLE league_management.season_admins
 ADD CONSTRAINT fk_season_admins_season_id FOREIGN KEY (season_id)
@@ -632,25 +632,22 @@ CREATE TABLE league_management.playoffs (
   slug                  VARCHAR(50) NOT NULL,
   name                  VARCHAR(50) NOT NULL,
   description           TEXT,
-  playoff_structure     VARCHAR(20) NOT NULL DEFAULT 'bracket',
+  playoff_structure_id  INT,
   season_id             INT,
   status                VARCHAR(20) NOT NULL DEFAULT 'draft',
   created_on            TIMESTAMP DEFAULT NOW()
 );
 
--- ALTER TABLE league_management.playoffs
--- ADD CONSTRAINT fk_playoffs_playoff_structure_id FOREIGN KEY (playoff_structure_id)
---     REFERENCES admin.playoff_structures (playoff_structure_id) ON DELETE CASCADE;
+ALTER TABLE league_management.playoffs
+ADD CONSTRAINT fk_playoffs_playoff_structure_id FOREIGN KEY (playoff_structure_id)
+    REFERENCES admin.playoff_structures (playoff_structure_id) ON DELETE CASCADE;
 
 ALTER TABLE league_management.playoffs
 ADD CONSTRAINT fk_playoffs_season_id FOREIGN KEY (season_id)
     REFERENCES league_management.seasons (season_id) ON DELETE CASCADE;
 
-ALTER TABLE IF EXISTS league_management.playoffs
-    ADD CONSTRAINT playoffs_status_enum CHECK (status IN ('draft', 'public', 'archived'));
-
-ALTER TABLE IF EXISTS league_management.playoffs
-    ADD CONSTRAINT playoffs_structure_enum CHECK (playoff_structure IN ('bracket', 'round-robin'));
+ALTER TABLE IF EXISTS league_management.leagues
+    ADD CONSTRAINT leagues_status_enum CHECK (status IN ('draft', 'public', 'archived'));
 
 -- Create league_management.venues
 CREATE TABLE league_management.venues (
@@ -774,26 +771,6 @@ ADD CONSTRAINT fk_goals_user_id FOREIGN KEY (user_id)
 ALTER TABLE stats.goals
 ADD CONSTRAINT fk_goals_team_id FOREIGN KEY (team_id)
     REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
-
-CREATE OR REPLACE FUNCTION update_game_score()
-RETURNS TRIGGER AS $$
-BEGIN
-
-	UPDATE league_management.games AS g
-	SET
-		home_team_score = (SELECT COUNT(*) FROM stats.goals AS goals WHERE goals.team_id = g.home_team_id AND goals.game_id IN (NEW.game_id, OLD.game_id)),
-		away_team_score = (SELECT COUNT(*) FROM stats.goals AS goals WHERE goals.team_id = g.away_team_id AND goals.game_id IN (NEW.game_id, OLD.game_id))
-	WHERE
-		g.game_id IN (NEW.game_id, OLD.game_id);
-	
-	RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE TRIGGER goal_update_game_score
-    AFTER INSERT OR DELETE ON stats.goals
-	FOR EACH ROW
-	EXECUTE FUNCTION update_game_score();
 
 -- Create Assist
 -- An assist marks players who passed to the goal scorer
@@ -1006,7 +983,7 @@ ADD CONSTRAINT fk_shutouts_team_id FOREIGN KEY (team_id)
 
 -- Default named users
 INSERT INTO admin.users
-  (username, email, first_name, last_name, gender, pronouns, user_role, password_hash)
+  (username, email, first_name, last_name, gender_id, pronouns, user_role, password_hash)
 VALUES
   -- 1
   ('moose', 'hello+2@adamrobillard.ca', 'Adam', 'Robillard', 'Non-binary/Non-conforming', 'any/all', 1, '$2b$10$7pjrECYElk1ithndcAhtcuPytB2Hc8DiDi3e8gAEXYcfIjOVZdEfS'),
@@ -1040,7 +1017,7 @@ VALUES
 
 -- Default generic users
 INSERT INTO admin.users
-  (username, email, first_name, last_name, gender, pronouns, user_role, password_hash)
+  (username, email, first_name, last_name, gender_id, pronouns, user_role, password_hash)
 VALUES
   ('lukasbauer', 'lukas.bauer@example.com', 'Lukas', 'Bauer', 'Man', 'he/him', 3, 'heyLukas123'),
   ('emmaschmidt', 'emma.schmidt@example.com', 'Emma', 'Schmidt', 'Woman', 'she/her', 3, 'heyEmma123'),
@@ -1167,7 +1144,7 @@ VALUES
 
 -- Add captains to OPH teams
 INSERT INTO league_management.team_memberships
-  (user_id, team_id, team_role, position, number)
+  (user_id, team_id, team_role_id, position, number)
 VALUES
   (6, 1, 4, 'Center', 30), -- Stephen
   (7, 1, 5, 'Defense', 25), -- Levi
@@ -1238,7 +1215,7 @@ VALUES
 
 -- Add captains to Hometown Hockey
 INSERT INTO league_management.team_memberships
-  (user_id, team_id, team_role)
+  (user_id, team_id, team_role_id)
 VALUES
   (1, 5, 4), -- Adam
   (12, 6, 4), -- Zach
@@ -1304,16 +1281,16 @@ VALUES
 
 -- Default leagues
 INSERT INTO league_management.leagues
-  (slug, name, sport)
+  (slug, name, sport_id)
 VALUES 
-  ('ottawa-pride-hockey', 'Ottawa Pride Hockey', 'hockey'),
-  ('fia-hockey', 'FIA Hockey', 'hockey'),
-  ('hometown-hockey', 'Hometown Hockey', 'hockey')
+  ('ottawa-pride-hockey', 'Ottawa Pride Hockey', 1),
+  ('fia-hockey', 'FIA Hockey', 1),
+  ('hometown-hockey', 'Hometown Hockey', 1)
 ;
 
 -- Default league_admins
 INSERT INTO league_management.league_admins
-  (league_role, league_id, user_id)
+  (league_role_id, league_id, user_id)
 VALUES 
   (1, 1, 5), -- Kat
   (1, 1, 10), -- Jayce
@@ -1336,7 +1313,7 @@ VALUES
 
 -- Default season_admins
 INSERT INTO league_management.season_admins
-  (season_role, season_id, user_id)
+  (season_role_id, season_id, user_id)
 VALUES
   (1, 3, 1),
   (1, 4, 3)
@@ -1715,7 +1692,7 @@ INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time
 INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (102, 28, 30, 2, 3, '00:12:56', 64, false, false, '2025-01-29 21:17:20.732602');
 INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (103, 28, 10, 2, 3, '00:17:17', 65, false, false, '2025-01-29 21:18:11.70895');
 
-ALTER SEQUENCE stats.shots_shot_id_seq RESTART WITH 104;
+ALTER SEQUENCE stats.penalties_penalty_id_seq RESTART WITH 104;
 
 -- Saves
 -- INSERT INTO stats.saves

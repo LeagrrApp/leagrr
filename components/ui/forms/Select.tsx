@@ -16,6 +16,7 @@ interface SelectProps extends Partial<HTMLSelectElement> {
   choices: string[] | SelectOption[] | readonly [string, ...string[]];
   selected?: string | number;
   blankFirst?: boolean;
+  optional?: boolean;
 }
 
 export default function Select({
@@ -29,7 +30,7 @@ export default function Select({
   errors,
   disabled,
   blankFirst,
-  ref,
+  optional,
 }: SelectProps) {
   const [selectValue, setSelectValue] = useState<string | number | undefined>(
     selected || "",
@@ -53,7 +54,6 @@ export default function Select({
         </label>
       )}
       <select
-        ref={ref}
         className={forms.field}
         name={name}
         id={name}
@@ -62,7 +62,7 @@ export default function Select({
         value={selectValue}
         disabled={disabled}
       >
-        {blankFirst && <option value="" disabled></option>}
+        {blankFirst && <option value="" disabled={!optional}></option>}
         {choices?.map((choice) => {
           if (typeof choice === "object") {
             return (
@@ -76,7 +76,11 @@ export default function Select({
             );
           }
           return (
-            <option key={`${name}-${choice}`} value={choice}>
+            <option
+              key={`${name}-${choice}`}
+              value={choice}
+              disabled={choice === ""}
+            >
               {capitalize(choice)}
             </option>
           );
