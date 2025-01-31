@@ -7,7 +7,10 @@ import { z } from "zod";
 import { game_status_options } from "@/lib/definitions";
 import { isObjectEmpty } from "@/utils/helpers/objects";
 import { redirect } from "next/navigation";
-import { createPeriodTimeString } from "@/utils/helpers/formatting";
+import {
+  createDashboardUrl,
+  createPeriodTimeString,
+} from "@/utils/helpers/formatting";
 
 // TODO: Rename this function to something clearer
 export async function getLeagueInfoForGames(
@@ -346,6 +349,73 @@ export async function getGame(game_id: number) {
     });
 
   return gameResult;
+}
+
+export async function getGameUrl(game_id: number) {
+  // verify user is signed in
+  await verifySession();
+
+  const sql = `
+    SELECT
+      g.game_id,
+      d.slug AS division_slug,
+      s.slug AS season_slug,
+      l.slug AS league_slug
+    FROM
+      league_management.games AS g
+    JOIN
+      league_management.divisions AS d
+    ON
+      g.division_id = d.division_id
+    JOIN
+      league_management.seasons AS s
+    ON
+      s.season_id = d.division_id
+    JOIN
+      league_management.leagues AS l
+    ON
+      s.league_id = l.league_id
+    WHERE
+      game_id = $1
+  `;
+
+  const result: ResultProps<{
+    game_id: number;
+    league_slug: string;
+    division_slug: string;
+    season_slug: string;
+  }> = await db
+    .query(sql, [game_id])
+    .then((res) => {
+      return {
+        message: "Game data found!",
+        status: 200,
+        data: res.rows[0],
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (!result.data) return result;
+
+  const urlParts = result.data;
+
+  const url = createDashboardUrl({
+    l: urlParts.league_slug,
+    s: urlParts.season_slug,
+    d: urlParts.division_slug,
+    g: urlParts.game_id,
+  });
+
+  return {
+    message: "Game url created!",
+    status: 200,
+    data: url,
+  };
 }
 
 const GameEditFormSchema = z.object({

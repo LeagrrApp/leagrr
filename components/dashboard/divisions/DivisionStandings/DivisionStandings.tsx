@@ -1,15 +1,19 @@
 import Card from "@/components/ui/Card/Card";
 import Table from "@/components/ui/Table/Table";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 import Link from "next/link";
-import DashboardUnit from "../../DashboardUnit/DashboardUnit";
-import Icon from "@/components/ui/Icon/Icon";
-import DashboardUnitHeader from "../../DashboardUnitHeader/DashboardUnitHeader";
 
 type DivisionStandingsProps = {
+  division_id: number;
   teams: TeamStandingsData[];
+  currentTeam?: number;
 };
 
-export default function DivisionStandings({ teams }: DivisionStandingsProps) {
+export default function DivisionStandings({
+  division_id,
+  teams,
+  currentTeam,
+}: DivisionStandingsProps) {
   const table_headings = [
     { title: "Team", shorthand: "Team" },
     { title: "Games Played", shorthand: "GP" },
@@ -21,6 +25,8 @@ export default function DivisionStandings({ teams }: DivisionStandingsProps) {
     { title: "Goals Against", shorthand: "GA" },
     { title: "Goal Differential", shorthand: "+/-" },
   ];
+
+  console.log(division_id);
 
   // heading column width as percentage of the total table width
   const hColWidth = 40;
@@ -42,9 +48,19 @@ export default function DivisionStandings({ teams }: DivisionStandingsProps) {
         </thead>
         <tbody>
           {teams.map((t) => (
-            <tr key={t.team_id}>
+            <tr
+              key={t.team_id}
+              data-highlighted={t.team_id === currentTeam || undefined}
+            >
               <th scope="row">
-                <Link href={`/dashboard/t/${t.slug}`}>{t.name}</Link>
+                <Link
+                  href={createDashboardUrl(
+                    { t: t.slug },
+                    `?div=${division_id}`,
+                  )}
+                >
+                  {t.name}
+                </Link>
               </th>
               <td>{t.games_played}</td>
               <td>{t.wins}</td>

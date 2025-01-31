@@ -1,3 +1,4 @@
+import { getGameUrl } from "@/actions/games";
 import Badge from "@/components/ui/Badge/Badge";
 import Card from "@/components/ui/Card/Card";
 import InitialsCircle from "@/components/ui/InitialsCircle/InitialsCircle";
@@ -13,6 +14,7 @@ import css from "./gamePreview.module.css";
 interface GamePreviewProps {
   game: GameData;
   currentTeam?: number;
+  includeGameLink?: boolean;
 }
 
 interface GameStyles extends CSSProperties {
@@ -20,8 +22,13 @@ interface GameStyles extends CSSProperties {
   "--color-away": string;
 }
 
-export default function GamePreview({ game, currentTeam }: GamePreviewProps) {
+export default async function GamePreview({
+  game,
+  currentTeam,
+  includeGameLink,
+}: GamePreviewProps) {
   const {
+    game_id,
     home_team,
     home_team_id,
     home_team_slug,
@@ -40,6 +47,8 @@ export default function GamePreview({ game, currentTeam }: GamePreviewProps) {
     status,
   } = game;
 
+  const { data: gameUrl } = await getGameUrl(game_id);
+
   const gameDate = date_time.toLocaleString("en-CA", {
     weekday: "short",
     month: "short",
@@ -47,8 +56,6 @@ export default function GamePreview({ game, currentTeam }: GamePreviewProps) {
     hour: "numeric",
     minute: "2-digit",
   });
-
-  const gameCompleted = status === "completed";
 
   const showStatus = status !== "public" && status !== "completed";
   let statusColor: ColorOptions = "grey";
@@ -91,6 +98,21 @@ export default function GamePreview({ game, currentTeam }: GamePreviewProps) {
 
   return (
     <Card className={css.game_preview_card}>
+      {includeGameLink && typeof gameUrl === "string" && (
+        <Link className={css.game_preview_link} href={gameUrl}>
+          <span className="srt">
+            View game between {away_team} and {home_team} taking place{" "}
+            {date_time.toLocaleString("en-CA", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            })}{" "}
+            at {venue} arena {arena}.
+          </span>
+        </Link>
+      )}
       <section style={styles} className={css.game_preview}>
         <div
           className={apply_classes_conditional(

@@ -87,7 +87,10 @@ export default async function Page({
           </h3>
         </DashboardUnitHeader>
         {teams && teams.length > 0 ? (
-          <DivisionStandings teams={teams} />
+          <DivisionStandings
+            teams={teams}
+            division_id={divisionData.division_id}
+          />
         ) : (
           <Card padding="base">
             <p className="push">There are no teams in this division yet!</p>

@@ -4,6 +4,11 @@
   isolation: isolate;
 }
 
+.game_preview_link {
+  position: absolute;
+  inset: 0;
+}
+
 .game_preview {
   display: grid;
   padding: var(--spacer-base);
@@ -35,6 +40,10 @@
   @container (min-width: 45rem) {
     grid-template-columns: 1fr 1fr 1fr;
     align-items: center;
+  }
+
+  & a {
+    position: relative;
   }
 }
 

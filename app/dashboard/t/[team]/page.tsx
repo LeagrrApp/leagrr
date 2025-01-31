@@ -101,7 +101,7 @@ export default async function Page({
             </h2>
           </DashboardUnitHeader>
           {nextGame ? (
-            <GamePreview game={nextGame} />
+            <GamePreview game={nextGame} includeGameLink />
           ) : (
             <Card padding="base">
               <p>There are no upcoming games.</p>
@@ -120,7 +120,11 @@ export default async function Page({
             </h2>
           </DashboardUnitHeader>
           {prevGame ? (
-            <GamePreview game={prevGame} currentTeam={teamData.team_id} />
+            <GamePreview
+              game={prevGame}
+              currentTeam={teamData.team_id}
+              includeGameLink
+            />
           ) : (
             <Card padding="base">
               <p>There is no completed game data.</p>
@@ -142,9 +146,22 @@ export default async function Page({
             <h2>
               <Icon label="Standings" icon="trophy" labelFirst gap="m" />
             </h2>
+            <Button
+              href={createDashboardUrl({
+                l: currentDivision.league_slug,
+                s: currentDivision.season_slug,
+                d: currentDivision.division_slug,
+              })}
+            >
+              View League
+            </Button>
           </DashboardUnitHeader>
           {divisionStandings && divisionStandings.length > 0 ? (
-            <DivisionStandings teams={divisionStandings} />
+            <DivisionStandings
+              teams={divisionStandings}
+              currentTeam={teamData.team_id}
+              division_id={currentDivision.division_id}
+            />
           ) : (
             <Card padding="ml">
               <p>Standings are currently unavailable</p>
