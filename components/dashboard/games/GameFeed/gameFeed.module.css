@@ -72,42 +72,11 @@
   gap: var(--spacer-base);
   isolation: isolate;
   position: relative;
-
-  &::before {
-    content: " ";
-    position: absolute;
-    display: inline-block;
-    inset: 0;
-    border-radius: var(--spacer-s);
-    z-index: -1;
-    background: linear-gradient(
-      var(--feed-rotation, 135deg),
-      var(--color-feed, var(--color-away)),
-      var(--color-feed, var(--color-away)) 20%,
-      var(--color-white) 20%,
-      var(--color-white)
-    );
-
-    @container (min-width: 45rem) {
-      background: linear-gradient(
-        var(--feed-rotation, 135deg),
-        var(--color-feed, var(--color-away)),
-        var(--color-feed, var(--color-away)) 20%,
-        var(--color-white) 20%,
-        var(--color-white)
-      );
-    }
-  }
-
-  &::after {
-    content: " ";
-    position: absolute;
-    display: inline-block;
-    inset: 0.125rem;
-    border-radius: var(--spacer-xs);
-    background: white;
-    z-index: -1;
-  }
+  background: linear-gradient(
+    135deg,
+    hsla(from var(--color-away, var(--color-white)) h s l / 0.25),
+    transparent 20%
+  );
 
   @container (min-width: 45rem) {
     grid-column: span 4;
@@ -116,6 +85,12 @@
 
 .game_feed_home {
   --color-feed: var(--color-home);
+
+  background: linear-gradient(
+    225deg,
+    hsla(from var(--color-home, var(--color-white)) h s l / 0.25),
+    transparent 20%
+  );
 
   @container (min-width: 45rem) {
     --feed-rotation: 315deg;

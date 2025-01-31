@@ -6,13 +6,27 @@ import { usePathname } from "next/navigation";
 import css from "./teamHeader.module.css";
 import DHeader from "../../DHeader/DHeader";
 import IconSport from "@/components/ui/Icon/IconSport";
+import DivisionSelector from "../DivisionSelector/DivisionSelector";
 
 interface TeamHeaderProps {
   team: TeamData;
   canEdit: boolean;
+  divisions: {
+    division: string;
+    division_id: number;
+    division_slug: string;
+    season: string;
+    season_slug: string;
+    league: string;
+    league_slug: string;
+  }[];
 }
 
-export default function TeamHeader({ team, canEdit }: TeamHeaderProps) {
+export default function TeamHeader({
+  team,
+  canEdit,
+  divisions,
+}: TeamHeaderProps) {
   const pathname = usePathname();
 
   const { slug, name, status, description, color } = team;
@@ -48,6 +62,10 @@ export default function TeamHeader({ team, canEdit }: TeamHeaderProps) {
         </h1>
         {description && <p>{description}</p>}
       </div>
+
+      {divisions?.length > 0 && (
+        <DivisionSelector divisions={divisions} canEdit={canEdit} />
+      )}
     </DHeader>
   );
 }

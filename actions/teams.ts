@@ -4,6 +4,7 @@ import { verifySession } from "@/lib/session";
 import { check_string_is_color_hex } from "@/utils/helpers/validators";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { getDivisionStandings } from "./divisions";
 
 const TeamFormSchema = z.object({
   user_id: z.number().min(1),
@@ -184,8 +185,66 @@ export async function getTeam(
   return teamResult;
 }
 
+export async function getDivisionsByTeam(team_id: number) {
+  // verify signed in
+  await verifySession();
+
+  const sql = `
+    SELECT
+      d.name AS division,
+      d.division_id AS division_id,
+      d.slug AS division_slug,
+      s.name AS season,
+      s.slug AS season_slug,
+      l.name AS league,
+      l.slug AS league_slug
+    FROM
+      league_management.division_teams AS dt
+    JOIN
+      league_management.divisions AS d
+    ON
+      dt.division_id = d.division_id
+    JOIN
+      league_management.seasons AS s
+    ON
+      s.season_id = d.division_id
+    JOIN
+      league_management.leagues AS l
+    ON
+      s.league_id = l.league_id
+    WHERE
+      dt.team_id = $1
+      AND
+      d.status = 'public'
+      AND
+      s.status = 'public'
+      AND
+      l.status = 'public'
+  `;
+
+  const result = await db
+    .query(sql, [team_id])
+    .then((res) => {
+      return {
+        message: `Divisions found!`,
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+        data: [],
+      };
+    });
+
+  return result;
+}
+
 export async function getTeamGamePreviews(
   team_id: number,
+  division_id: number,
   pastGames = false,
   limit = 1,
 ) {
@@ -223,13 +282,15 @@ export async function getTeamGamePreviews(
       )
       AND
       date_time ${pastGames ? "<" : ">"} now()
+      AND
+      division_id = $2
     ORDER BY
       date_time ${pastGames ? "DESC" : "ASC"}
-    LIMIT $2
+    LIMIT $3
   `;
 
   const result = await db
-    .query(sql, [team_id, limit])
+    .query(sql, [team_id, division_id, limit])
     .then((res) => {
       return {
         message: `Games found!`,
@@ -245,26 +306,112 @@ export async function getTeamGamePreviews(
       };
     });
 
+  // TODO: add better error handling
   return result;
 }
 
-export async function getTeamDashboardData(team_id: number) {
+export async function getTeamMembers(team_id: number, division_id: number) {
+  // confirm logged in
+  await verifySession();
+
+  const sql = `
+    SELECT
+      u.user_id,
+      u.first_name,
+      u.last_name,
+      u.username,
+      u.pronouns,
+      u.email,
+      tm.position,
+      tm.team_role,
+      (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = tm.user_id AND g.game_id IN (
+        SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+      ))::int AS goals,
+      (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = tm.user_id AND a.game_id IN (
+        SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+      ))::int AS assists,
+      (
+        (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = tm.user_id AND g.game_id IN (
+        SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+      )) +
+        (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = tm.user_id AND a.game_id IN (
+        SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+      ))	
+      )::int AS points,
+      (SELECT COUNT(*) FROM stats.shots AS s WHERE s.user_id = tm.user_id AND s.game_id IN (
+        SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+      ))::int AS shots,
+      (SELECT COALESCE(SUM(minutes), 0) FROM stats.penalties AS p WHERE p.user_id = tm.user_id AND p.game_id IN (
+      SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+      ))::int AS penalties_in_minutes,
+      (SELECT COUNT(*) FROM stats.saves AS sa WHERE sa.user_id = tm.user_id AND sa.game_id IN (
+        SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+      ))::int AS saves,
+      (SELECT COUNT(*) FROM stats.goals AS goal WHERE goal.team_id != $1 AND goal.game_id IN (
+        SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+      ))::int AS goals_against,
+      (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id != $1 AND sh.game_id IN (
+        SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+      ))::int AS shots_against
+    FROM
+      league_management.team_memberships AS tm
+    JOIN
+      admin.users AS u
+    ON
+      u.user_id = tm.user_id
+    WHERE
+      tm.team_id = $1
+    ORDER BY points DESC, goals DESC, assists DESC, shots DESC, last_name ASC, first_name ASC
+  `;
+
+  const result = await db
+    .query(sql, [team_id, division_id])
+    .then((res) => {
+      return {
+        message: `Games found!`,
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+        data: [],
+      };
+    });
+
+  // TODO: add better error handling
+  return result;
+}
+
+export async function getTeamDashboardData(
+  team_id: number,
+  division_id: number,
+) {
   // confirm logged in
   await verifySession();
 
   // get next game
-  const { data: nextGames } = await getTeamGamePreviews(team_id);
+  const { data: nextGames } = await getTeamGamePreviews(team_id, division_id);
 
   // get previous game
-  const { data: prevGames } = await getTeamGamePreviews(team_id, true);
-
-  console.log(nextGames, prevGames);
+  const { data: prevGames } = await getTeamGamePreviews(
+    team_id,
+    division_id,
+    true,
+  );
 
   // get team members
+  const { data: teamMembers } = await getTeamMembers(team_id, division_id);
 
   // get current div/season/league data
+  const { data: divisionStandings } = await getDivisionStandings(division_id);
+
   return {
     nextGame: nextGames[0],
     prevGame: prevGames[0],
+    teamMembers,
+    divisionStandings,
   };
 }

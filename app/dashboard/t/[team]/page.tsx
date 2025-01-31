@@ -1,4 +1,8 @@
-import { getTeam, getTeamDashboardData } from "@/actions/teams";
+import {
+  getDivisionsByTeam,
+  getTeam,
+  getTeamDashboardData,
+} from "@/actions/teams";
 import DashboardUnit from "@/components/dashboard/DashboardUnit/DashboardUnit";
 import DashboardUnitHeader from "@/components/dashboard/DashboardUnitHeader/DashboardUnitHeader";
 import GamePreview from "@/components/dashboard/games/GamePreview/GamePreview";
@@ -6,9 +10,15 @@ import TeamHeader from "@/components/dashboard/teams/TeamHeader/TeamHeader";
 import Card from "@/components/ui/Card/Card";
 import Container from "@/components/ui/Container/Container";
 import Icon from "@/components/ui/Icon/Icon";
-import { createMetaTitle } from "@/utils/helpers/formatting";
-import { notFound } from "next/navigation";
+import {
+  createDashboardUrl,
+  createMetaTitle,
+} from "@/utils/helpers/formatting";
+import { notFound, redirect } from "next/navigation";
 import css from "./page.module.css";
+import Button from "@/components/ui/Button/Button";
+import TeamMembers from "@/components/dashboard/teams/TeamMembers/TeamMembers";
+import DivisionStandings from "@/components/dashboard/divisions/DivisionStandings/DivisionStandings";
 
 export async function generateMetadata({
   params,
@@ -29,22 +39,54 @@ export async function generateMetadata({
 
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ team: string }>;
+  searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
   const { team } = await params;
+  const { div: queryDiv } = await searchParams;
 
+  // get team data
   const { data: teamData } = await getTeam(team);
 
-  console.log(teamData);
-
+  // redirect if team not found
   if (!teamData) notFound();
 
-  const { nextGame, prevGame } = await getTeamDashboardData(teamData.team_id);
+  const { team_id } = teamData;
+
+  // get list of public divisions the team is currently in
+  const { data: divisions } = await getDivisionsByTeam(team_id);
+
+  if (divisions.length === 0) {
+    return (
+      <>
+        <TeamHeader team={teamData} canEdit={true} divisions={divisions} />
+        <Container>
+          <h2>This team is not in any divisions yet.</h2>
+          <Button href="#">Join a division</Button>
+        </Container>
+      </>
+    );
+  }
+
+  // get data related to division
+  // if searchParam provides specific division, get that division
+  // if not, get first found division
+  const currentDivision = queryDiv
+    ? divisions.find((d) => d.division_id === parseInt(queryDiv))
+    : divisions[0];
+
+  // if the division in the searchParams doesn't exist, redirect to first found division
+  if (!currentDivision) redirect(createDashboardUrl({ t: team }));
+
+  // get team dashboard data based on team and selected division
+  const { nextGame, prevGame, teamMembers, divisionStandings } =
+    await getTeamDashboardData(team_id, currentDivision.division_id);
 
   return (
     <>
-      <TeamHeader team={teamData} canEdit={true} />
+      <TeamHeader team={teamData} canEdit={true} divisions={divisions} />
 
       <Container className={css.team_grid}>
         <DashboardUnit gridArea="next_game">
@@ -82,6 +124,30 @@ export default async function Page({
           ) : (
             <Card padding="base">
               <p>There is no completed game data.</p>
+            </Card>
+          )}
+        </DashboardUnit>
+
+        <DashboardUnit gridArea="members">
+          <DashboardUnitHeader>
+            <h2>
+              <Icon label="Team Members" icon="group" labelFirst gap="m" />
+            </h2>
+          </DashboardUnitHeader>
+          <TeamMembers teamMembers={teamMembers} />
+        </DashboardUnit>
+
+        <DashboardUnit gridArea="leagues">
+          <DashboardUnitHeader>
+            <h2>
+              <Icon label="Standings" icon="trophy" labelFirst gap="m" />
+            </h2>
+          </DashboardUnitHeader>
+          {divisionStandings && divisionStandings.length > 0 ? (
+            <DivisionStandings teams={divisionStandings} />
+          ) : (
+            <Card padding="ml">
+              <p>Standings are currently unavailable</p>
             </Card>
           )}
         </DashboardUnit>

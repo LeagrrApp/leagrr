@@ -80,15 +80,15 @@ export default async function Page({
         </DashboardUnit>
       )}
 
-      {teams && teams.length > 0 ? (
-        <DivisionStandings teams={teams} />
-      ) : (
-        <DashboardUnit gridArea="standings">
-          <DashboardUnitHeader>
-            <h3>
-              <Icon icon="trophy" label="Standings" labelFirst />
-            </h3>
-          </DashboardUnitHeader>
+      <DashboardUnit gridArea="standings">
+        <DashboardUnitHeader>
+          <h3>
+            <Icon icon="trophy" label="Standings" labelFirst />
+          </h3>
+        </DashboardUnitHeader>
+        {teams && teams.length > 0 ? (
+          <DivisionStandings teams={teams} />
+        ) : (
           <Card padding="base">
             <p className="push">There are no teams in this division yet!</p>
             {canEdit && (
@@ -102,8 +102,8 @@ export default async function Page({
               </Button>
             )}
           </Card>
-        </DashboardUnit>
-      )}
+        )}
+      </DashboardUnit>
 
       {statLeaders && <DivisionStats statLeaders={statLeaders} />}
     </div>

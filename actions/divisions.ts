@@ -167,90 +167,7 @@ export async function getDivisionsBySeason(season_id: number) {
   return divisionResult;
 }
 
-export async function getDivision(
-  division_slug: string,
-  season_slug: string,
-  league_slug: string,
-): Promise<ResultProps<DivisionData>> {
-  // check user is logged in
-  await verifySession();
-
-  const divisionSql = `
-    SELECT
-      division_id,
-      name,
-      description,
-      slug,
-      gender,
-      tier,
-      join_code,
-      status,
-      (SELECT league_id FROM leagues WHERE slug = $3),
-      (
-        SELECT
-          season_id
-        FROM
-          league_management.seasons AS s
-        WHERE
-          s.slug = $2
-          AND
-          league_id = (
-            SELECT
-              league_id
-            FROM
-              league_management.leagues AS l
-            WHERE
-              l.slug = $3
-          )
-      ) AS season_id
-    FROM
-      divisions
-    WHERE
-        slug = $1
-        AND
-        season_id = (
-          SELECT
-            season_id
-          FROM
-            league_management.seasons AS s
-          WHERE
-            s.slug = $2
-            AND
-            league_id = (
-              SELECT
-                league_id
-              FROM
-                league_management.leagues AS l
-              WHERE
-                l.slug = $3
-            )
-        )
-  `;
-
-  const divisionResult: ResultProps<DivisionData> = await db
-    .query(divisionSql, [division_slug, season_slug, league_slug])
-    .then((res) => {
-      if (res.rowCount === 0) {
-        throw new Error("Division not found!");
-      }
-
-      return {
-        message: "Division data loaded",
-        status: 200,
-        data: res.rows[0],
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  if (!divisionResult.data) {
-    return divisionResult;
-  }
-
+export async function getDivisionStandings(division_id: number) {
   const divisionTeamsSql = `
     SELECT
       t.team_id,
@@ -421,8 +338,8 @@ export async function getDivision(
     ORDER BY points DESC, games_played ASC, wins DESC, goals_for DESC, goals_against ASC
   `;
 
-  const divisionTeamsResult: ResultProps<TeamStandingsData[]> = await db
-    .query(divisionTeamsSql, [divisionResult.data.division_id])
+  const result: ResultProps<TeamStandingsData[]> = await db
+    .query(divisionTeamsSql, [division_id])
     .then((res) => {
       return {
         message: "Division teams loaded",
@@ -436,6 +353,97 @@ export async function getDivision(
         status: 400,
       };
     });
+
+  return result;
+}
+
+export async function getDivision(
+  division_slug: string,
+  season_slug: string,
+  league_slug: string,
+): Promise<ResultProps<DivisionData>> {
+  // check user is logged in
+  await verifySession();
+
+  const divisionSql = `
+    SELECT
+      division_id,
+      name,
+      description,
+      slug,
+      gender,
+      tier,
+      join_code,
+      status,
+      (SELECT league_id FROM leagues WHERE slug = $3),
+      (
+        SELECT
+          season_id
+        FROM
+          league_management.seasons AS s
+        WHERE
+          s.slug = $2
+          AND
+          league_id = (
+            SELECT
+              league_id
+            FROM
+              league_management.leagues AS l
+            WHERE
+              l.slug = $3
+          )
+      ) AS season_id
+    FROM
+      divisions
+    WHERE
+        slug = $1
+        AND
+        season_id = (
+          SELECT
+            season_id
+          FROM
+            league_management.seasons AS s
+          WHERE
+            s.slug = $2
+            AND
+            league_id = (
+              SELECT
+                league_id
+              FROM
+                league_management.leagues AS l
+              WHERE
+                l.slug = $3
+            )
+        )
+  `;
+
+  const divisionResult: ResultProps<DivisionData> = await db
+    .query(divisionSql, [division_slug, season_slug, league_slug])
+    .then((res) => {
+      if (res.rowCount === 0) {
+        throw new Error("Division not found!");
+      }
+
+      return {
+        message: "Division data loaded",
+        status: 200,
+        data: res.rows[0],
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (!divisionResult.data) {
+    return divisionResult;
+  }
+
+  const divisionStandingsResult = await getDivisionStandings(
+    divisionResult.data.division_id,
+  );
 
   const { canEdit } = await canEditLeague(league_slug);
 
@@ -500,8 +508,8 @@ export async function getDivision(
     },
   };
 
-  if (divisionTeamsResult.data) {
-    fullDivisionData.data.teams = divisionTeamsResult.data;
+  if (divisionStandingsResult.data) {
+    fullDivisionData.data.teams = divisionStandingsResult.data;
   }
 
   if (divisionGamesResult.data) {

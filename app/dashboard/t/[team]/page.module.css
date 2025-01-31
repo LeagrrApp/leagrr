@@ -13,5 +13,10 @@
     grid-template-areas:
       "next_game prev_game"
       "members leagues";
+
+    /* grid-template-areas:
+      "next_game members"
+      "prev_game members"
+      "leagues members"; */
   }
 }
