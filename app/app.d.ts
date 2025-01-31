@@ -117,7 +117,7 @@ type GameData = {
   away_team_shots: number;
   division_id: number;
   playoff_id?: number;
-  date_time: Date | string;
+  date_time: Date;
   arena_id: number;
   arena: string;
   venue: string;

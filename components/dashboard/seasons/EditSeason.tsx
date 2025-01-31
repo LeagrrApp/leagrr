@@ -20,10 +20,6 @@ interface EditSeasonProps {
 export default function EditSeason({ backLink, season }: EditSeasonProps) {
   const [state, action, pending] = useActionState(editSeason, undefined);
 
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
-
   const start_date = season.start_date
     ? new Date(season.start_date).toLocaleDateString("en-CA")
     : "";

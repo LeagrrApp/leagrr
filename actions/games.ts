@@ -989,7 +989,6 @@ export async function addToGameFeed(
   state: AddGameFeedState,
   formData: FormData,
 ): Promise<AddGameFeedState> {
-  const messages: string[] = [];
   const type = formData.get("type");
   const feedItemData = {
     game_id: parseInt(formData.get("game_id") as string),
@@ -1057,7 +1056,6 @@ export async function addToGameFeed(
       // if goal adding was successful, update the game score
       if (goalResult.data) {
         inserted_goal_id = goalResult.data.goal_id;
-        messages.push(`A goal with id ${inserted_goal_id}`);
       } else {
         return goalResult;
       }
@@ -1101,8 +1099,6 @@ export async function addToGameFeed(
 
           assistCount++;
         }
-
-        messages.push("Has assists!");
       }
     }
 
@@ -1146,9 +1142,8 @@ export async function addToGameFeed(
       throw new Error(shotResult.message);
     }
 
-    messages.push("A shot!");
-    if (type !== "goal" && shotResult.data) {
-      // -- -- add save if not goal
+    if (type !== "goal" && shotResult.data && feedItemData.goalie_id !== 0) {
+      // -- -- add save if not goal and the team has a goalie registered
 
       const saveSql = `
         INSERT INTO stats.saves
@@ -1185,7 +1180,6 @@ export async function addToGameFeed(
       if (saveResult.status === 400) {
         throw new Error(saveResult.message);
       }
-      messages.push("A save!");
     }
   }
 
@@ -1225,7 +1219,6 @@ export async function addToGameFeed(
     if (penaltyResult.status === 400) {
       throw new Error(penaltyResult.message);
     }
-    messages.push("A penalty!");
   }
 
   state?.link && redirect(`${state?.link}#game-feed-add`);

@@ -30,10 +30,6 @@ export default function EditGame({
     link: backLink,
   });
 
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
-
   const team_options: SelectOption[] = [];
   addGameData.teams.forEach((t) => {
     team_options.push({

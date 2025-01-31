@@ -23,12 +23,6 @@ export default function EditDivisionInfo({
     link: divisionLink,
   });
 
-  console.log(divisionLink);
-
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
-
   return (
     <form action={action} className="push">
       <Grid cols={{ xs: 1, m: 2 }} gap="base">

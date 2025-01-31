@@ -3,4 +3,9 @@
   background-color: var(--color-white);
   box-shadow: var(--shadow);
   padding: var(--card-padding, 0);
+  overflow: hidden;
+}
+
+.as_container {
+  container: card / inline-size;
 }

@@ -2,7 +2,7 @@
 
 import Button from "@/components/ui/Button/Button";
 import Icon from "@/components/ui/Icon/Icon";
-import GameScoreInput from "../GameHeader/GameScoreInput/GameScoreInput";
+import GameQuickScore from "../GameQuickScore/GameQuickScore";
 import css from "./gameControls.module.css";
 import { usePathname } from "next/navigation";
 
@@ -27,7 +27,7 @@ export default function GameControls({ game }: GameControlsProps) {
       >
         <Icon icon="dynamic_feed" label="Add to Game Feed" />
       </Button>
-      <GameScoreInput game={game} buttonClassName={css.game_controls_button} />
+      <GameQuickScore game={game} buttonClassName={css.game_controls_button} />
     </div>
   );
 }

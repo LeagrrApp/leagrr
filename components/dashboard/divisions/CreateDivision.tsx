@@ -19,10 +19,6 @@ export default function CreateDivision({ season }: CreateDivisionProps) {
   const [state, action, pending] = useActionState(createDivision, undefined);
   const router = useRouter();
 
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
-
   return (
     <form action={action}>
       <Grid cols={{ xs: 1, m: 2 }} gap="base">

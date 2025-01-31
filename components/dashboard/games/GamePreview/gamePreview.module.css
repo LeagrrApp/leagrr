@@ -1,14 +1,38 @@
-.game_header_card {
+.game_preview_card {
   grid-column: 1 / -1;
   position: relative;
   isolation: isolate;
 }
 
-.game_header {
+.game_preview {
   display: grid;
+  padding: var(--spacer-base);
   gap: var(--spacer-base) var(--spacer-l);
+  background: linear-gradient(
+      225deg,
+      hsla(from var(--color-away, var(--color-white)) h s l / 0.25),
+      transparent 20%
+    ),
+    linear-gradient(
+      -45deg,
+      hsla(from var(--color-home, var(--color-white)) h s l / 0.25),
+      transparent 20%
+    );
 
-  &::before {
+  @container (width >= 45rem) {
+    background: linear-gradient(
+        135deg,
+        hsla(from var(--color-away, var(--color-white)) h s l / 0.25),
+        transparent 20%
+      ),
+      linear-gradient(
+        -135deg,
+        hsla(from var(--color-home, var(--color-white)) h s l / 0.25),
+        transparent 20%
+      );
+  }
+
+  /* &::before {
     content: " ";
     position: absolute;
     display: inline-block;
@@ -17,22 +41,19 @@
     background: linear-gradient(
       180deg,
       var(--color-away),
-      var(--color-away) 30%,
-      var(--color-white) 30%,
-      var(--color-white) 70%,
-      var(--color-home) 70%,
+      var(--color-away) 45%,
+      var(--color-home) 55%,
       var(--color-home)
     );
     z-index: -1;
 
     @container (min-width: 45rem) {
+      
       background: linear-gradient(
-        135deg,
+        90deg,
         var(--color-away),
-        var(--color-away) 20%,
-        var(--color-white) 20%,
-        var(--color-white) 80%,
-        var(--color-home) 80%,
+        var(--color-away) 45%,
+        var(--color-home) 55%,
         var(--color-home)
       );
     }
@@ -42,11 +63,15 @@
     content: " ";
     position: absolute;
     display: inline-block;
+
     inset: 0.1875rem;
+    inset: 0;
     border-radius: var(--spacer-s);
-    background: white;
+
+    background: #fffe;
+    background: linear-gradient(to right, #fffc, #fff 25%, #fff 75%, #fffc);
     z-index: -1;
-  }
+  } */
 
   @container (min-width: 45rem) {
     grid-template-columns: 1fr 1fr 1fr;
@@ -54,20 +79,20 @@
   }
 }
 
-.game_header_team_info {
+.game_preview_team_info {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: var(--spacer-base);
 }
 
-.game_header_team_wrap {
+.game_preview_team_wrap {
   display: flex;
   align-items: center;
   gap: var(--spacer-base);
 }
 
-.game_header_team {
+.game_preview_team {
   font-size: var(--type-scale-h4);
 
   & a {
@@ -80,41 +105,45 @@
   }
 }
 
-.game_header_sog {
+.game_preview_sog {
   color: var(--color-foreground);
   font-size: var(--type-scale-s);
 }
 
-.game_header_team_score {
+.game_preview_team_score {
   font-size: var(--type-scale-h2);
   font-weight: bold;
 }
 
-.game_header_team_info_home {
+.game_preview_team_info_home {
   @container (min-width: 45rem) {
     flex-direction: row-reverse;
 
-    & .game_header_sog {
+    & .game_preview_sog {
       text-align: end;
     }
 
-    & .game_header_team_wrap {
+    & .game_preview_team_wrap {
       flex-direction: row-reverse;
     }
   }
 }
 
-.game_header_team_info_winner {
+.game_preview_win {
   color: var(--color-primary);
 }
 
-.game_header_info {
+.game_preview_loss {
+  color: var(--color-danger-dark);
+}
+
+.game_preview_info {
   @container (min-width: 45rem) {
     text-align: center;
   }
 }
 
-.game_header_date_time {
+.game_preview_date_time {
   font-weight: bold;
   display: block;
   font-size: var(--type-scale-h3);

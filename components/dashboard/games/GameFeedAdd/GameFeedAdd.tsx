@@ -185,13 +185,7 @@ export default function GameFeedAdd({
               <label htmlFor="assists" className="label push-s">
                 Assists
               </label>
-              <select
-                name="assists"
-                id="assists"
-                multiple
-                title="Assists"
-                onChange={(e) => console.log(e.target.value)}
-              >
+              <select name="assists" id="assists" multiple title="Assists">
                 {canAssist.map((p) => (
                   <option key={p.value} value={p.value}>
                     {p.label}

@@ -176,10 +176,29 @@ export function createPeriodTimeString(
   const period_time = `00:${minutes < 10 ? `0${minutes}` : minutes}:${
     seconds < 10 ? `0${seconds}` : seconds
   }`;
-  console.log(period_time);
   return period_time;
 }
 
 export function createMetaTitle(titles: string[]): string {
   return `${titles.join(" | ")} | Dashboard | Leagrr`;
+}
+
+export function applyAppropriateTextColor(color: string): string {
+  const lightColors = [
+    "aqua",
+    "cyan",
+    "grey",
+    "magenta",
+    "orange",
+    "pink",
+    "red",
+    "violet",
+    "white",
+    "yellow",
+  ];
+
+  if (lightColors.includes(color)) {
+    return "black";
+  }
+  return "white";
 }

@@ -183,3 +183,88 @@ export async function getTeam(
 
   return teamResult;
 }
+
+export async function getTeamGamePreviews(
+  team_id: number,
+  pastGames = false,
+  limit = 1,
+) {
+  const sql = `
+    SELECT
+      game_id,
+      home_team_id,
+      (SELECT name FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team,
+      (SELECT slug FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team_slug,
+      (SELECT color FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team_color,
+      (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id = g.home_team_id AND sh.game_id = g.game_id)::int AS home_team_shots,
+      home_team_score,
+      away_team_id,
+      (SELECT name FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team,
+      (SELECT slug FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team_slug,
+      (SELECT color FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team_color,
+      (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id = g.away_team_id AND sh.game_id = g.game_id)::int AS away_team_shots,
+      away_team_score,
+      date_time,
+      arena_id,
+      (SELECT name FROM league_management.arenas WHERE arena_id = g.arena_id) AS arena,
+      (SELECT name FROM league_management.venues WHERE venue_id = (
+        SELECT venue_id FROM league_management.arenas WHERE arena_id = g.arena_id
+      )) AS venue,
+      status
+    FROM
+      league_management.games AS g
+    WHERE
+      status = ${pastGames ? "'completed'" : "'public'"}
+      AND
+      (
+        home_team_id = $1
+        OR
+        away_team_id = $1
+      )
+      AND
+      date_time ${pastGames ? "<" : ">"} now()
+    ORDER BY
+      date_time ${pastGames ? "DESC" : "ASC"}
+    LIMIT $2
+  `;
+
+  const result = await db
+    .query(sql, [team_id, limit])
+    .then((res) => {
+      return {
+        message: `Games found!`,
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+        data: [],
+      };
+    });
+
+  return result;
+}
+
+export async function getTeamDashboardData(team_id: number) {
+  // confirm logged in
+  await verifySession();
+
+  // get next game
+  const { data: nextGames } = await getTeamGamePreviews(team_id);
+
+  // get previous game
+  const { data: prevGames } = await getTeamGamePreviews(team_id, true);
+
+  console.log(nextGames, prevGames);
+
+  // get team members
+
+  // get current div/season/league data
+  return {
+    nextGame: nextGames[0],
+    prevGame: prevGames[0],
+  };
+}

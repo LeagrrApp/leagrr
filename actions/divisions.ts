@@ -363,7 +363,7 @@ export async function getDivision(
       (
         (
           SELECT
-            SUM(home_team_score)
+            COALESCE(SUM(home_team_score), 0)
           FROM
             league_management.games
           WHERE
@@ -374,7 +374,7 @@ export async function getDivision(
             status = 'completed'
         ) + (
           SELECT
-            SUM(away_team_score)
+            COALESCE(SUM(away_team_score), 0)
           FROM
             league_management.games
           WHERE
@@ -388,7 +388,7 @@ export async function getDivision(
       (
         (
           SELECT
-            SUM(away_team_score)
+            COALESCE(SUM(away_team_score), 0)
           FROM
             league_management.games
           WHERE
@@ -399,7 +399,7 @@ export async function getDivision(
             status = 'completed'
         ) + (
           SELECT
-            SUM(home_team_score)
+            COALESCE(SUM(home_team_score), 0)
           FROM
             league_management.games
           WHERE
@@ -418,8 +418,7 @@ export async function getDivision(
       t.team_id = dt.team_id
     WHERE
       dt.division_id = $1
-    ORDER BY points DESC
-
+    ORDER BY points DESC, games_played ASC, wins DESC, goals_for DESC, goals_against ASC
   `;
 
   const divisionTeamsResult: ResultProps<TeamStandingsData[]> = await db

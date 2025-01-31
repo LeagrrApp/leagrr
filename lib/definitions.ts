@@ -104,7 +104,6 @@ export const gender_options: readonly [string, ...string[]] = [
 ];
 
 export const color_options: readonly [string, ...string[]] = [
-  "aqua",
   "black",
   "blue",
   "brown",

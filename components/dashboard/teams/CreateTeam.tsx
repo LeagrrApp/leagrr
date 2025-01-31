@@ -21,10 +21,6 @@ export default function CreateTeam({ user_id }: CreateTeamProps) {
     state?.data?.color || "",
   );
 
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
-
   return (
     <form action={action}>
       <Grid gap="base">
