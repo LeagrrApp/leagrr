@@ -1,9 +1,31 @@
-.team_stats_heading {
-  margin-block-end: var(--spacer-ml);
-  font-size: var(--type-scale-h5);
+.team_stats {
+  grid-row: span 2;
+  display: grid;
+  grid-template-rows: subgrid;
+}
 
-  table + & {
-    margin-block-start: var(--spacer-m);
+.team_stats_block {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: var(--spacer-ml);
+}
+
+.team_stats_heading {
+  /* margin-block-end: var(--spacer-ml); */
+  font-size: var(--type-scale-h5);
+}
+
+.team_stats_team_name {
+  font-size: var(--type-scale-s);
+  font-weight: normal;
+  display: block;
+
+  @container (width >= 50rem) {
+    position: absolute;
+    white-space: nowrap;
+    clip-path: polygon(0 0, 0.1% 0, 0.1% 0.1%, 0 0.1%);
+    width: 1px;
+    height: 1px;
   }
 }
 

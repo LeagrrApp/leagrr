@@ -1,6 +1,6 @@
 "use client";
 
-import { createTeam } from "@/actions/teams";
+import { editTeam } from "@/actions/teams";
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/forms/Input";
 import Select from "@/components/ui/forms/Select";
@@ -8,18 +8,27 @@ import TextArea from "@/components/ui/forms/TextArea";
 import Icon from "@/components/ui/Icon/Icon";
 import Grid from "@/components/ui/layout/Grid";
 import { color_options } from "@/lib/definitions";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import css from "./teamForm.module.css";
 
-interface CreateTeamProps {
-  user_id: number;
+interface EditTeamProps {
+  team: TeamData;
+  backLink: string;
 }
 
-export default function CreateTeam({ user_id }: CreateTeamProps) {
-  const [state, action, pending] = useActionState(createTeam, undefined);
-  const [colorValue, setColorValue] = useState<string>(
-    state?.data?.color || "",
+export default function EditTeam({ team, backLink }: EditTeamProps) {
+  const [state, action, pending] = useActionState(editTeam, undefined);
+  const [teamName, setTeamName] = useState<string>(
+    state?.data?.name || team.name,
   );
+  const [colorValue, setColorValue] = useState<string>(() => {
+    const foundColor = state?.data?.color || team.color || "";
+
+    if (foundColor.includes("#")) {
+      return "custom";
+    }
+    return foundColor;
+  });
 
   return (
     <form action={action}>
@@ -27,14 +36,15 @@ export default function CreateTeam({ user_id }: CreateTeamProps) {
         <Input
           label="Name"
           name="name"
-          defaultValue="Metcalfe Jets"
+          value={teamName}
+          onChange={(e) => setTeamName(e.target.value)}
           errors={{ errs: state?.errors?.name, type: "danger" }}
           required
         />
         <TextArea
           label="Description"
           name="description"
-          value="A small town team."
+          defaultValue={team.description}
           errors={{ errs: state?.errors?.description, type: "danger" }}
           optional
         />
@@ -53,15 +63,19 @@ export default function CreateTeam({ user_id }: CreateTeamProps) {
             <Input
               label="Custom Color"
               name="custom_color"
+              defaultValue={team.color}
               type="color"
               errors={{ errs: state?.errors?.custom_color, type: "danger" }}
               required
             />
           )}
         </div>
-        <input type="hidden" name="user_id" value={user_id} />
+        <input type="hidden" name="team_id" value={team.team_id} />
         <Button type="submit" disabled={pending}>
-          <Icon icon="add_circle" label="Create Team" />
+          <Icon icon="save" label={`Save ${teamName}`} />
+        </Button>
+        <Button href={backLink} variant="grey">
+          <Icon icon="cancel" label="Cancel" />
         </Button>
       </Grid>
     </form>

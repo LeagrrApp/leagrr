@@ -1,22 +1,17 @@
 .team_grid {
-  --display: grid;
-
+  display: grid;
   gap: var(--spacer-base);
   grid-template-areas:
     "next_game"
     "prev_game"
     "members"
     "leagues";
+  padding-block-end: var(--spacer-l);
 
   @container main (width >= 60rem) {
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
       "next_game prev_game"
       "members leagues";
-
-    /* grid-template-areas:
-      "next_game members"
-      "prev_game members"
-      "leagues members"; */
   }
 }

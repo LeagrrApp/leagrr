@@ -1,4 +1,5 @@
 import {
+  canEditTeam,
   getDivisionsByTeam,
   getTeam,
   getTeamDashboardData,
@@ -57,12 +58,14 @@ export default async function Page({
   // get list of public divisions the team is currently in
   const { data: divisions } = await getDivisionsByTeam(team_id);
 
+  console.log(divisions);
+
   if (divisions.length === 0) {
     return (
-      <Container>
+      <>
         <h2>This team is not in any divisions yet.</h2>
         <Button href="#">Join a division</Button>
-      </Container>
+      </>
     );
   }
 
@@ -81,7 +84,7 @@ export default async function Page({
     await getTeamDashboardData(team_id, currentDivision.division_id);
 
   return (
-    <Container className={css.team_grid}>
+    <div className={css.team_grid}>
       <DashboardUnit gridArea="next_game">
         <DashboardUnitHeader>
           <h2>
@@ -151,6 +154,6 @@ export default async function Page({
           </Card>
         )}
       </DashboardUnit>
-    </Container>
+    </div>
   );
 }

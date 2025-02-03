@@ -9,6 +9,7 @@ import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import css from "./page.module.css";
+import { apply_classes_conditional } from "@/utils/helpers/html-attributes";
 
 interface GameStyles extends CSSProperties {
   "--color-home": string;
@@ -69,7 +70,14 @@ export default async function Page({
         label="Return to division"
       />
 
-      <article style={styles} className={css.game}>
+      <article
+        style={styles}
+        className={apply_classes_conditional(
+          css.game,
+          css.game_can_edit,
+          canEdit,
+        )}
+      >
         {canEdit && <GameControls game={gameData} />}
         <GamePreview game={gameData} />
         <GameTeamStats game={gameData} team={awayTeam} />

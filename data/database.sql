@@ -158,7 +158,7 @@ CREATE TABLE league_management.teams (
   name            VARCHAR(50) NOT NULL,
   description     TEXT,
   color           VARCHAR(50),
-  join_code       VARCHAR(50) NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  join_code       VARCHAR(50) NOT NULL DEFAULT gen_random_uuid(),
   status          VARCHAR(20) NOT NULL DEFAULT 'active',
   created_on      TIMESTAMP DEFAULT NOW()
 );
@@ -292,51 +292,51 @@ DECLARE
     exact_match INT;
 BEGIN
 	IF NEW.name <> OLD.name OR tg_op = 'INSERT' THEN
-	    -- Generate the initial slug by processing the name
-	    base_slug := lower(
-	                      regexp_replace(
-	                          regexp_replace(
-	                              regexp_replace(NEW.name, '\s+', '-', 'g'),
-	                              '[^a-zA-Z0-9\-]', '', 'g'
-	                          ),
-	                      '-+', '-', 'g')
-	                  );
-	
-	    -- Check if this slug already exists and if so, append a number to ensure uniqueness
-	
+    -- Generate the initial slug by processing the name
+    base_slug := lower(
+                      regexp_replace(
+                          regexp_replace(
+                              regexp_replace(NEW.name, '\s+', '-', 'g'),
+                              '[^a-zA-Z0-9\-]', '', 'g'
+                          ),
+                      '-+', '-', 'g')
+                  );
+
+    -- Check if this slug already exists and if so, append a number to ensure uniqueness
+
 		-- this SELECT checks if there are other EXACT slug matches
-	    SELECT COUNT(*) INTO exact_match
-	    FROM league_management.leagues
-	    WHERE slug = base_slug;
-	
-	    IF exact_match = 0 THEN
-	        -- No duplicates found, assign base slug
-	        final_slug := base_slug;
-	    ELSE
-			-- this SELECT checks if there are leagues with slugs starting with the base_slug
-		    SELECT COUNT(*) INTO slug_rank
-		    FROM league_management.leagues
-		    WHERE slug LIKE base_slug || '%';
-			
-	        -- Duplicates found, append the count as a suffix
-	        temp_slug := base_slug || '-' || slug_rank;
-			
-			-- check if exact match of temp_slug found
-			SELECT COUNT(*) INTO exact_match
-		    FROM league_management.leagues
-		    WHERE slug = temp_slug;
-	
-			IF exact_match = 1 THEN
-				-- increase slug_rank by 1 and create final slug
-				final_slug := base_slug || '-' || (slug_rank + 1);
-			ELSE
-				-- change temp slug to final slug
-				final_slug = temp_slug;
-			END IF;
-	    END IF;
-	
-	    -- Assign the final slug to the new record
-	    NEW.slug := final_slug;
+    SELECT COUNT(*) INTO exact_match
+    FROM league_management.leagues
+    WHERE slug = base_slug;
+
+    IF exact_match = 0 THEN
+        -- No duplicates found, assign base slug
+        final_slug := base_slug;
+    ELSE
+    -- this SELECT checks if there are leagues with slugs starting with the base_slug
+      SELECT COUNT(*) INTO slug_rank
+      FROM league_management.leagues
+      WHERE slug LIKE base_slug || '%';
+    
+        -- Duplicates found, append the count as a suffix
+        temp_slug := base_slug || '-' || slug_rank;
+    
+    -- check if exact match of temp_slug found
+    SELECT COUNT(*) INTO exact_match
+      FROM league_management.leagues
+      WHERE slug = temp_slug;
+
+    IF exact_match = 1 THEN
+      -- increase slug_rank by 1 and create final slug
+      final_slug := base_slug || '-' || (slug_rank + 1);
+    ELSE
+      -- change temp slug to final slug
+      final_slug = temp_slug;
+    END IF;
+    END IF;
+
+    -- Assign the final slug to the new record
+    NEW.slug := final_slug;
 
 	END IF;
 
@@ -409,51 +409,51 @@ BEGIN
 
 	IF NEW.name <> OLD.name OR tg_op = 'INSERT' THEN
 	
-	    -- Generate the initial slug by processing the name
-	    base_slug := lower(
-	                      regexp_replace(
-	                          regexp_replace(
-	                              regexp_replace(NEW.name, '\s+', '-', 'g'),
-	                              '[^a-zA-Z0-9\-]', '', 'g'
-	                          ),
-	                      '-+', '-', 'g')
-	                  );
-	
-	    -- Check if this slug already exists and if so, append a number to ensure uniqueness
-	
-		-- this SELECT checks if there are other EXACT slug matches
-	    SELECT COUNT(*) INTO exact_match
-	    FROM league_management.seasons
-	    WHERE slug = base_slug AND league_id = NEW.league_id;
-	
-	    IF exact_match = 0 THEN
-	        -- No duplicates found, assign base slug
-	        final_slug := base_slug;
-	    ELSE
-			-- this SELECT checks if there are seasons with slugs starting with the base_slug
-		    SELECT COUNT(*) INTO slug_rank
-		    FROM league_management.seasons
-		    WHERE slug LIKE base_slug || '%' AND league_id = NEW.league_id;
-			
-	        -- Duplicates found, append the count as a suffix
-	        temp_slug := base_slug || '-' || slug_rank;
-			
-			-- check if exact match of temp_slug found
-			SELECT COUNT(*) INTO exact_match
-		    FROM league_management.seasons
-		    WHERE slug = temp_slug AND league_id = NEW.league_id;
-	
-			IF exact_match = 1 THEN
-				-- increase slug_rank by 1 and create final slug
-				final_slug := base_slug || '-' || (slug_rank + 1);
-			ELSE
-				-- change temp slug to final slug
-				final_slug = temp_slug;
-			END IF;
-	    END IF;
-	
-	    -- Assign the final slug to the new record
-	    NEW.slug := final_slug;
+    -- Generate the initial slug by processing the name
+    base_slug := lower(
+                      regexp_replace(
+                          regexp_replace(
+                              regexp_replace(NEW.name, '\s+', '-', 'g'),
+                              '[^a-zA-Z0-9\-]', '', 'g'
+                          ),
+                      '-+', '-', 'g')
+                  );
+
+    -- Check if this slug already exists and if so, append a number to ensure uniqueness
+
+  -- this SELECT checks if there are other EXACT slug matches
+    SELECT COUNT(*) INTO exact_match
+    FROM league_management.seasons
+    WHERE slug = base_slug AND league_id = NEW.league_id;
+
+    IF exact_match = 0 THEN
+        -- No duplicates found, assign base slug
+        final_slug := base_slug;
+    ELSE
+    -- this SELECT checks if there are seasons with slugs starting with the base_slug
+      SELECT COUNT(*) INTO slug_rank
+      FROM league_management.seasons
+      WHERE slug LIKE base_slug || '%' AND league_id = NEW.league_id;
+    
+        -- Duplicates found, append the count as a suffix
+        temp_slug := base_slug || '-' || slug_rank;
+    
+    -- check if exact match of temp_slug found
+    SELECT COUNT(*) INTO exact_match
+      FROM league_management.seasons
+      WHERE slug = temp_slug AND league_id = NEW.league_id;
+
+    IF exact_match = 1 THEN
+      -- increase slug_rank by 1 and create final slug
+      final_slug := base_slug || '-' || (slug_rank + 1);
+    ELSE
+      -- change temp slug to final slug
+      final_slug = temp_slug;
+    END IF;
+    END IF;
+
+    -- Assign the final slug to the new record
+    NEW.slug := final_slug;
 	
 	END IF;
 	
@@ -530,51 +530,51 @@ BEGIN
 
 	IF NEW.name <> OLD.name OR tg_op = 'INSERT' THEN
 	
-	    -- Generate the initial slug by processing the name
-	    base_slug := lower(
-	                      regexp_replace(
-	                          regexp_replace(
-	                              regexp_replace(NEW.name, '\s+', '-', 'g'),
-	                              '[^a-zA-Z0-9\-]', '', 'g'
-	                          ),
-	                      '-+', '-', 'g')
-	                  );
-	
-	    -- Check if this slug already exists and if so, append a number to ensure uniqueness
-	
-		-- this SELECT checks if there are other EXACT slug matches
-	    SELECT COUNT(*) INTO exact_match
-	    FROM league_management.divisions
-	    WHERE slug = base_slug AND season_id = NEW.season_id;
-	
-	    IF exact_match = 0 THEN
-	        -- No duplicates found, assign base slug
-	        final_slug := base_slug;
-	    ELSE
-			-- this SELECT checks if there are divisions with slugs starting with the base_slug
-		    SELECT COUNT(*) INTO slug_rank
-		    FROM league_management.divisions
-		    WHERE slug LIKE base_slug || '%' AND season_id = NEW.season_id;
-			
-	        -- Duplicates found, append the count as a suffix
-	        temp_slug := base_slug || '-' || slug_rank;
-			
-			-- check if exact match of temp_slug found
-			SELECT COUNT(*) INTO exact_match
-		    FROM league_management.divisions
-		    WHERE slug = temp_slug AND season_id = NEW.season_id;
-	
-			IF exact_match = 1 THEN
-				-- increase slug_rank by 1 and create final slug
-				final_slug := base_slug || '-' || (slug_rank + 1);
-			ELSE
-				-- change temp slug to final slug
-				final_slug = temp_slug;
-			END IF;
-	    END IF;
-	
-	    -- Assign the final slug to the new record
-	    NEW.slug := final_slug;
+    -- Generate the initial slug by processing the name
+    base_slug := lower(
+                      regexp_replace(
+                          regexp_replace(
+                              regexp_replace(NEW.name, '\s+', '-', 'g'),
+                              '[^a-zA-Z0-9\-]', '', 'g'
+                          ),
+                      '-+', '-', 'g')
+                  );
+
+    -- Check if this slug already exists and if so, append a number to ensure uniqueness
+
+  -- this SELECT checks if there are other EXACT slug matches
+    SELECT COUNT(*) INTO exact_match
+    FROM league_management.divisions
+    WHERE slug = base_slug AND season_id = NEW.season_id;
+
+    IF exact_match = 0 THEN
+        -- No duplicates found, assign base slug
+        final_slug := base_slug;
+    ELSE
+    -- this SELECT checks if there are divisions with slugs starting with the base_slug
+      SELECT COUNT(*) INTO slug_rank
+      FROM league_management.divisions
+      WHERE slug LIKE base_slug || '%' AND season_id = NEW.season_id;
+    
+        -- Duplicates found, append the count as a suffix
+        temp_slug := base_slug || '-' || slug_rank;
+    
+    -- check if exact match of temp_slug found
+    SELECT COUNT(*) INTO exact_match
+      FROM league_management.divisions
+      WHERE slug = temp_slug AND season_id = NEW.season_id;
+
+    IF exact_match = 1 THEN
+      -- increase slug_rank by 1 and create final slug
+      final_slug := base_slug || '-' || (slug_rank + 1);
+    ELSE
+      -- change temp slug to final slug
+      final_slug = temp_slug;
+    END IF;
+    END IF;
+
+    -- Assign the final slug to the new record
+    NEW.slug := final_slug;
 	
 	END IF;
 	
@@ -1239,77 +1239,77 @@ VALUES
 
 -- Add captains to Hometown Hockey
 INSERT INTO league_management.team_memberships
-  (user_id, team_id, team_role)
+  (user_id, team_id, team_role, position, number)
 VALUES
-  (1, 5, 3), -- Adam
-  (12, 6, 3), -- Zach
-  (13, 7, 3), -- Andrew
-  (4, 8, 3), -- Caleb
-  (14, 9, 3) -- Tim
+  (1, 5, 3, 'Defense', 93), -- Adam
+  (12, 6, 3, 'Defense', 19), -- Zach
+  (13, 7, 3, 'Defense', 6), -- Andrew
+  (4, 8, 3, 'Defense', 19), -- Caleb
+  (14, 9, 3, 'Left Wing', 9) -- Tim
 ;
 
 INSERT INTO league_management.team_memberships
-  (user_id, team_id)
+  (user_id, team_id, position, number)
 VALUES
-  (60, 5),
-  (61, 5),
-  (62, 5),
-  (63, 5),
-  (64, 5),
-  (65, 5),
-  (66, 5),
-  (67, 5),
-  (68, 5),
-  (69, 5),
-  (70, 6),
-  (71, 6),
-  (72, 6),
-  (73, 6),
-  (74, 6),
-  (75, 6),
-  (76, 6),
-  (77, 6),
-  (78, 6),
-  (79, 6),
-  (80, 7),
-  (81, 7),
-  (82, 7),
-  (83, 7),
-  (84, 7),
-  (85, 7),
-  (86, 7),
-  (87, 7),
-  (88, 7),
-  (89, 7),
-  (90, 8),
-  (91, 8),
-  (92, 8),
-  (93, 8),
-  (94, 8),
-  (95, 8),
-  (96, 8),
-  (97, 8),
-  (98, 8),
-  (99, 8),
-  (100, 9),
-  (101, 9),
-  (102, 9),
-  (103, 9),
-  (104, 9),
-  (105, 9),
-  (106, 9),
-  (107, 9),
-  (108, 9),
-  (109, 9)
+  (60, 5, null, 60),
+  (61, 5, null, 61),
+  (62, 5, null, 62),
+  (63, 5, null, 63),
+  (64, 5, null, 64),
+  (65, 5, null, 65),
+  (66, 5, null, 66),
+  (67, 5, null, 67),
+  (68, 5, null, 68),
+  (69, 5, 'Goalie', 69),
+  (70, 6, null, 70),
+  (71, 6, null, 71),
+  (72, 6, null, 72),
+  (73, 6, null, 73),
+  (74, 6, null, 74),
+  (75, 6, null, 75),
+  (76, 6, null, 76),
+  (77, 6, null, 77),
+  (78, 6, null, 78),
+  (79, 6, 'Goalie', 79),
+  (80, 7, null, 80),
+  (81, 7, null, 81),
+  (82, 7, null, 82),
+  (83, 7, null, 83),
+  (84, 7, null, 84),
+  (85, 7, null, 85),
+  (86, 7, null, 86),
+  (87, 7, null, 87),
+  (88, 7, null, 88),
+  (89, 7, 'Goalie', 89),
+  (90, 8, null, 90),
+  (91, 8, null, 91),
+  (92, 8, null, 92),
+  (93, 8, null, 93),
+  (94, 8, null, 94),
+  (95, 8, null, 95),
+  (96, 8, null, 96),
+  (97, 8, null, 97),
+  (98, 8, null, 98),
+  (99, 8, 'Goalie', 1),
+  (100, 9, null, 20),
+  (101, 9, null, 21),
+  (102, 9, null, 22),
+  (103, 9, null, 23),
+  (104, 9, null, 24),
+  (105, 9, null, 25),
+  (106, 9, null, 26),
+  (107, 9, null, 27),
+  (108, 9, null, 28),
+  (109, 9, 'Goalie', 29)
 ;
 
 -- Default leagues
 INSERT INTO league_management.leagues
-  (slug, name, sport)
+  (slug, name, sport, status)
 VALUES 
-  ('ottawa-pride-hockey', 'Ottawa Pride Hockey', 'hockey'),
-  ('fia-hockey', 'FIA Hockey', 'hockey'),
-  ('hometown-hockey', 'Hometown Hockey', 'hockey')
+  ('ottawa-pride-hockey', 'Ottawa Pride Hockey', 'hockey', 'public'),
+  ('fia-hockey', 'FIA Hockey', 'hockey', 'public'),
+  ('hometown-hockey', 'Hometown Hockey', 'hockey', 'public')
 ;
 
 -- Default league_admins
@@ -1326,13 +1326,13 @@ VALUES
 
 -- Default seasons
 INSERT INTO league_management.seasons
-  (name, league_id, start_date, end_date)
+  (name, league_id, start_date, end_date, status)
 VALUES
-  ('Winter 2024/2025', 1, '2024-09-01', '2025-03-31'),
-  ('2023-2024 Season', 2, '2023-09-01', '2024-03-31'),
-  ('2024-2025 Season', 2, '2024-09-01', '2025-03-31'),
-  ('2024-2025 Season', 3, '2024-09-01', '2025-03-31'),
-  ('2025 Spring', 3, '2025-04-01', '2025-06-30')
+  ('Winter 2024/2025', 1, '2024-09-01', '2025-03-31', 'public'),
+  ('2023-2024 Season', 2, '2023-09-01', '2024-03-31', 'public'),
+  ('2024-2025 Season', 2, '2024-09-01', '2025-03-31', 'public'),
+  ('2024-2025 Season', 3, '2024-09-01', '2025-03-31', 'public'),
+  ('2025 Spring', 3, '2025-04-01', '2025-06-30', 'public')
 ;
 
 -- Default season_admins
@@ -1345,30 +1345,30 @@ VALUES
 
 -- Default divisions
 INSERT INTO league_management.divisions
-  (name, tier, season_id, gender)
+  (name, tier, season_id, gender, status)
 VALUES
-  ('Div Inc', 1, 1, 'all'),
-  ('Div 1', 1, 3, 'all'),
-  ('Div 2', 1, 3, 'all'),
-  ('Div 1', 1, 4, 'all'),
-  ('Div 2', 2, 4, 'all'),
-  ('Div 3', 3, 4, 'all'),
-  ('Div 4', 4, 4, 'all'),
-  ('Div 5', 5, 4, 'all'),
-  ('Men 35+', 6, 4, 'men'),
-  ('Women 35+', 6, 4, 'women'),
-  ('Div 1', 1, 5, 'all'),
-  ('Div 2', 2, 5, 'all'),
-  ('Div 3', 3, 5, 'all'),
-  ('Div 4', 4, 5, 'all'),
-  ('Div 5', 5, 5, 'all'),
-  ('Div 6', 6, 5, 'all'),
-  ('Men 1', 1, 5, 'men'),
-  ('Men 2', 2, 5, 'men'),
-  ('Men 3', 3, 5, 'men'),
-  ('Women 1', 1, 5, 'women'),
-  ('Women 2', 2, 5, 'women'),
-  ('Women 3', 3, 5, 'women')
+  ('Div Inc', 1, 1, 'all', 'public'),
+  ('Div 1', 1, 3, 'all', 'public'),
+  ('Div 2', 1, 3, 'all', 'public'),
+  ('Div 1', 1, 4, 'all', 'public'),
+  ('Div 2', 2, 4, 'all', 'public'),
+  ('Div 3', 3, 4, 'all', 'public'),
+  ('Div 4', 4, 4, 'all', 'public'),
+  ('Div 5', 5, 4, 'all', 'public'),
+  ('Men 35+', 6, 4, 'men', 'public'),
+  ('Women 35+', 6, 4, 'women', 'public'),
+  ('Div 1', 1, 5, 'all', 'public'),
+  ('Div 2', 2, 5, 'all', 'public'),
+  ('Div 3', 3, 5, 'all', 'public'),
+  ('Div 4', 4, 5, 'all', 'public'),
+  ('Div 5', 5, 5, 'all', 'public'),
+  ('Div 6', 6, 5, 'all', 'public'),
+  ('Men 1', 1, 5, 'men', 'public'),
+  ('Men 2', 2, 5, 'men', 'public'),
+  ('Men 3', 3, 5, 'men', 'public'),
+  ('Women 1', 1, 5, 'women', 'public'),
+  ('Women 2', 2, 5, 'women', 'public'),
+  ('Women 3', 3, 5, 'women', 'public')
 ;
 
 -- Default division_teams
@@ -1388,7 +1388,8 @@ VALUES
   (11, 11),
   (11, 12),
   (11, 13),
-  (11, 14)
+  (11, 14),
+  (4, 2)
 ;
 
 -- Default list of venues
@@ -1489,52 +1490,56 @@ VALUES
 --   (2, 0, 3, 0, 1, '2025-03-03 19:30:00', 10, 'draft', false) -- 42
 -- ;
 
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (1, 1, 3, 4, 0, 1, NULL, '2024-09-08 17:45:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (2, 2, 3, 3, 4, 1, NULL, '2024-09-08 18:45:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (3, 3, 0, 1, 2, 1, NULL, '2024-09-16 22:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (4, 4, 1, 2, 4, 1, NULL, '2024-09-16 23:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (5, 1, 4, 2, 1, 1, NULL, '2024-09-25 21:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (6, 3, 3, 4, 4, 1, NULL, '2024-09-25 22:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (7, 1, 2, 4, 2, 1, NULL, '2024-10-03 19:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (8, 2, 2, 3, 1, 1, NULL, '2024-10-03 20:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (9, 3, 3, 1, 4, 1, NULL, '2024-10-14 19:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (10, 4, 2, 2, 3, 1, NULL, '2024-10-14 20:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (11, 1, 1, 4, 2, 1, NULL, '2024-10-19 20:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (12, 2, 2, 3, 0, 1, NULL, '2024-10-19 21:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (13, 1, 2, 2, 2, 1, NULL, '2024-10-30 21:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (14, 3, 2, 4, 4, 1, NULL, '2024-10-30 22:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (15, 1, 0, 4, 2, 1, NULL, '2024-11-08 20:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (16, 2, 4, 3, 0, 1, NULL, '2024-11-08 21:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (17, 3, 3, 1, 5, 1, NULL, '2024-11-18 20:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (18, 4, 2, 2, 5, 1, NULL, '2024-11-18 21:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (19, 1, 2, 2, 3, 1, NULL, '2024-11-27 18:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (20, 3, 1, 4, 2, 1, NULL, '2024-11-27 19:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (21, 1, 1, 4, 3, 1, NULL, '2024-12-05 20:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (22, 2, 2, 3, 1, 1, NULL, '2024-12-05 21:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (23, 3, 2, 1, 0, 1, NULL, '2024-12-14 18:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (24, 4, 0, 2, 4, 1, NULL, '2024-12-14 19:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (25, 1, 1, 2, 4, 1, NULL, '2024-12-23 19:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (26, 3, 5, 4, 6, 1, NULL, '2024-12-23 20:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (27, 1, 5, 4, 3, 1, NULL, '2025-01-02 20:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (29, 4, 0, 1, 0, 1, NULL, '2025-01-11 19:45:00', 10, 'cancelled', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (30, 2, 0, 3, 0, 1, NULL, '2025-01-11 20:45:00', 10, 'cancelled', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (31, 1, 1, 2, 4, 1, NULL, '2025-01-23 19:00:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (32, 3, 4, 4, 1, 1, NULL, '2025-01-23 20:00:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (36, 2, 0, 3, 0, 1, NULL, '2025-02-05 23:00:00', 9, 'public', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (37, 3, 0, 1, 0, 1, NULL, '2025-02-14 22:00:00', 9, 'public', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (38, 4, 0, 2, 0, 1, NULL, '2025-02-14 23:00:00', 9, 'public', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (39, 1, 0, 2, 0, 1, NULL, '2025-02-23 19:00:00', 9, 'public', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (40, 3, 0, 4, 0, 1, NULL, '2025-02-23 20:00:00', 9, 'public', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (41, 1, 0, 4, 0, 1, NULL, '2025-03-03 18:30:00', 10, 'draft', false, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (42, 2, 0, 3, 0, 1, NULL, '2025-03-03 19:30:00', 10, 'draft', false, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (34, 4, 3, 2, 3, 1, NULL, '2025-01-26 22:45:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (35, 1, 0, 4, 0, 1, NULL, '2025-02-05 22:00:00', 9, 'public', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (45, 1, 0, 3, 0, 1, NULL, '2025-02-07 07:56:00', 9, 'draft', false, '2025-01-30 12:56:07.188201');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (43, 5, 2, 6, 1, 4, NULL, '2025-01-28 21:30:00', 17, 'public', false, '2025-01-29 18:20:39.803043');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (33, 3, 3, 1, 6, 1, NULL, '2025-01-26 21:45:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (28, 2, 7, 3, 2, 1, NULL, '2025-01-02 21:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (1, 1, 3, 4, 0, 1, NULL, '2024-09-08 17:45:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (2, 2, 3, 3, 4, 1, NULL, '2024-09-08 18:45:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (3, 3, 0, 1, 2, 1, NULL, '2024-09-16 22:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (4, 4, 1, 2, 4, 1, NULL, '2024-09-16 23:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (5, 1, 4, 2, 1, 1, NULL, '2024-09-25 21:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (6, 3, 3, 4, 4, 1, NULL, '2024-09-25 22:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (7, 1, 2, 4, 2, 1, NULL, '2024-10-03 19:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (8, 2, 2, 3, 1, 1, NULL, '2024-10-03 20:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (9, 3, 3, 1, 4, 1, NULL, '2024-10-14 19:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (10, 4, 2, 2, 3, 1, NULL, '2024-10-14 20:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (11, 1, 1, 4, 2, 1, NULL, '2024-10-19 20:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (12, 2, 2, 3, 0, 1, NULL, '2024-10-19 21:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (13, 1, 2, 2, 2, 1, NULL, '2024-10-30 21:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (14, 3, 2, 4, 4, 1, NULL, '2024-10-30 22:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (15, 1, 0, 4, 2, 1, NULL, '2024-11-08 20:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (16, 2, 4, 3, 0, 1, NULL, '2024-11-08 21:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (17, 3, 3, 1, 5, 1, NULL, '2024-11-18 20:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (18, 4, 2, 2, 5, 1, NULL, '2024-11-18 21:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (19, 1, 2, 2, 3, 1, NULL, '2024-11-27 18:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (20, 3, 1, 4, 2, 1, NULL, '2024-11-27 19:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (21, 1, 1, 4, 3, 1, NULL, '2024-12-05 20:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (22, 2, 2, 3, 1, 1, NULL, '2024-12-05 21:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (23, 3, 2, 1, 0, 1, NULL, '2024-12-14 18:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (24, 4, 0, 2, 4, 1, NULL, '2024-12-14 19:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (25, 1, 1, 2, 4, 1, NULL, '2024-12-23 19:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (26, 3, 5, 4, 6, 1, NULL, '2024-12-23 20:00:00', 9, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (27, 1, 5, 4, 3, 1, NULL, '2025-01-02 20:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (29, 4, 0, 1, 0, 1, NULL, '2025-01-11 19:45:00', 10, 'cancelled', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (30, 2, 0, 3, 0, 1, NULL, '2025-01-11 20:45:00', 10, 'cancelled', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (32, 3, 4, 4, 1, 1, NULL, '2025-01-23 20:00:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (36, 2, 0, 3, 0, 1, NULL, '2025-02-05 23:00:00', 9, 'public', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (37, 3, 0, 1, 0, 1, NULL, '2025-02-14 22:00:00', 9, 'public', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (38, 4, 0, 2, 0, 1, NULL, '2025-02-14 23:00:00', 9, 'public', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (39, 1, 0, 2, 0, 1, NULL, '2025-02-23 19:00:00', 9, 'public', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (40, 3, 0, 4, 0, 1, NULL, '2025-02-23 20:00:00', 9, 'public', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (41, 1, 0, 4, 0, 1, NULL, '2025-03-03 18:30:00', 10, 'draft', false, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (42, 2, 0, 3, 0, 1, NULL, '2025-03-03 19:30:00', 10, 'draft', false, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (35, 1, 0, 4, 0, 1, NULL, '2025-02-05 22:00:00', 9, 'public', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (33, 3, 0, 1, 4, 1, NULL, '2025-01-26 21:45:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (31, 1, 1, 2, 4, 1, NULL, '2025-01-23 19:00:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (46, 7, 1, 8, 4, 4, NULL, '2025-01-29 21:00:00', 13, 'completed', true, '2025-01-31 12:47:08.939324');
+INSERT INTO league_management.games VALUES (34, 4, 3, 2, 1, 1, NULL, '2025-01-26 22:45:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (49, 5, 1, 2, 2, 4, NULL, '2025-01-20 21:30:00', 17, 'completed', false, '2025-01-31 16:12:44.553138');
+INSERT INTO league_management.games VALUES (47, 9, 1, 5, 3, 4, NULL, '2025-01-30 20:45:00', 11, 'completed', true, '2025-01-31 13:38:51.595059');
+INSERT INTO league_management.games VALUES (50, 6, 0, 2, 0, 4, NULL, '2025-02-07 20:30:00', 12, 'public', true, '2025-01-31 16:15:00.936068');
+INSERT INTO league_management.games VALUES (28, 2, 7, 3, 2, 1, NULL, '2025-01-02 21:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games VALUES (43, 5, 3, 6, 4, 4, NULL, '2025-01-28 21:30:00', 17, 'completed', true, '2025-01-29 18:20:39.803043');
+INSERT INTO league_management.games VALUES (48, 6, 3, 8, 1, 4, NULL, '2025-01-31 22:00:00', 17, 'completed', true, '2025-01-31 14:22:31.627166');
 
-ALTER SEQUENCE games_game_id_seq RESTART WITH 46;
+ALTER SEQUENCE games_game_id_seq RESTART WITH 51;
 
 -- Goal samples
 -- INSERT INTO stats.goals
@@ -1547,40 +1552,53 @@ ALTER SEQUENCE games_game_id_seq RESTART WITH 46;
 --   (31, 28, 2, 3, '00:18:20', false, false, true)
 -- ;
 
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (1, 31, 3, 2, 1, '00:11:20', false, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (2, 31, 10, 2, 1, '00:15:37', false, true, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (3, 31, 6, 1, 2, '00:05:40', false, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (4, 31, 3, 2, 2, '00:18:10', false, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (5, 31, 28, 2, 3, '00:18:20', false, false, true, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (30, 33, 11, 3, 1, '00:13:19', false, true, false, '2025-01-28 22:11:51.906559');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (31, 33, 6, 1, 2, '00:03:32', false, false, false, '2025-01-28 22:12:20.836554');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (32, 33, 7, 1, 2, '00:06:55', false, true, false, '2025-01-28 22:22:01.446369');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (33, 33, 15, 1, 3, '00:13:39', true, false, false, '2025-01-28 22:23:07.805474');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (34, 33, 20, 1, 3, '00:16:51', false, false, false, '2025-01-28 22:26:59.659856');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (35, 33, 47, 3, 3, '00:17:17', false, false, false, '2025-01-28 22:27:36.514161');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (36, 33, 8, 3, 3, '00:18:18', false, false, false, '2025-01-28 22:28:05.572276');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (37, 33, 6, 1, 3, '00:19:28', false, false, true, '2025-01-28 22:28:27.845173');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (44, 34, 32, 2, 1, '00:11:17', false, false, false, '2025-01-29 17:30:13.747468');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (46, 34, 32, 2, 1, '00:17:48', false, false, false, '2025-01-29 17:31:48.23607');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (47, 34, 51, 4, 2, '00:03:49', false, false, false, '2025-01-29 17:32:07.117662');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (49, 34, 3, 2, 2, '00:09:52', false, false, false, '2025-01-29 17:33:31.855193');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (50, 34, 51, 4, 3, '00:12:53', false, false, false, '2025-01-29 17:39:21.538992');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (52, 34, 51, 4, 3, '00:18:54', false, false, true, '2025-01-29 17:40:15.39821');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (53, 43, 1, 5, 1, '00:02:14', false, false, false, '2025-01-29 18:21:12.871841');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (54, 43, 73, 6, 1, '00:04:15', false, false, false, '2025-01-29 18:21:28.21693');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (55, 43, 1, 5, 2, '00:04:16', false, false, false, '2025-01-29 18:21:40.511549');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (56, 33, 6, 1, 2, '00:18:29', false, false, false, '2025-01-29 18:28:56.758719');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (57, 28, 3, 2, 1, '00:02:00', false, false, false, '2025-01-29 21:14:24.138571');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (58, 28, 27, 2, 1, '00:06:07', false, false, false, '2025-01-29 21:14:43.596312');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (59, 28, 50, 3, 1, '00:10:19', false, false, false, '2025-01-29 21:15:04.362646');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (60, 28, 3, 2, 1, '00:16:24', false, false, false, '2025-01-29 21:15:30.869789');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (61, 28, 10, 2, 2, '00:06:10', false, false, false, '2025-01-29 21:15:51.815019');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (62, 28, 11, 3, 2, '00:10:23', false, true, false, '2025-01-29 21:16:33.015637');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (63, 28, 3, 2, 3, '00:05:24', false, false, false, '2025-01-29 21:16:54.809394');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (64, 28, 30, 2, 3, '00:12:56', false, false, false, '2025-01-29 21:17:20.723557');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (65, 28, 10, 2, 3, '00:17:17', false, false, false, '2025-01-29 21:18:11.700948');
+INSERT INTO stats.goals VALUES (1, 31, 3, 2, 1, '00:11:20', false, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.goals VALUES (2, 31, 10, 2, 1, '00:15:37', false, true, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.goals VALUES (3, 31, 6, 1, 2, '00:05:40', false, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.goals VALUES (4, 31, 3, 2, 2, '00:18:10', false, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.goals VALUES (5, 31, 28, 2, 3, '00:18:20', false, false, true, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.goals VALUES (31, 33, 6, 1, 2, '00:03:32', false, false, false, '2025-01-28 22:12:20.836554');
+INSERT INTO stats.goals VALUES (32, 33, 7, 1, 2, '00:06:55', false, true, false, '2025-01-28 22:22:01.446369');
+INSERT INTO stats.goals VALUES (34, 33, 20, 1, 3, '00:16:51', false, false, false, '2025-01-28 22:26:59.659856');
+INSERT INTO stats.goals VALUES (37, 33, 6, 1, 3, '00:19:28', false, false, true, '2025-01-28 22:28:27.845173');
+INSERT INTO stats.goals VALUES (53, 43, 1, 5, 1, '00:02:14', false, false, false, '2025-01-29 18:21:12.871841');
+INSERT INTO stats.goals VALUES (54, 43, 73, 6, 1, '00:04:15', false, false, false, '2025-01-29 18:21:28.21693');
+INSERT INTO stats.goals VALUES (55, 43, 1, 5, 2, '00:04:16', false, false, false, '2025-01-29 18:21:40.511549');
+INSERT INTO stats.goals VALUES (57, 28, 3, 2, 1, '00:02:00', false, false, false, '2025-01-29 21:14:24.138571');
+INSERT INTO stats.goals VALUES (58, 28, 27, 2, 1, '00:06:07', false, false, false, '2025-01-29 21:14:43.596312');
+INSERT INTO stats.goals VALUES (59, 28, 50, 3, 1, '00:10:19', false, false, false, '2025-01-29 21:15:04.362646');
+INSERT INTO stats.goals VALUES (60, 28, 3, 2, 1, '00:16:24', false, false, false, '2025-01-29 21:15:30.869789');
+INSERT INTO stats.goals VALUES (61, 28, 10, 2, 2, '00:06:10', false, false, false, '2025-01-29 21:15:51.815019');
+INSERT INTO stats.goals VALUES (62, 28, 11, 3, 2, '00:10:23', false, true, false, '2025-01-29 21:16:33.015637');
+INSERT INTO stats.goals VALUES (63, 28, 3, 2, 3, '00:05:24', false, false, false, '2025-01-29 21:16:54.809394');
+INSERT INTO stats.goals VALUES (64, 28, 30, 2, 3, '00:12:56', false, false, false, '2025-01-29 21:17:20.723557');
+INSERT INTO stats.goals VALUES (65, 28, 10, 2, 3, '00:17:17', false, false, false, '2025-01-29 21:18:11.700948');
+INSERT INTO stats.goals VALUES (66, 34, 10, 2, 3, '00:19:50', false, false, false, '2025-01-30 19:29:25.056506');
+INSERT INTO stats.goals VALUES (70, 46, 94, 8, 1, '00:03:12', false, false, false, '2025-01-31 12:48:22.153813');
+INSERT INTO stats.goals VALUES (71, 46, 13, 7, 1, '00:03:13', false, false, false, '2025-01-31 12:48:49.317687');
+INSERT INTO stats.goals VALUES (72, 46, 4, 8, 1, '00:07:19', false, false, false, '2025-01-31 12:49:13.94251');
+INSERT INTO stats.goals VALUES (73, 46, 93, 8, 2, '00:11:20', false, false, false, '2025-01-31 12:49:39.53854');
+INSERT INTO stats.goals VALUES (74, 46, 4, 8, 3, '00:16:21', false, false, false, '2025-01-31 12:49:58.803182');
+INSERT INTO stats.goals VALUES (75, 47, 1, 5, 1, '00:09:00', false, false, false, '2025-01-31 13:49:17.005933');
+INSERT INTO stats.goals VALUES (76, 47, 1, 5, 1, '00:13:17', false, true, false, '2025-01-31 13:50:09.7489');
+INSERT INTO stats.goals VALUES (77, 47, 14, 9, 2, '00:08:13', false, false, false, '2025-01-31 14:04:31.827789');
+INSERT INTO stats.goals VALUES (78, 47, 68, 5, 3, '00:18:56', false, false, true, '2025-01-31 14:04:53.654327');
+INSERT INTO stats.goals VALUES (79, 43, 12, 6, 2, '00:10:24', false, false, false, '2025-01-31 14:06:18.15422');
+INSERT INTO stats.goals VALUES (80, 43, 12, 6, 3, '00:14:25', false, false, false, '2025-01-31 14:09:45.226699');
+INSERT INTO stats.goals VALUES (82, 43, 63, 5, 3, '00:19:23', false, false, false, '2025-01-31 14:11:04.925064');
+INSERT INTO stats.goals VALUES (83, 43, 74, 6, 3, '00:19:44', false, false, false, '2025-01-31 14:14:42.804546');
+INSERT INTO stats.goals VALUES (84, 48, 4, 8, 1, '00:10:00', false, false, false, '2025-01-31 14:22:50.332613');
+INSERT INTO stats.goals VALUES (85, 48, 12, 6, 1, '00:15:00', false, false, false, '2025-01-31 14:23:05.013364');
+INSERT INTO stats.goals VALUES (86, 48, 12, 6, 2, '00:07:00', false, false, false, '2025-01-31 14:23:28.606041');
+INSERT INTO stats.goals VALUES (87, 48, 12, 6, 3, '00:13:06', false, false, false, '2025-01-31 14:24:19.139733');
+INSERT INTO stats.goals VALUES (88, 34, 9, 4, 1, '00:19:51', false, false, false, '2025-01-31 14:51:01.641769');
+INSERT INTO stats.goals VALUES (89, 34, 5, 4, 2, '00:06:38', false, true, false, '2025-01-31 14:51:58.867463');
+INSERT INTO stats.goals VALUES (90, 34, 5, 4, 3, '00:07:37', false, false, false, '2025-01-31 14:52:32.568702');
+INSERT INTO stats.goals VALUES (92, 49, 10, 2, 1, '00:15:00', false, false, false, '2025-01-31 16:13:08.17596');
+INSERT INTO stats.goals VALUES (93, 49, 63, 5, 2, '00:07:18', false, false, false, '2025-01-31 16:13:22.432711');
+INSERT INTO stats.goals VALUES (94, 49, 3, 2, 3, '00:08:21', false, false, false, '2025-01-31 16:14:16.677822');
 
-ALTER SEQUENCE stats.goals_goal_id_seq RESTART WITH 66;
+ALTER SEQUENCE stats.goals_goal_id_seq RESTART WITH 95;
 
 -- Assist samples
 -- INSERT INTO stats.assists
@@ -1593,37 +1611,56 @@ ALTER SEQUENCE stats.goals_goal_id_seq RESTART WITH 66;
 --   (4, 31, 30, 2, true)
 -- ;
 
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (1, 1, 31, 33, 2, true, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (2, 1, 31, 30, 2, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (3, 2, 31, 3, 2, true, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (4, 3, 31, 16, 1, true, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (5, 4, 31, 30, 2, true, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (26, 30, 33, 8, 3, true, '2025-01-28 22:11:51.91323');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (27, 30, 33, 50, 3, false, '2025-01-28 22:11:51.915372');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (28, 31, 33, 7, 1, true, '2025-01-28 22:12:20.844298');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (29, 32, 33, 22, 1, true, '2025-01-28 22:22:01.452293');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (30, 34, 33, 6, 1, true, '2025-01-28 22:26:59.666412');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (31, 35, 33, 8, 3, true, '2025-01-28 22:27:36.519458');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (32, 36, 33, 50, 3, true, '2025-01-28 22:28:05.577852');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (33, 37, 33, 25, 1, true, '2025-01-28 22:28:27.851364');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (38, 47, 34, 56, 4, true, '2025-01-29 17:32:07.123656');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (39, 47, 34, 61, 4, false, '2025-01-29 17:32:07.126029');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (42, 49, 34, 29, 2, true, '2025-01-29 17:33:31.862262');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (43, 49, 34, 10, 2, false, '2025-01-29 17:33:31.865228');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (44, 50, 34, 58, 4, true, '2025-01-29 17:39:21.545369');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (46, 55, 43, 61, 5, true, '2025-01-29 18:21:40.518237');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (47, 56, 33, 7, 1, true, '2025-01-29 18:28:56.766187');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (48, 56, 33, 18, 1, false, '2025-01-29 18:28:56.768193');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (49, 57, 28, 10, 2, true, '2025-01-29 21:14:24.144683');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (50, 59, 28, 43, 3, true, '2025-01-29 21:15:04.368026');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (51, 60, 28, 35, 2, true, '2025-01-29 21:15:30.875789');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (52, 61, 28, 3, 2, true, '2025-01-29 21:15:51.821809');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (53, 62, 28, 43, 3, true, '2025-01-29 21:16:33.021139');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (54, 63, 28, 37, 2, true, '2025-01-29 21:16:54.814861');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (55, 64, 28, 34, 2, true, '2025-01-29 21:17:20.730325');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (56, 65, 28, 34, 2, true, '2025-01-29 21:18:11.706933');
+INSERT INTO stats.assists VALUES (1, 1, 31, 33, 2, true, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.assists VALUES (2, 1, 31, 30, 2, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.assists VALUES (3, 2, 31, 3, 2, true, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.assists VALUES (4, 3, 31, 16, 1, true, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.assists VALUES (5, 4, 31, 30, 2, true, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.assists VALUES (28, 31, 33, 7, 1, true, '2025-01-28 22:12:20.844298');
+INSERT INTO stats.assists VALUES (29, 32, 33, 22, 1, true, '2025-01-28 22:22:01.452293');
+INSERT INTO stats.assists VALUES (30, 34, 33, 6, 1, true, '2025-01-28 22:26:59.666412');
+INSERT INTO stats.assists VALUES (33, 37, 33, 25, 1, true, '2025-01-28 22:28:27.851364');
+INSERT INTO stats.assists VALUES (46, 55, 43, 61, 5, true, '2025-01-29 18:21:40.518237');
+INSERT INTO stats.assists VALUES (49, 57, 28, 10, 2, true, '2025-01-29 21:14:24.144683');
+INSERT INTO stats.assists VALUES (50, 59, 28, 43, 3, true, '2025-01-29 21:15:04.368026');
+INSERT INTO stats.assists VALUES (51, 60, 28, 35, 2, true, '2025-01-29 21:15:30.875789');
+INSERT INTO stats.assists VALUES (52, 61, 28, 3, 2, true, '2025-01-29 21:15:51.821809');
+INSERT INTO stats.assists VALUES (53, 62, 28, 43, 3, true, '2025-01-29 21:16:33.021139');
+INSERT INTO stats.assists VALUES (54, 63, 28, 37, 2, true, '2025-01-29 21:16:54.814861');
+INSERT INTO stats.assists VALUES (55, 64, 28, 34, 2, true, '2025-01-29 21:17:20.730325');
+INSERT INTO stats.assists VALUES (56, 65, 28, 34, 2, true, '2025-01-29 21:18:11.706933');
+INSERT INTO stats.assists VALUES (57, 66, 34, 3, 2, true, '2025-01-30 19:29:25.064095');
+INSERT INTO stats.assists VALUES (59, 70, 46, 93, 8, true, '2025-01-31 12:48:22.160339');
+INSERT INTO stats.assists VALUES (60, 70, 46, 92, 8, false, '2025-01-31 12:48:22.163271');
+INSERT INTO stats.assists VALUES (61, 71, 46, 89, 7, true, '2025-01-31 12:48:49.323484');
+INSERT INTO stats.assists VALUES (62, 71, 46, 86, 7, false, '2025-01-31 12:48:49.325205');
+INSERT INTO stats.assists VALUES (63, 72, 46, 95, 8, true, '2025-01-31 12:49:13.948142');
+INSERT INTO stats.assists VALUES (64, 72, 46, 99, 8, false, '2025-01-31 12:49:13.950133');
+INSERT INTO stats.assists VALUES (65, 73, 46, 4, 8, true, '2025-01-31 12:49:39.543621');
+INSERT INTO stats.assists VALUES (66, 74, 46, 96, 8, true, '2025-01-31 12:49:58.808175');
+INSERT INTO stats.assists VALUES (67, 74, 46, 92, 8, false, '2025-01-31 12:49:58.810277');
+INSERT INTO stats.assists VALUES (68, 75, 47, 67, 5, true, '2025-01-31 13:49:17.011754');
+INSERT INTO stats.assists VALUES (69, 75, 47, 63, 5, false, '2025-01-31 13:49:17.014353');
+INSERT INTO stats.assists VALUES (70, 76, 47, 69, 5, true, '2025-01-31 13:50:09.753327');
+INSERT INTO stats.assists VALUES (71, 76, 47, 64, 5, false, '2025-01-31 13:50:09.754901');
+INSERT INTO stats.assists VALUES (72, 77, 47, 103, 9, true, '2025-01-31 14:04:31.832027');
+INSERT INTO stats.assists VALUES (73, 78, 47, 1, 5, true, '2025-01-31 14:04:53.658749');
+INSERT INTO stats.assists VALUES (74, 79, 43, 70, 6, true, '2025-01-31 14:06:18.158741');
+INSERT INTO stats.assists VALUES (75, 80, 43, 78, 6, true, '2025-01-31 14:09:45.231942');
+INSERT INTO stats.assists VALUES (76, 80, 43, 79, 6, false, '2025-01-31 14:09:45.234272');
+INSERT INTO stats.assists VALUES (78, 82, 43, 65, 5, true, '2025-01-31 14:11:04.929727');
+INSERT INTO stats.assists VALUES (79, 83, 43, 12, 6, true, '2025-01-31 14:14:42.809173');
+INSERT INTO stats.assists VALUES (80, 84, 48, 93, 8, true, '2025-01-31 14:22:50.338125');
+INSERT INTO stats.assists VALUES (81, 85, 48, 75, 6, true, '2025-01-31 14:23:05.01828');
+INSERT INTO stats.assists VALUES (82, 86, 48, 78, 6, true, '2025-01-31 14:23:28.611552');
+INSERT INTO stats.assists VALUES (83, 87, 48, 70, 6, true, '2025-01-31 14:24:19.144736');
+INSERT INTO stats.assists VALUES (84, 87, 48, 71, 6, false, '2025-01-31 14:24:19.146655');
+INSERT INTO stats.assists VALUES (85, 88, 34, 5, 4, true, '2025-01-31 14:51:01.646627');
+INSERT INTO stats.assists VALUES (86, 89, 34, 57, 4, true, '2025-01-31 14:51:58.871587');
+INSERT INTO stats.assists VALUES (87, 92, 49, 37, 2, true, '2025-01-31 16:13:08.180217');
+INSERT INTO stats.assists VALUES (88, 94, 49, 37, 2, true, '2025-01-31 16:14:16.682627');
 
-ALTER SEQUENCE stats.assists_assist_id_seq RESTART WITH 57;
+ALTER SEQUENCE stats.assists_assist_id_seq RESTART WITH 89;
 
 -- Penalties
 -- INSERT INTO stats.penalties
@@ -1668,55 +1705,71 @@ ALTER SEQUENCE stats.penalties_penalty_id_seq RESTART WITH 14;
 --   (31, 28, 2, 3, '00:18:20', 5, false, false)
 -- ;
 
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (1, 31, 3, 2, 1, '00:05:15', NULL, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (2, 31, 6, 1, 1, '00:07:35', NULL, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (3, 31, 31, 2, 1, '00:09:05', NULL, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (4, 31, 18, 1, 1, '00:10:03', NULL, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (5, 31, 3, 2, 1, '00:11:20', 1, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (6, 31, 10, 2, 1, '00:15:37', 2, false, true, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (7, 31, 3, 2, 1, '00:17:43', NULL, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (8, 31, 10, 2, 2, '00:01:11', NULL, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (9, 31, 6, 1, 2, '00:05:40', 3, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (10, 31, 21, 1, 2, '00:07:15', NULL, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (11, 31, 34, 2, 2, '00:11:15', NULL, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (12, 31, 3, 2, 2, '00:18:10', 4, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (13, 31, 27, 2, 3, '00:07:12', NULL, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (14, 31, 22, 1, 3, '00:11:56', NULL, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (15, 31, 36, 2, 3, '00:15:15', NULL, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (16, 31, 28, 2, 3, '00:18:20', 5, false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (60, 33, 26, 1, 1, '00:07:02', NULL, false, false, '2025-01-28 22:10:08.819217');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (61, 33, 11, 3, 1, '00:13:19', 30, false, true, '2025-01-28 22:11:51.917623');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (62, 33, 6, 1, 2, '00:03:32', 31, false, false, '2025-01-28 22:12:20.846527');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (63, 33, 8, 3, 2, '00:05:47', NULL, false, false, '2025-01-28 22:21:11.452163');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (64, 33, 7, 1, 2, '00:06:55', 32, false, true, '2025-01-28 22:22:01.455122');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (65, 33, 15, 1, 3, '00:13:39', 33, true, false, '2025-01-28 22:23:07.812411');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (66, 33, 20, 1, 3, '00:16:51', 34, false, false, '2025-01-28 22:26:59.668639');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (67, 33, 47, 3, 3, '00:17:17', 35, false, false, '2025-01-28 22:27:36.521274');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (68, 33, 8, 3, 3, '00:18:18', 36, false, false, '2025-01-28 22:28:05.580273');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (69, 33, 6, 1, 3, '00:19:28', 37, false, false, '2025-01-28 22:28:27.853387');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (80, 34, 32, 2, 1, '00:11:17', 44, false, false, '2025-01-29 17:30:13.753762');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (81, 34, 51, 4, 1, '00:15:18', NULL, false, false, '2025-01-29 17:30:20.970281');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (83, 34, 32, 2, 1, '00:17:19', NULL, false, false, '2025-01-29 17:31:39.514099');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (84, 34, 32, 2, 1, '00:17:48', 46, false, false, '2025-01-29 17:31:48.240602');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (85, 34, 51, 4, 2, '00:03:49', 47, false, false, '2025-01-29 17:32:07.12795');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (87, 34, 3, 2, 2, '00:09:52', 49, false, false, '2025-01-29 17:33:31.867133');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (88, 34, 51, 4, 3, '00:12:53', 50, false, false, '2025-01-29 17:39:21.547435');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (90, 34, 51, 4, 3, '00:18:54', 52, false, false, '2025-01-29 17:40:15.405241');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (91, 43, 1, 5, 1, '00:02:14', 53, false, false, '2025-01-29 18:21:12.878535');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (92, 43, 73, 6, 1, '00:04:15', 54, false, false, '2025-01-29 18:21:28.221923');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (93, 43, 1, 5, 2, '00:04:16', 55, false, false, '2025-01-29 18:21:40.520499');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (94, 33, 6, 1, 2, '00:18:29', 56, false, false, '2025-01-29 18:28:56.769753');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (95, 28, 3, 2, 1, '00:02:00', 57, false, false, '2025-01-29 21:14:24.146839');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (96, 28, 27, 2, 1, '00:06:07', 58, false, false, '2025-01-29 21:14:43.602289');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (97, 28, 50, 3, 1, '00:10:19', 59, false, false, '2025-01-29 21:15:04.370381');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (98, 28, 3, 2, 1, '00:16:24', 60, false, false, '2025-01-29 21:15:30.877857');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (99, 28, 10, 2, 2, '00:06:10', 61, false, false, '2025-01-29 21:15:51.825065');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (100, 28, 11, 3, 2, '00:10:23', 62, false, true, '2025-01-29 21:16:33.02304');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (101, 28, 3, 2, 3, '00:05:24', 63, false, false, '2025-01-29 21:16:54.817298');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (102, 28, 30, 2, 3, '00:12:56', 64, false, false, '2025-01-29 21:17:20.732602');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (103, 28, 10, 2, 3, '00:17:17', 65, false, false, '2025-01-29 21:18:11.70895');
+INSERT INTO stats.shots VALUES (1, 31, 3, 2, 1, '00:05:15', NULL, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.shots VALUES (2, 31, 6, 1, 1, '00:07:35', NULL, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.shots VALUES (3, 31, 31, 2, 1, '00:09:05', NULL, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.shots VALUES (4, 31, 18, 1, 1, '00:10:03', NULL, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.shots VALUES (5, 31, 3, 2, 1, '00:11:20', 1, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.shots VALUES (6, 31, 10, 2, 1, '00:15:37', 2, false, true, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.shots VALUES (7, 31, 3, 2, 1, '00:17:43', NULL, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.shots VALUES (8, 31, 10, 2, 2, '00:01:11', NULL, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.shots VALUES (9, 31, 6, 1, 2, '00:05:40', 3, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.shots VALUES (10, 31, 21, 1, 2, '00:07:15', NULL, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.shots VALUES (11, 31, 34, 2, 2, '00:11:15', NULL, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.shots VALUES (12, 31, 3, 2, 2, '00:18:10', 4, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.shots VALUES (13, 31, 27, 2, 3, '00:07:12', NULL, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.shots VALUES (14, 31, 22, 1, 3, '00:11:56', NULL, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.shots VALUES (15, 31, 36, 2, 3, '00:15:15', NULL, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.shots VALUES (16, 31, 28, 2, 3, '00:18:20', 5, false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.shots VALUES (60, 33, 26, 1, 1, '00:07:02', NULL, false, false, '2025-01-28 22:10:08.819217');
+INSERT INTO stats.shots VALUES (62, 33, 6, 1, 2, '00:03:32', 31, false, false, '2025-01-28 22:12:20.846527');
+INSERT INTO stats.shots VALUES (63, 33, 8, 3, 2, '00:05:47', NULL, false, false, '2025-01-28 22:21:11.452163');
+INSERT INTO stats.shots VALUES (64, 33, 7, 1, 2, '00:06:55', 32, false, true, '2025-01-28 22:22:01.455122');
+INSERT INTO stats.shots VALUES (66, 33, 20, 1, 3, '00:16:51', 34, false, false, '2025-01-28 22:26:59.668639');
+INSERT INTO stats.shots VALUES (69, 33, 6, 1, 3, '00:19:28', 37, false, false, '2025-01-28 22:28:27.853387');
+INSERT INTO stats.shots VALUES (81, 34, 51, 4, 1, '00:15:18', NULL, false, false, '2025-01-29 17:30:20.970281');
+INSERT INTO stats.shots VALUES (91, 43, 1, 5, 1, '00:02:14', 53, false, false, '2025-01-29 18:21:12.878535');
+INSERT INTO stats.shots VALUES (92, 43, 73, 6, 1, '00:04:15', 54, false, false, '2025-01-29 18:21:28.221923');
+INSERT INTO stats.shots VALUES (93, 43, 1, 5, 2, '00:04:16', 55, false, false, '2025-01-29 18:21:40.520499');
+INSERT INTO stats.shots VALUES (95, 28, 3, 2, 1, '00:02:00', 57, false, false, '2025-01-29 21:14:24.146839');
+INSERT INTO stats.shots VALUES (96, 28, 27, 2, 1, '00:06:07', 58, false, false, '2025-01-29 21:14:43.602289');
+INSERT INTO stats.shots VALUES (97, 28, 50, 3, 1, '00:10:19', 59, false, false, '2025-01-29 21:15:04.370381');
+INSERT INTO stats.shots VALUES (98, 28, 3, 2, 1, '00:16:24', 60, false, false, '2025-01-29 21:15:30.877857');
+INSERT INTO stats.shots VALUES (99, 28, 10, 2, 2, '00:06:10', 61, false, false, '2025-01-29 21:15:51.825065');
+INSERT INTO stats.shots VALUES (100, 28, 11, 3, 2, '00:10:23', 62, false, true, '2025-01-29 21:16:33.02304');
+INSERT INTO stats.shots VALUES (101, 28, 3, 2, 3, '00:05:24', 63, false, false, '2025-01-29 21:16:54.817298');
+INSERT INTO stats.shots VALUES (102, 28, 30, 2, 3, '00:12:56', 64, false, false, '2025-01-29 21:17:20.732602');
+INSERT INTO stats.shots VALUES (103, 28, 10, 2, 3, '00:17:17', 65, false, false, '2025-01-29 21:18:11.70895');
+INSERT INTO stats.shots VALUES (104, 34, 10, 2, 3, '00:19:50', 66, false, false, '2025-01-30 19:29:25.066441');
+INSERT INTO stats.shots VALUES (109, 46, 94, 8, 1, '00:03:12', 70, false, false, '2025-01-31 12:48:22.164783');
+INSERT INTO stats.shots VALUES (110, 46, 13, 7, 1, '00:03:13', 71, false, false, '2025-01-31 12:48:49.32671');
+INSERT INTO stats.shots VALUES (111, 46, 4, 8, 1, '00:07:19', 72, false, false, '2025-01-31 12:49:13.951748');
+INSERT INTO stats.shots VALUES (112, 46, 93, 8, 2, '00:11:20', 73, false, false, '2025-01-31 12:49:39.545655');
+INSERT INTO stats.shots VALUES (113, 46, 4, 8, 3, '00:16:21', 74, false, false, '2025-01-31 12:49:58.812247');
+INSERT INTO stats.shots VALUES (114, 47, 1, 5, 1, '00:09:00', 75, false, false, '2025-01-31 13:49:17.016808');
+INSERT INTO stats.shots VALUES (115, 47, 1, 5, 1, '00:13:17', 76, false, true, '2025-01-31 13:50:09.756151');
+INSERT INTO stats.shots VALUES (117, 47, 14, 9, 2, '00:03:11', NULL, false, false, '2025-01-31 13:51:29.431308');
+INSERT INTO stats.shots VALUES (118, 47, 66, 5, 2, '00:05:12', NULL, false, false, '2025-01-31 14:03:58.495521');
+INSERT INTO stats.shots VALUES (119, 47, 14, 9, 2, '00:08:13', 77, false, false, '2025-01-31 14:04:31.83424');
+INSERT INTO stats.shots VALUES (120, 47, 68, 5, 3, '00:18:56', 78, false, false, '2025-01-31 14:04:53.660301');
+INSERT INTO stats.shots VALUES (121, 43, 12, 6, 2, '00:10:24', 79, false, false, '2025-01-31 14:06:18.160428');
+INSERT INTO stats.shots VALUES (122, 43, 12, 6, 3, '00:14:25', 80, false, false, '2025-01-31 14:09:45.235912');
+INSERT INTO stats.shots VALUES (124, 43, 63, 5, 3, '00:19:23', 82, false, false, '2025-01-31 14:11:04.931927');
+INSERT INTO stats.shots VALUES (125, 43, 74, 6, 3, '00:19:44', 83, false, false, '2025-01-31 14:14:42.811083');
+INSERT INTO stats.shots VALUES (126, 48, 4, 8, 1, '00:10:00', 84, false, false, '2025-01-31 14:22:50.340325');
+INSERT INTO stats.shots VALUES (127, 48, 12, 6, 1, '00:15:00', 85, false, false, '2025-01-31 14:23:05.020307');
+INSERT INTO stats.shots VALUES (128, 48, 12, 6, 2, '00:07:00', 86, false, false, '2025-01-31 14:23:28.613506');
+INSERT INTO stats.shots VALUES (130, 48, 12, 6, 3, '00:13:06', 87, false, false, '2025-01-31 14:24:19.14811');
+INSERT INTO stats.shots VALUES (131, 34, 9, 4, 1, '00:19:51', 88, false, false, '2025-01-31 14:51:01.648853');
+INSERT INTO stats.shots VALUES (132, 34, 5, 4, 2, '00:06:38', 89, false, true, '2025-01-31 14:51:58.873246');
+INSERT INTO stats.shots VALUES (133, 34, 5, 4, 3, '00:07:37', 90, false, false, '2025-01-31 14:52:32.574245');
+INSERT INTO stats.shots VALUES (135, 49, 10, 2, 1, '00:15:00', 92, false, false, '2025-01-31 16:13:08.181947');
+INSERT INTO stats.shots VALUES (136, 49, 63, 5, 2, '00:07:18', 93, false, false, '2025-01-31 16:13:22.437177');
+INSERT INTO stats.shots VALUES (137, 49, 3, 2, 2, '00:11:19', NULL, false, false, '2025-01-31 16:13:31.262792');
+INSERT INTO stats.shots VALUES (138, 49, 1, 5, 2, '00:15:20', NULL, false, false, '2025-01-31 16:13:46.281404');
+INSERT INTO stats.shots VALUES (139, 49, 3, 2, 3, '00:08:21', 94, false, false, '2025-01-31 16:14:16.68463');
 
-ALTER SEQUENCE stats.shots_shot_id_seq RESTART WITH 104;
+ALTER SEQUENCE stats.shots_shot_id_seq RESTART WITH 140;
 
 -- Saves
 -- INSERT INTO stats.saves
@@ -1735,20 +1788,20 @@ ALTER SEQUENCE stats.shots_shot_id_seq RESTART WITH 104;
 --   (31, 26, 1, 15, 3, '00:15:15', false, true)
 -- ;
 
-INSERT INTO stats.saves (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound, created_on) VALUES (1, 31, 26, 1, 1, 1, '00:05:15', false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.saves (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound, created_on) VALUES (2, 31, 38, 2, 2, 1, '00:07:35', false, true, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.saves (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound, created_on) VALUES (3, 31, 26, 1, 3, 1, '00:09:05', false, true, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.saves (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound, created_on) VALUES (4, 31, 38, 2, 4, 1, '00:10:03', false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.saves (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound, created_on) VALUES (5, 31, 26, 1, 7, 1, '00:17:43', false, true, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.saves (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound, created_on) VALUES (6, 31, 26, 1, 8, 2, '00:01:11', false, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.saves (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound, created_on) VALUES (7, 31, 38, 2, 10, 2, '00:07:15', false, true, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.saves (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound, created_on) VALUES (8, 31, 26, 1, 11, 2, '00:11:15', false, true, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.saves (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound, created_on) VALUES (9, 31, 26, 1, 13, 3, '00:07:12', false, true, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.saves (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound, created_on) VALUES (10, 31, 38, 2, 14, 3, '00:11:56', true, false, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.saves (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound, created_on) VALUES (11, 31, 26, 1, 15, 3, '00:15:15', false, true, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.saves (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound, created_on) VALUES (28, 33, 50, 3, 60, 1, '00:07:02', false, false, '2025-01-28 22:10:08.823041');
-INSERT INTO stats.saves (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound, created_on) VALUES (29, 33, 26, 1, 63, 2, '00:05:47', false, false, '2025-01-28 22:21:11.455121');
-INSERT INTO stats.saves (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound, created_on) VALUES (34, 34, 38, 2, 81, 1, '00:15:18', false, false, '2025-01-29 17:30:20.974172');
-INSERT INTO stats.saves (save_id, game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound, created_on) VALUES (35, 34, 62, 4, 83, 1, '00:17:19', false, false, '2025-01-29 17:31:39.521156');
+INSERT INTO stats.saves VALUES (1, 31, 26, 1, 1, 1, '00:05:15', false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.saves VALUES (2, 31, 38, 2, 2, 1, '00:07:35', false, true, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.saves VALUES (3, 31, 26, 1, 3, 1, '00:09:05', false, true, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.saves VALUES (4, 31, 38, 2, 4, 1, '00:10:03', false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.saves VALUES (5, 31, 26, 1, 7, 1, '00:17:43', false, true, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.saves VALUES (6, 31, 26, 1, 8, 2, '00:01:11', false, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.saves VALUES (7, 31, 38, 2, 10, 2, '00:07:15', false, true, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.saves VALUES (8, 31, 26, 1, 11, 2, '00:11:15', false, true, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.saves VALUES (9, 31, 26, 1, 13, 3, '00:07:12', false, true, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.saves VALUES (10, 31, 38, 2, 14, 3, '00:11:56', true, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.saves VALUES (11, 31, 26, 1, 15, 3, '00:15:15', false, true, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.saves VALUES (28, 33, 50, 3, 60, 1, '00:07:02', false, false, '2025-01-28 22:10:08.823041');
+INSERT INTO stats.saves VALUES (29, 33, 26, 1, 63, 2, '00:05:47', false, false, '2025-01-28 22:21:11.455121');
+INSERT INTO stats.saves VALUES (34, 34, 38, 2, 81, 1, '00:15:18', false, false, '2025-01-29 17:30:20.974172');
+INSERT INTO stats.saves VALUES (39, 49, 38, 2, 138, 2, '00:15:20', false, false, '2025-01-31 16:13:46.285032');
 
-ALTER SEQUENCE stats.saves_save_id_seq RESTART WITH 36;
+ALTER SEQUENCE stats.saves_save_id_seq RESTART WITH 40;

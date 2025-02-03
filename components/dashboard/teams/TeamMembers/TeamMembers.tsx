@@ -17,7 +17,8 @@ export default async function TeamMembers({ teamMembers }: TeamMembersProps) {
 
   // player table settings
   const playerHeadings = [
-    { title: "Name", shorthand: "Name" },
+    { title: "Number", shorthand: "Num" },
+    { title: "Name", shorthand: "Name", highlightCol: true },
     { title: "Position", shorthand: "POS" },
     { title: "Goals", shorthand: "G" },
     { title: "Assists", shorthand: "A" },
@@ -35,7 +36,8 @@ export default async function TeamMembers({ teamMembers }: TeamMembersProps) {
 
   // goalie table settings
   const goalieHeadings = [
-    { title: "Name", shorthand: "Name" },
+    { title: "Number", shorthand: "Num" },
+    { title: "Name", shorthand: "Name", highlightCol: true },
     { title: "Shots Against", shorthand: "SA" },
     { title: "Saves", shorthand: "SV" },
     { title: "Goals Against", shorthand: "GA" },
@@ -53,7 +55,12 @@ export default async function TeamMembers({ teamMembers }: TeamMembersProps) {
           <thead>
             <tr>
               {playerHeadings.map((th) => (
-                <th key={th.title} scope="col" title={th.title}>
+                <th
+                  key={th.title}
+                  data-highlight-col={th.highlightCol ? true : undefined}
+                  scope="col"
+                  title={th.title}
+                >
                   <span aria-hidden="true">{th.shorthand}</span>
                 </th>
               ))}
@@ -69,7 +76,8 @@ export default async function TeamMembers({ teamMembers }: TeamMembersProps) {
                     key={p.user_id}
                     data-highlighted={isUser ? true : undefined}
                   >
-                    <th scope="row">
+                    <td>{p.number}</td>
+                    <th scope="row" data-highlight-col>
                       <Link href={`/dashboard/u/${p.username}`}>
                         {nameDisplay(p.first_name, p.last_name, "full")}
                       </Link>
@@ -95,7 +103,12 @@ export default async function TeamMembers({ teamMembers }: TeamMembersProps) {
           <thead>
             <tr>
               {goalieHeadings.map((th) => (
-                <th key={th.title} scope="col" title={th.title}>
+                <th
+                  key={th.title}
+                  scope="col"
+                  title={th.title}
+                  data-highlight-col={th.highlightCol ? true : undefined}
+                >
                   <span aria-hidden="true">{th.shorthand}</span>
                 </th>
               ))}
@@ -106,6 +119,7 @@ export default async function TeamMembers({ teamMembers }: TeamMembersProps) {
               if (p.position === "Goalie")
                 return (
                   <tr key={p.user_id}>
+                    <td>{p.number}</td>
                     <th scope="row">
                       <Link href={`/dashboard/u/${p.username}`}>
                         {p.first_name} {p.last_name}

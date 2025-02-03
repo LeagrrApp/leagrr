@@ -87,6 +87,7 @@ export function nameDisplay(
     | "initials"
     | "first_initial"
     | "last_initial",
+  last_name_first?: boolean,
 ): string {
   switch (style) {
     case "first_name":
@@ -94,12 +95,24 @@ export function nameDisplay(
     case "last_name":
       return last_name;
     case "initials":
+      if (last_name_first) {
+        return makeAcronym(`${last_name} ${first_name}`);
+      }
       return makeAcronym(`${first_name} ${last_name}`);
     case "first_initial":
+      if (last_name_first) {
+        return `${last_name}, ${first_name.substring(0, 1)}.`;
+      }
       return `${first_name.substring(0, 1)}. ${last_name}`;
     case "last_initial":
+      if (last_name_first) {
+        return `${last_name.substring(0, 1)}., ${first_name}`;
+      }
       return `${first_name} ${last_name.substring(0, 1)}.`;
     default:
+      if (last_name_first) {
+        return `${last_name}, ${first_name}`;
+      }
       return `${first_name} ${last_name}`;
   }
 }

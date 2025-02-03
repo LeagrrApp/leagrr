@@ -198,12 +198,17 @@ export async function verifyLeagueAdminRole(
 export async function canEditLeague(
   league: number | string,
   commissionerOnly?: boolean,
-): Promise<{ canEdit: boolean; role: string | undefined }> {
+): Promise<{ canEdit: boolean; role: RoleData | undefined }> {
   // check if they are a site wide admin
   const isAdmin = await verifyUserRole(1);
 
-  // set the role name
-  let role: string | undefined = isAdmin ? "admin" : undefined;
+  // set the role data if site wide admin
+  let role: RoleData | undefined = isAdmin
+    ? {
+        role: 1,
+        title: "Site Admin",
+      }
+    : undefined;
 
   // set initial canEdit to whether or not user is site wide admin
   let canEdit = isAdmin;
@@ -220,7 +225,7 @@ export async function canEditLeague(
         ? leagueAdminResult === 1
         : leagueAdminResult === 1 || leagueAdminResult === 2;
       // set name of role
-      role = league_roles.get(leagueAdminResult)?.name;
+      role = league_roles.get(leagueAdminResult);
     }
   }
 
@@ -442,10 +447,9 @@ export async function deleteLeague(state: { league_id: number }) {
   // query the database
   const deleteResult = await db
     .query(sql, [state.league_id])
-    .then((res) => {
+    .then(() => {
       return {
         message: "League deleted",
-        data: res.rows[0],
         status: 200,
       };
     })
@@ -456,7 +460,9 @@ export async function deleteLeague(state: { league_id: number }) {
       };
     });
 
-  redirect("/dashboard/");
+  if (deleteResult.status === 400) {
+    return deleteResult;
+  }
 
-  return deleteResult;
+  redirect("/dashboard/");
 }

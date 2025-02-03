@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import css from "./modalConfirmAction.module.css";
 import Grid from "@/components/ui/layout/Grid";
 import Button, { ButtonProps } from "@/components/ui/Button/Button";

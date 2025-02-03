@@ -121,10 +121,16 @@ export const color_options: readonly [string, ...string[]] = [
   "yellow",
 ];
 
-export const league_roles = new Map<
-  number,
-  { league_role_id: number; name: string }
->();
+export const league_roles = new Map<number, RoleData>();
 
-league_roles.set(1, { league_role_id: 1, name: "Commissioner" });
-league_roles.set(2, { league_role_id: 2, name: "Manager" });
+league_roles.set(1, { role: 1, title: "Commissioner" });
+league_roles.set(2, { role: 2, title: "Manager" });
+
+export const team_roles = new Map<number, RoleData>();
+
+team_roles.set(1, { role: 1, title: "Manager" });
+team_roles.set(2, { role: 2, title: "Coach" });
+team_roles.set(2, { role: 3, title: "Captain" });
+team_roles.set(2, { role: 4, title: "Alternate Captain" });
+team_roles.set(2, { role: 5, title: "Player" });
+team_roles.set(2, { role: 6, title: "Spare" });

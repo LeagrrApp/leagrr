@@ -5,8 +5,11 @@ import { check_string_is_color_hex } from "@/utils/helpers/validators";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getDivisionStandings } from "./divisions";
+import { getUserRole, verifyUserRole } from "./users";
+import { team_roles } from "@/lib/definitions";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 
-const TeamFormSchema = z.object({
+const CreateTeamSchema = z.object({
   user_id: z.number().min(1),
   name: z
     .string()
@@ -17,7 +20,6 @@ const TeamFormSchema = z.object({
   custom_color: z.string().refine(check_string_is_color_hex, {
     message: "Invalid color format.",
   }),
-  join_code: z.string().trim().optional(),
 });
 
 type TeamErrorProps = {
@@ -26,7 +28,6 @@ type TeamErrorProps = {
   description?: string[] | undefined;
   color?: string[] | undefined;
   custom_color?: string[] | undefined;
-  join_code?: string[] | undefined;
 };
 
 type TeamFormState =
@@ -52,10 +53,9 @@ export async function createTeam(
     description: formData.get("description") as string,
     color: formData.get("color") as string,
     custom_color: (formData.get("custom_color") as string) || "#000",
-    join_code: formData.get("join_code") as string,
   };
 
-  const validatedFields = TeamFormSchema.safeParse(teamData);
+  const validatedFields = CreateTeamSchema.safeParse(teamData);
 
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
@@ -68,9 +68,9 @@ export async function createTeam(
   // create insert statement
   const teamInsertSql = `
     INSERT INTO league_management.teams
-      (name, description, color, join_code)
+      (name, description, color)
     VALUES
-      ($1, $2, $3, $4)
+      ($1, $2, $3)
     RETURNING
       slug, team_id
   `;
@@ -80,17 +80,10 @@ export async function createTeam(
     teamData.color !== "custom" ? teamData.color : teamData.custom_color;
   if (color === "") color = null;
 
-  const join_code = teamData.join_code !== "" ? teamData.join_code : null;
-
   // query database
   const teamInsertResult: ResultProps<{ slug: string; team_id: number }> =
     await db
-      .query(teamInsertSql, [
-        teamData.name,
-        teamData.description,
-        color,
-        join_code,
-      ])
+      .query(teamInsertSql, [teamData.name, teamData.description, color])
       .then((res) => {
         return {
           message: `${teamData.name} successfully created!`,
@@ -119,6 +112,10 @@ export async function createTeam(
   const teamMembershipInsertResult = await db
     .query(teamMembershipSql, [teamData.user_id, teamInsertResult.data.team_id])
     .then((res) => {
+      if (res.rowCount === 0) {
+        throw new Error("Unable to add user as team manager.");
+      }
+
       return {
         message: `Team member added!`,
         status: 200,
@@ -135,11 +132,23 @@ export async function createTeam(
   if (teamMembershipInsertResult.status === 400) {
     // TODO: delete the league on this error
 
+    const deleteSql = `
+      DELETE FROM league_management.teams
+      WHERE team_id = $1
+    `;
+
+    await db.query(deleteSql, [teamInsertResult.data.team_id]);
+
     return teamMembershipInsertResult;
+
+    // return {
+    //   message: "There was an error creating team. Try again.",
+    //   status: 400,
+    // };
   }
 
   // Success route, redirect to the new league page
-  redirect(`/dashboard/t/${teamInsertResult.data}`);
+  redirect(createDashboardUrl({ t: teamInsertResult.data.slug }));
 }
 
 export async function getTeamRole(team: string | number) {
@@ -190,7 +199,54 @@ export async function getTeamRole(team: string | number) {
 export async function verifyTeamRoleLevel(
   team: string | number,
   roleLevel: number,
-) {}
+) {
+  const teamRole = await getTeamRole(team);
+
+  if (!teamRole) return false;
+
+  return teamRole <= roleLevel;
+}
+
+export async function canEditTeam(
+  team: string | number,
+  managerOnly?: boolean,
+): Promise<{
+  canEdit: boolean;
+  role: RoleData | undefined;
+}> {
+  // check if they are a site wide admin
+  const isAdmin = await verifyUserRole(1);
+
+  // set the role data if site wide admin
+  let role: RoleData | undefined = isAdmin
+    ? {
+        role: 1,
+        title: "Site Admin",
+      }
+    : undefined;
+
+  // set initial canEdit to whether or not user is site wide admin
+  let canEdit = isAdmin;
+
+  // skip additional database query if we already know user has permission
+  if (!canEdit) {
+    // check for league admin privileges
+    const teamRole = await getTeamRole(team);
+
+    // verify which role the user has
+    if (teamRole) {
+      // set canEdit based on whether it is a commissionerOnly check or not
+      canEdit = managerOnly ? teamRole === 1 : teamRole <= 4;
+      // set name of role
+      role = team_roles.get(teamRole);
+    }
+  }
+
+  return {
+    canEdit,
+    role,
+  };
+}
 
 export async function getTeam(
   slug: string,
@@ -204,7 +260,6 @@ export async function getTeam(
       slug,
       name,
       description,
-      join_code,
       status,
       color
     FROM
@@ -373,6 +428,7 @@ export async function getTeamMembers(team_id: number, division_id: number) {
       u.pronouns,
       u.email,
       tm.position,
+      tm.number,
       tm.team_role,
       (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = tm.user_id AND g.game_id IN (
         SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
@@ -464,4 +520,134 @@ export async function getTeamDashboardData(
     teamMembers,
     divisionStandings,
   };
+}
+
+const EditTeamSchema = z.object({
+  team_id: z.number().min(1),
+  name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters long." })
+    .trim(),
+  description: z.string().trim().optional(),
+  color: z.string().optional(),
+  custom_color: z.string().refine(check_string_is_color_hex, {
+    message: "Invalid color format.",
+  }),
+});
+
+export async function editTeam(
+  state: TeamFormState,
+  formData: FormData,
+): Promise<TeamFormState> {
+  // get data from form
+  const teamData = {
+    team_id: parseInt(formData.get("team_id") as string),
+    name: formData.get("name") as string,
+    description: formData.get("description") as string,
+    color: formData.get("color") as string,
+    custom_color: (formData.get("custom_color") as string) || "#000",
+  };
+
+  // Validate data
+  const validatedFields = EditTeamSchema.safeParse(teamData);
+
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    return {
+      data: teamData,
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  // Check if user can edit
+  const { canEdit } = await canEditTeam(teamData.team_id);
+
+  if (!canEdit) {
+    // failed role check, shortcut out
+    return {
+      message: "You do not have permission to edit this team.",
+      status: 401,
+    };
+  }
+
+  let color: string | null =
+    teamData.color !== "custom" ? teamData.color : teamData.custom_color;
+  if (color === "") color = null;
+
+  const sql = `
+    UPDATE league_management.teams
+    SET
+      name = $1,
+      description = $2,
+      color = $3
+    WHERE
+      team_id = $4
+    RETURNING
+      slug
+  `;
+
+  // query database
+  const result: ResultProps<{ slug: string }> = await db
+    .query(sql, [teamData.name, teamData.description, color, teamData.team_id])
+    .then((res) => {
+      return {
+        message: `${teamData.name} successfully created!`,
+        status: 200,
+        data: res.rows[0],
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  console.log(result);
+
+  if (result?.data?.slug)
+    redirect(createDashboardUrl({ t: result?.data?.slug }));
+
+  return result;
+}
+
+export async function deleteTeam(state: { team_id: number }) {
+  // Check if user can delete
+  const siteAdmin = await verifyUserRole(1);
+
+  // if not, short circuit
+  if (!siteAdmin)
+    return {
+      state: {
+        team_id: state.team_id,
+        message: "You do not have permission to delete this team",
+        status: 401,
+      },
+    };
+
+  const sql = `
+    DELETE FROM league_management.teams
+    WHERE team_id = $1
+  `;
+
+  const result = await db
+    .query(sql, [state.team_id])
+    .then(() => {
+      return {
+        message: "League deleted",
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (result.status === 400) {
+    return result;
+  }
+
+  redirect("/dashboard/t");
 }

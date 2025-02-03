@@ -21,7 +21,6 @@ type TeamData = {
   slug: string;
   name: string;
   description?: string;
-  join_code?: string;
   status?: "active" | "inactive" | "suspended" | "banned";
   color?: string;
 };
@@ -182,6 +181,11 @@ type StatLeaderBoardItem = {
   last_name: string;
   username: string;
   count: number;
+};
+
+type RoleData = {
+  role: number;
+  title: string;
 };
 
 // type ShotStatData = BaseStatsData & {
