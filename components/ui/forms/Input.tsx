@@ -1,13 +1,8 @@
 "use client";
 
-import {
-  ChangeEventHandler,
-  PropsWithChildren,
-  useEffect,
-  useState,
-} from "react";
-import css from "./forms.module.css";
+import { ChangeEvent, PropsWithChildren, useEffect, useState } from "react";
 import Alert from "../Alert/Alert";
+import css from "./forms.module.css";
 
 interface InputWrapProps {
   isPassword: boolean;
@@ -25,7 +20,7 @@ interface InputProps extends Partial<HTMLInputElement> {
   label?: string;
   labelAfter?: boolean;
   labelAsPlaceholder?: boolean;
-  onChange?: ChangeEventHandler;
+  onChange?(e: ChangeEvent<HTMLInputElement>): any;
   errors?: {
     errs?: string[];
     type?: string;

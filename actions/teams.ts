@@ -142,6 +142,56 @@ export async function createTeam(
   redirect(`/dashboard/t/${teamInsertResult.data}`);
 }
 
+export async function getTeamRole(team: string | number) {
+  // verify logged in and get user_id
+  const { user_id } = await verifySession();
+
+  const sql = `
+    SELECT 
+      team_role,
+      t.team_id
+    FROM
+      league_management.team_memberships AS tm
+    JOIN
+      league_management.teams AS T
+    ON
+      t.team_id = tm.team_id
+    WHERE
+      tm.user_id = $1
+      AND
+      ${typeof team === "string" ? "t.slug" : "t.team_id"} = $2
+  `;
+
+  const result: ResultProps<{ team_role: number }> = await db
+    .query(sql, [user_id, team])
+    .then((res) => {
+      if (res.rowCount === 0) {
+        return {
+          message: "User does not have a role on this team.",
+          status: 401,
+        };
+      }
+      return {
+        message: "User role found!",
+        status: 200,
+        data: res.rows[0],
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  return result?.data?.team_role;
+}
+
+export async function verifyTeamRoleLevel(
+  team: string | number,
+  roleLevel: number,
+) {}
+
 export async function getTeam(
   slug: string,
 ): Promise<ResultProps<TeamPageData>> {

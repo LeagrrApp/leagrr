@@ -5,8 +5,10 @@ import {
 } from "@/actions/teams";
 import DashboardUnit from "@/components/dashboard/DashboardUnit/DashboardUnit";
 import DashboardUnitHeader from "@/components/dashboard/DashboardUnitHeader/DashboardUnitHeader";
+import DivisionStandings from "@/components/dashboard/divisions/DivisionStandings/DivisionStandings";
 import GamePreview from "@/components/dashboard/games/GamePreview/GamePreview";
-import TeamHeader from "@/components/dashboard/teams/TeamHeader/TeamHeader";
+import TeamMembers from "@/components/dashboard/teams/TeamMembers/TeamMembers";
+import Button from "@/components/ui/Button/Button";
 import Card from "@/components/ui/Card/Card";
 import Container from "@/components/ui/Container/Container";
 import Icon from "@/components/ui/Icon/Icon";
@@ -16,9 +18,6 @@ import {
 } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
 import css from "./page.module.css";
-import Button from "@/components/ui/Button/Button";
-import TeamMembers from "@/components/dashboard/teams/TeamMembers/TeamMembers";
-import DivisionStandings from "@/components/dashboard/divisions/DivisionStandings/DivisionStandings";
 
 export async function generateMetadata({
   params,
@@ -60,13 +59,10 @@ export default async function Page({
 
   if (divisions.length === 0) {
     return (
-      <>
-        <TeamHeader team={teamData} canEdit={true} divisions={divisions} />
-        <Container>
-          <h2>This team is not in any divisions yet.</h2>
-          <Button href="#">Join a division</Button>
-        </Container>
-      </>
+      <Container>
+        <h2>This team is not in any divisions yet.</h2>
+        <Button href="#">Join a division</Button>
+      </Container>
     );
   }
 
@@ -85,90 +81,76 @@ export default async function Page({
     await getTeamDashboardData(team_id, currentDivision.division_id);
 
   return (
-    <>
-      <TeamHeader team={teamData} canEdit={true} divisions={divisions} />
+    <Container className={css.team_grid}>
+      <DashboardUnit gridArea="next_game">
+        <DashboardUnitHeader>
+          <h2>
+            <Icon label="Next Game" icon="event_upcoming" labelFirst gap="m" />
+          </h2>
+        </DashboardUnitHeader>
+        {nextGame ? (
+          <GamePreview game={nextGame} includeGameLink />
+        ) : (
+          <Card padding="base">
+            <p>There are no upcoming games.</p>
+          </Card>
+        )}
+      </DashboardUnit>
+      <DashboardUnit gridArea="prev_game">
+        <DashboardUnitHeader>
+          <h2>
+            <Icon label="Last Game" icon="event_available" labelFirst gap="m" />
+          </h2>
+        </DashboardUnitHeader>
+        {prevGame ? (
+          <GamePreview
+            game={prevGame}
+            currentTeam={teamData.team_id}
+            includeGameLink
+          />
+        ) : (
+          <Card padding="base">
+            <p>There is no completed game data.</p>
+          </Card>
+        )}
+      </DashboardUnit>
 
-      <Container className={css.team_grid}>
-        <DashboardUnit gridArea="next_game">
-          <DashboardUnitHeader>
-            <h2>
-              <Icon
-                label="Next Game"
-                icon="event_upcoming"
-                labelFirst
-                gap="m"
-              />
-            </h2>
-          </DashboardUnitHeader>
-          {nextGame ? (
-            <GamePreview game={nextGame} includeGameLink />
-          ) : (
-            <Card padding="base">
-              <p>There are no upcoming games.</p>
-            </Card>
-          )}
-        </DashboardUnit>
-        <DashboardUnit gridArea="prev_game">
-          <DashboardUnitHeader>
-            <h2>
-              <Icon
-                label="Last Game"
-                icon="event_available"
-                labelFirst
-                gap="m"
-              />
-            </h2>
-          </DashboardUnitHeader>
-          {prevGame ? (
-            <GamePreview
-              game={prevGame}
-              currentTeam={teamData.team_id}
-              includeGameLink
-            />
-          ) : (
-            <Card padding="base">
-              <p>There is no completed game data.</p>
-            </Card>
-          )}
-        </DashboardUnit>
+      <DashboardUnit gridArea="members">
+        <DashboardUnitHeader>
+          <h2>
+            <Icon label="Team Members" icon="group" labelFirst gap="m" />
+          </h2>
+        </DashboardUnitHeader>
+        <TeamMembers teamMembers={teamMembers} />
+      </DashboardUnit>
 
-        <DashboardUnit gridArea="members">
-          <DashboardUnitHeader>
-            <h2>
-              <Icon label="Team Members" icon="group" labelFirst gap="m" />
-            </h2>
-          </DashboardUnitHeader>
-          <TeamMembers teamMembers={teamMembers} />
-        </DashboardUnit>
-
-        <DashboardUnit gridArea="leagues">
-          <DashboardUnitHeader>
-            <h2>
-              <Icon label="Standings" icon="trophy" labelFirst gap="m" />
-            </h2>
-            <Button
-              href={createDashboardUrl({
-                l: currentDivision.league_slug,
-                s: currentDivision.season_slug,
-                d: currentDivision.division_slug,
-              })}
-            >
-              View League
-            </Button>
-          </DashboardUnitHeader>
-          {divisionStandings && divisionStandings.length > 0 ? (
-            <DivisionStandings
-              teams={divisionStandings}
-              currentTeam={teamData.team_id}
-              division_id={currentDivision.division_id}
-            />
-          ) : (
-            <Card padding="ml">
-              <p>Standings are currently unavailable</p>
-            </Card>
-          )}
-        </DashboardUnit>
-      </Container>
-    </>
+      <DashboardUnit gridArea="leagues">
+        <DashboardUnitHeader>
+          <h2>
+            <Icon label="Standings" icon="trophy" labelFirst gap="m" />
+          </h2>
+          <Button
+            href={createDashboardUrl({
+              l: currentDivision.league_slug,
+              s: currentDivision.season_slug,
+              d: currentDivision.division_slug,
+            })}
+          >
+            View League
+          </Button>
+        </DashboardUnitHeader>
+        {divisionStandings && divisionStandings.length > 0 ? (
+          <DivisionStandings
+            teams={divisionStandings}
+            currentTeam={teamData.team_id}
+            division_id={currentDivision.division_id}
+          />
+        ) : (
+          <Card padding="ml">
+            <p>Standings are currently unavailable</p>
+          </Card>
+        )}
+      </DashboardUnit>
+    </Container>
   );
 }

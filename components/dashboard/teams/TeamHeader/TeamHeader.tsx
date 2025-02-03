@@ -36,7 +36,7 @@ export default function TeamHeader({
   if (status === "suspended") badgeColor = "caution";
   if (status === "banned") badgeColor = "danger";
 
-  const editLink = `/dashboard/l/${slug}/edit`;
+  const editLink = `/dashboard/t/${slug}/edit`;
 
   return (
     <DHeader

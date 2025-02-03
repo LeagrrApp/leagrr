@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEventHandler, useState } from "react";
+import { ChangeEvent, ChangeEventHandler, useState } from "react";
 import css from "./forms.module.css";
 import Alert from "../Alert/Alert";
 import { apply_classes } from "@/utils/helpers/html-attributes";
@@ -9,7 +9,7 @@ interface CheckboxProps extends Partial<HTMLInputElement> {
   label?: string;
   labelFirst?: boolean;
   labelAsPlaceholder?: boolean;
-  onChange?: ChangeEventHandler;
+  onChange?(e: ChangeEvent<HTMLInputElement>): any;
   errors?: {
     errs?: string[];
     type?: string;

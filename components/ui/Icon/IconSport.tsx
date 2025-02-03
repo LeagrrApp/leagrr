@@ -2,7 +2,7 @@ import { AnchorHTMLAttributes } from "react";
 import Icon from "./Icon";
 
 interface IconSportProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
-  sport: "hockey" | "soccer" | "basketball" | "pickleball" | "badminton";
+  sport: string;
   label: string;
   hideLabel?: boolean;
   size?: FontSizeOptions;

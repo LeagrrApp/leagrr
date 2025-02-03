@@ -1,6 +1,4 @@
-import DHeader from "@/components/dashboard/DHeader/DHeader";
-import CreateLeague from "@/components/dashboard/leagues/CreateLeague";
-import Container from "@/components/ui/Container/Container";
+import CreateLeague from "@/components/dashboard/leagues/CreateLeague/CreateLeague";
 import { verifySession } from "@/lib/session";
 import { redirect } from "next/navigation";
 
@@ -9,14 +7,5 @@ export default async function Page() {
 
   if (user_role !== (1 || 2)) redirect("/dashboard");
 
-  return (
-    <>
-      <DHeader>
-        <h1>Create a League</h1>
-      </DHeader>
-      <Container>
-        <CreateLeague user_id={user_id} />
-      </Container>
-    </>
-  );
+  return <CreateLeague user_id={user_id} />;
 }
