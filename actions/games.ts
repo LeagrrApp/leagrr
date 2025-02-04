@@ -627,7 +627,11 @@ export async function setGameScore(
   redirect(state.link);
 }
 
-export async function getTeamGameStats(game_id: number, team_id: number) {
+export async function getTeamGameStats(
+  game_id: number,
+  team_id: number,
+  division_id: number,
+) {
   // verify user is signed in
   await verifySession();
 
@@ -649,18 +653,26 @@ export async function getTeamGameStats(game_id: number, team_id: number) {
       (SELECT COUNT(*) FROM stats.saves AS sa WHERE sa.user_id = tm.user_id AND sa.game_id = $1)::int AS saves,
       (SELECT SUM(minutes) FROM stats.penalties AS p WHERE p.user_id = tm.user_id AND p.game_id = $1)::int AS penalties_in_minutes
     FROM
+      league_management.division_rosters AS dr
+    JOIN
       league_management.team_memberships AS tm
+    ON
+      dr.team_membership_id = tm.team_membership_id
     JOIN
       admin.users AS u
     ON
-      u.user_id = tm.user_id
+      tm.user_id = u.user_id
+    JOIN
+      league_management.division_teams AS dt
+    ON
+      dt.division_team_id = dr.division_team_id
     WHERE
-      tm.team_id = $2
+      dt.team_id = $2 AND dt.division_id = $3
     ORDER BY points DESC, goals DESC, assists DESC, shots DESC, last_name ASC, first_name ASC
   `;
 
   const teamGameStatsResult: ResultProps<PlayerStats[]> = await db
-    .query(sql, [game_id, team_id])
+    .query(sql, [game_id, team_id, division_id])
     .then((res) => {
       return {
         message: "Player stats loaded",
@@ -966,6 +978,7 @@ export async function getGameFeed(game_id: number): Promise<
 export async function getGameTeamRosters(
   away_team_id: number,
   home_team_id: number,
+  division_id: number,
 ) {
   // verify user is signed in
   await verifySession();
@@ -978,21 +991,27 @@ export async function getGameTeamRosters(
       u.last_name,
       tm.position
     FROM
-      league_management.team_memberships as tm
+      league_management.division_rosters AS dr
+    JOIN
+      league_management.team_memberships AS tm
+    ON
+      dr.team_membership_id = tm.team_membership_id
     JOIN
       admin.users AS u
     ON
-      u.user_id = tm.user_id
+      tm.user_id = u.user_id
+    JOIN
+      league_management.division_teams AS dt
+    ON
+      dt.division_team_id = dr.division_team_id
     WHERE
-      team_id = $1
-      OR
-      team_id = $2
+      dt.team_id IN ($1, $2) AND dt.division_id = $3
     ORDER BY
       tm.team_id, u.last_name, u.first_name
   `;
 
   const rosterResult: ResultProps<TeamRosterItem[]> = await db
-    .query(rostersSql, [away_team_id, home_team_id])
+    .query(rostersSql, [away_team_id, home_team_id, division_id])
     .then((res) => {
       return {
         message: "Rosters loaded",

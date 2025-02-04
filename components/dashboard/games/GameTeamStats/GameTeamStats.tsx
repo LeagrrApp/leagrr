@@ -28,6 +28,7 @@ export default async function GameTeamStats({
   const { data: teamGameStates } = await getTeamGameStats(
     game.game_id,
     team.team_id,
+    game.division_id,
   );
 
   if (!teamGameStates)

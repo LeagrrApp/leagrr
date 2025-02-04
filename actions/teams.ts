@@ -427,8 +427,62 @@ export async function getTeamMembers(team_id: number, division_id: number) {
   // confirm logged in
   await verifySession();
 
+  // out of date version that looks at all team members, not just current division members
+  // const sql = `
+  //   SELECT
+  //     u.user_id,
+  //     u.first_name,
+  //     u.last_name,
+  //     u.username,
+  //     u.pronouns,
+  //     u.email,
+  //     tm.position,
+  //     tm.number,
+  //     tm.team_role,
+  //     (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = tm.user_id AND g.game_id IN (
+  //       SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+  //     ))::int AS goals,
+  //     (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = tm.user_id AND a.game_id IN (
+  //       SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+  //     ))::int AS assists,
+  //     (
+  //       (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = tm.user_id AND g.game_id IN (
+  //       SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+  //     )) +
+  //       (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = tm.user_id AND a.game_id IN (
+  //       SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+  //     ))
+  //     )::int AS points,
+  //     (SELECT COUNT(*) FROM stats.shots AS s WHERE s.user_id = tm.user_id AND s.game_id IN (
+  //       SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+  //     ))::int AS shots,
+  //     (SELECT COALESCE(SUM(minutes), 0) FROM stats.penalties AS p WHERE p.user_id = tm.user_id AND p.game_id IN (
+  //     SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+  //     ))::int AS penalties_in_minutes,
+  //     (SELECT COUNT(*) FROM stats.saves AS sa WHERE sa.user_id = tm.user_id AND sa.game_id IN (
+  //       SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+  //     ))::int AS saves,
+  //     (SELECT COUNT(*) FROM stats.goals AS goal WHERE goal.team_id != $1 AND goal.game_id IN (
+  //       SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+  //     ))::int AS goals_against,
+  //     (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id != $1 AND sh.game_id IN (
+  //       SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
+  //     ))::int AS shots_against
+  //   FROM
+  //     league_management.team_memberships AS tm
+  //   JOIN
+  //     admin.users AS u
+  //   ON
+  //     u.user_id = tm.user_id
+  //   WHERE
+  //     tm.team_id = $1
+  //   ORDER BY points DESC, goals DESC, assists DESC, shots DESC, last_name ASC, first_name ASC
+  // `;
+
+  // new version, references team members of the specific division's roster, not all team members
   const sql = `
-    SELECT
+    SELECT 
+      tm.team_id,
       u.user_id,
       u.first_name,
       u.last_name,
@@ -461,20 +515,28 @@ export async function getTeamMembers(team_id: number, division_id: number) {
       (SELECT COUNT(*) FROM stats.saves AS sa WHERE sa.user_id = tm.user_id AND sa.game_id IN (
         SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
       ))::int AS saves,
-      (SELECT COUNT(*) FROM stats.goals AS goal WHERE goal.team_id != $1 AND goal.game_id IN (
+      (SELECT COUNT(*) FROM stats.goals AS goal WHERE goal.team_id != 2 AND goal.game_id IN (
         SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
       ))::int AS goals_against,
-      (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id != $1 AND sh.game_id IN (
+      (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id != 2 AND sh.game_id IN (
         SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
       ))::int AS shots_against
     FROM
+      league_management.division_rosters AS dr
+    JOIN
       league_management.team_memberships AS tm
+    ON
+      dr.team_membership_id = tm.team_membership_id
     JOIN
       admin.users AS u
     ON
-      u.user_id = tm.user_id
+      tm.user_id = u.user_id
+    JOIN
+      league_management.division_teams AS dt
+    ON
+      dt.division_team_id = dr.division_team_id
     WHERE
-      tm.team_id = $1
+      dt.team_id = $1 AND dt.division_id = $2
     ORDER BY points DESC, goals DESC, assists DESC, shots DESC, last_name ASC, first_name ASC
   `;
 

@@ -794,19 +794,23 @@ export async function getDivisionStatLeaders(
         (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = u.user_id AND a.game_id IN (SELECT game_id FROM league_management.games WHERE division_id = $1 AND status = 'completed'))	
       )::int AS count
     FROM
-      admin.users AS u
+      league_management.division_teams AS dt
+    JOIN
+      league_management.division_rosters AS dr
+    ON
+      dr.division_team_id = dt.division_team_id
     JOIN
       league_management.team_memberships AS tm
+    ON
+      tm.team_membership_id = dr.team_membership_id
+    JOIN
+      admin.users AS u
     ON
       u.user_id = tm.user_id
     JOIN
       league_management.teams AS t
     ON
       t.team_id = tm.team_id
-    JOIN
-      league_management.division_teams AS dt
-    ON
-      t.team_id = dt.team_id
     WHERE
       dt.division_id = $1
     ORDER BY count DESC, u.last_name ASC, u.first_name ASC

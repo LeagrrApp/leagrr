@@ -614,7 +614,7 @@ ADD CONSTRAINT fk_division_teams_team_id FOREIGN KEY (team_id)
 CREATE TABLE league_management.division_rosters (
   division_roster_id    SERIAL NOT NULL PRIMARY KEY,
   division_team_id      INT,
-  user_id               INT,
+  team_membership_id    INT,
   created_on            TIMESTAMP DEFAULT NOW()
 );
 
@@ -623,8 +623,8 @@ ADD CONSTRAINT fk_division_rosters_division_team_id FOREIGN KEY (division_team_i
     REFERENCES league_management.division_teams (division_team_id) ON DELETE CASCADE;
 
 ALTER TABLE league_management.division_rosters
-ADD CONSTRAINT fk_division_rosters_user_id FOREIGN KEY (user_id)
-    REFERENCES admin.users (user_id) ON DELETE CASCADE;
+ADD CONSTRAINT fk_division_rosters_team_membership_id FOREIGN KEY (team_membership_id)
+    REFERENCES league_management.team_memberships (team_membership_id) ON DELETE CASCADE;
 
 -- Create league_management.playoffs
 -- Create a playoff round that is connected to a division and is assigned a playoff_structure
@@ -1043,107 +1043,107 @@ VALUES
 INSERT INTO admin.users
   (username, email, first_name, last_name, gender, pronouns, user_role, password_hash)
 VALUES
-  ('lukasbauer', 'lukas.bauer@example.com', 'Lukas', 'Bauer', 'Man', 'he/him', 3, 'heyLukas123'),
-  ('emmaschmidt', 'emma.schmidt@example.com', 'Emma', 'Schmidt', 'Woman', 'she/her', 3, 'heyEmma123'),
-  ('liammüller', 'liam.mueller@example.com', 'Liam', 'Müller', 'Man', 'he/him', 3, 'heyLiam123'),
-  ('hannahfischer', 'hannah.fischer@example.com', 'Hannah', 'Fischer', 'Woman', 'she/her', 3, 'heyHanna123'),
-  ('oliverkoch', 'oliver.koch@example.com', 'Oliver', 'Koch', 'Man', 'he/him', 3, 'heyOliver123'),
-  ('clararichter', 'clara.richter@example.com', 'Clara', 'Richter', 'Woman', 'she/her', 3, 'heyClara123'),
-  ('noahtaylor', 'noah.taylor@example.com', 'Noah', 'Taylor', 'Man', 'he/him', 3, 'heyNoah123'),
-  ('lisahoffmann', 'lisa.hoffmann@example.com', 'Lisa', 'Hoffmann', 'Woman', 'she/her', 3, 'heyLisa123'),
-  ('matteorossetti', 'matteo.rossetti@example.com', 'Matteo', 'Rossetti', 'Man', 'he/him', 3, 'heyMatteo123'),
-  ('giuliarossi', 'giulia.rossi@example.com', 'Giulia', 'Rossi', 'Woman', 'she/her', 3, 'heyGiulia123'),
-  ('danielebrown', 'daniele.brown@example.com', 'Daniele', 'Brown', 'Non-binary/Non-conforming', 'they/them', 3, 'heyDaniele123'),
-  ('sofialopez', 'sofia.lopez@example.com', 'Sofia', 'Lopez', 'Woman', 'she/her', 3, 'heySofia123'),
-  ('sebastienmartin', 'sebastien.martin@example.com', 'Sebastien', 'Martin', 'Man', 'he/him', 3, 'heySebastien123'),
-  ('elisavolkova', 'elisa.volkova@example.com', 'Elisa', 'Volkova', 'Woman', 'she/her', 3, 'heyElisa123'),
-  ('adriangarcia', 'adrian.garcia@example.com', 'Adrian', 'Garcia', 'Man', 'he/him', 3, 'heyAdrian123'),
-  ('amelialeroux', 'amelia.leroux@example.com', 'Amelia', 'LeRoux', 'Woman', 'she/her', 3, 'heyAmelia123'),
-  ('kasperskov', 'kasper.skov@example.com', 'Kasper', 'Skov', 'Man', 'he/him', 3, 'heyKasper123'),
-  ('elinefransen', 'eline.fransen@example.com', 'Eline', 'Fransen', 'Woman', 'she/her', 3, 'heyEline123'),
-  ('andreakovacs', 'andrea.kovacs@example.com', 'Andrea', 'Kovacs', 'Non-binary/Non-conforming', 'they/them', 3, 'heyAndrea123'),
-  ('petersmith', 'peter.smith@example.com', 'Peter', 'Smith', 'Man', 'he/him', 3, 'heyPeter123'),
-  ('janinanowak', 'janina.nowak@example.com', 'Janina', 'Nowak', 'Woman', 'she/her', 3, 'heyJanina123'),
-  ('niklaspetersen', 'niklas.petersen@example.com', 'Niklas', 'Petersen', 'Man', 'he/him', 3, 'heyNiklas123'),
-  ('martakalinski', 'marta.kalinski@example.com', 'Marta', 'Kalinski', 'Woman', 'she/her', 3, 'heyMarta123'),
-  ('tomasmarquez', 'tomas.marquez@example.com', 'Tomas', 'Marquez', 'Man', 'he/him', 3, 'heyTomas123'),
-  ('ireneschneider', 'irene.schneider@example.com', 'Irene', 'Schneider', 'Woman', 'she/her', 3, 'heyIrene123'),
-  ('maximilianbauer', 'maximilian.bauer@example.com', 'Maximilian', 'Bauer', 'Man', 'he/him', 3, 'heyMaximilian123'),
-  ('annaschaefer', 'anna.schaefer@example.com', 'Anna', 'Schaefer', 'Woman', 'she/her', 3, 'heyAnna123'),
-  ('lucasvargas', 'lucas.vargas@example.com', 'Lucas', 'Vargas', 'Man', 'he/him', 3, 'heyLucas123'),
-  ('sofiacosta', 'sofia.costa@example.com', 'Sofia', 'Costa', 'Woman', 'she/her', 3, 'heySofia123'),
-  ('alexanderricci', 'alexander.ricci@example.com', 'Alexander', 'Ricci', 'Man', 'he/him', 3, 'heyAlexander123'),
-  ('noemiecaron', 'noemie.caron@example.com', 'Noemie', 'Caron', 'Woman', 'she/her', 3, 'heyNoemie123'),
-  ('pietrocapello', 'pietro.capello@example.com', 'Pietro', 'Capello', 'Man', 'he/him', 3, 'heyPietro123'),
-  ('elisabethjensen', 'elisabeth.jensen@example.com', 'Elisabeth', 'Jensen', 'Woman', 'she/her', 3, 'heyElisabeth123'),
-  ('dimitripapadopoulos', 'dimitri.papadopoulos@example.com', 'Dimitri', 'Papadopoulos', 'Man', 'he/him', 3, 'heyDimitri123'),
-  ('marielaramos', 'mariela.ramos@example.com', 'Mariela', 'Ramos', 'Woman', 'she/her', 3, 'heyMariela123'),
-  ('valeriekeller', 'valerie.keller@example.com', 'Valerie', 'Keller', 'Woman', 'she/her', 3, 'heyValerie123'),
-  ('dominikbauer', 'dominik.bauer@example.com', 'Dominik', 'Bauer', 'Man', 'he/him', 3, 'heyDominik123'),
-  ('evaweber', 'eva.weber@example.com', 'Eva', 'Weber', 'Woman', 'she/her', 3, 'heyEva123'),
-  ('sebastiancortes', 'sebastian.cortes@example.com', 'Sebastian', 'Cortes', 'Man', 'he/him', 3, 'heySebastian123'),
-  ('manongarcia', 'manon.garcia@example.com', 'Manon', 'Garcia', 'Woman', 'she/her', 3, 'heyManon123'),
-  ('benjaminflores', 'benjamin.flores@example.com', 'Benjamin', 'Flores', 'Man', 'he/him', 3, 'heyBenjamin123'),
-  ('saradalgaard', 'sara.dalgaard@example.com', 'Sara', 'Dalgaard', 'Woman', 'she/her', 3, 'heySara123'),
-  ('jonasmartinez', 'jonas.martinez@example.com', 'Jonas', 'Martinez', 'Man', 'he/him', 3, 'heyJonas123'),
-  ('alessiadonati', 'alessia.donati@example.com', 'Alessia', 'Donati', 'Woman', 'she/her', 3, 'heyAlessia123'),
-  ('lucaskovac', 'lucas.kovac@example.com', 'Lucas', 'Kovac', 'Non-binary/Non-conforming', 'they/them', 3, 'heyLucas123'),
-  ('emiliekoch', 'emilie.koch@example.com', 'Emilie', 'Koch', 'Woman', 'she/her', 3, 'heyEmilie123'),
-  ('danieljones', 'daniel.jones@example.com', 'Daniel', 'Jones', 'Man', 'he/him', 3, 'heyDaniel123'),
-  ('mathildevogel', 'mathilde.vogel@example.com', 'Mathilde', 'Vogel', 'Woman', 'she/her', 3, 'heyMathilde123'),
-  ('thomasleroux', 'thomas.leroux@example.com', 'Thomas', 'LeRoux', 'Man', 'he/him', 3, 'heyThomas123'),
-  ('angelaperez', 'angela.perez@example.com', 'Angela', 'Perez', 'Woman', 'she/her', 3, 'heyAngela123'),
-  ('henrikstrom', 'henrik.strom@example.com', 'Henrik', 'Strom', 'Man', 'he/him', 3, 'heyHenrik123'),
-  ('paulinaklein', 'paulina.klein@example.com', 'Paulina', 'Klein', 'Woman', 'she/her', 3, 'heyPaulina123'),
-  ('raphaelgonzalez', 'raphael.gonzalez@example.com', 'Raphael', 'Gonzalez', 'Man', 'he/him', 3, 'heyRaphael123'),
-  ('annaluisachavez', 'anna-luisa.chavez@example.com', 'Anna-Luisa', 'Chavez', 'Woman', 'she/her', 3, 'heyAnna-Luisa123'),
-  ('fabiomercier', 'fabio.mercier@example.com', 'Fabio', 'Mercier', 'Man', 'he/him', 3, 'heyFabio123'),
-  ('nataliefischer', 'natalie.fischer@example.com', 'Natalie', 'Fischer', 'Woman', 'she/her', 3, 'heyNatalie123'),
-  ('georgmayer', 'georg.mayer@example.com', 'Georg', 'Mayer', 'Man', 'he/him', 3, 'heyGeorg123'),
-  ('julianweiss', 'julian.weiss@example.com', 'Julian', 'Weiss', 'Man', 'he/him', 3, 'heyJulian123'),
-  ('katharinalopez', 'katharina.lopez@example.com', 'Katharina', 'Lopez', 'Woman', 'she/her', 3, 'heyKatharina123'),
-  ('simonealvarez', 'simone.alvarez@example.com', 'Simone', 'Alvarez', 'Non-binary/Non-conforming', 'they/them', 3, 'heySimone123'),
-  ('frederikschmidt', 'frederik.schmidt@example.com', 'Frederik', 'Schmidt', 'Man', 'he/him', 3, 'heyFrederik123'),
-  ('mariakoval', 'maria.koval@example.com', 'Maria', 'Koval', 'Woman', 'she/her', 3, 'heyMaria123'),
-  ('lukemccarthy', 'luke.mccarthy@example.com', 'Luke', 'McCarthy', 'Man', 'he/him', 3, 'heyLuke123'),
-  ('larissahansen', 'larissa.hansen@example.com', 'Larissa', 'Hansen', 'Woman', 'she/her', 3, 'heyLarissa123'),
-  ('adamwalker', 'adam.walker@example.com', 'Adam', 'Walker', 'Man', 'he/him', 3, 'heyAdam123'),
-  ('paolamendes', 'paola.mendes@example.com', 'Paola', 'Mendes', 'Woman', 'she/her', 3, 'heyPaola123'),
-  ('ethanwilliams', 'ethan.williams@example.com', 'Ethan', 'Williams', 'Man', 'he/him', 3, 'heyEthan123'),
-  ('evastark', 'eva.stark@example.com', 'Eva', 'Stark', 'Woman', 'she/her', 3, 'heyEva123'),
-  ('juliankovacic', 'julian.kovacic@example.com', 'Julian', 'Kovacic', 'Man', 'he/him', 3, 'heyJulian123'),
-  ('ameliekrause', 'amelie.krause@example.com', 'Amelie', 'Krause', 'Woman', 'she/her', 3, 'heyAmelie123'),
-  ('ryanschneider', 'ryan.schneider@example.com', 'Ryan', 'Schneider', 'Man', 'he/him', 3, 'heyRyan123'),
-  ('monikathomsen', 'monika.thomsen@example.com', 'Monika', 'Thomsen', 'Woman', 'she/her', 3, 'heyMonika123'),
-  ('daniellefoster', 'danielle.foster@example.com', 'Danielle', 'Foster', 4, 'she/her', 3, 'heyDanielle123'),
-  ('harrykhan', 'harry.khan@example.com', 'Harry', 'Khan', 'Man', 'he/him', 3, 'heyHarry123'),
-  ('sophielindgren', 'sophie.lindgren@example.com', 'Sophie', 'Lindgren', 'Woman', 'she/her', 3, 'heySophie123'),
-  ('oskarpetrov', 'oskar.petrov@example.com', 'Oskar', 'Petrov', 'Man', 'he/him', 3, 'heyOskar123'),
-  ('lindavon', 'linda.von@example.com', 'Linda', 'Von', 'Woman', 'she/her', 3, 'heyLinda123'),
-  ('andreaspeicher', 'andreas.peicher@example.com', 'Andreas', 'Peicher', 'Man', 'he/him', 3, 'heyAndreas123'),
-  ('josephinejung', 'josephine.jung@example.com', 'Josephine', 'Jung', 'Woman', 'she/her', 3, 'heyJosephine123'),
-  ('marianapaz', 'mariana.paz@example.com', 'Mariana', 'Paz', 'Woman', 'she/her', 3, 'heyMariana123'),
-  ('fionaberg', 'fiona.berg@example.com', 'Fiona', 'Berg', 'Woman', 'she/her', 3, 'heyFiona123'),
-  ('joachimkraus', 'joachim.kraus@example.com', 'Joachim', 'Kraus', 'Man', 'he/him', 3, 'heyJoachim123'),
-  ('michellebauer', 'michelle.bauer@example.com', 'Michelle', 'Bauer', 'Woman', 'she/her', 3, 'heyMichelle123'),
-  ('mariomatteo', 'mario.matteo@example.com', 'Mario', 'Matteo', 'Man', 'he/him', 3, 'heyMario123'),
-  ('elizabethsmith', 'elizabeth.smith@example.com', 'Elizabeth', 'Smith', 'Woman', 'she/her', 3, 'heyElizabeth123'),
-  ('ianlennox', 'ian.lennox@example.com', 'Ian', 'Lennox', 'Man', 'he/him', 3, 'heyIan123'),
-  ('evabradley', 'eva.bradley@example.com', 'Eva', 'Bradley', 'Woman', 'she/her', 3, 'heyEva123'),
-  ('francescoantoni', 'francesco.antoni@example.com', 'Francesco', 'Antoni', 'Man', 'he/him', 3, 'heyFrancesco123'),
-  ('celinebrown', 'celine.brown@example.com', 'Celine', 'Brown', 'Woman', 'she/her', 3, 'heyCeline123'),
-  ('georgiamills', 'georgia.mills@example.com', 'Georgia', 'Mills', 'Woman', 'she/her', 3, 'heyGeorgia123'),
-  ('antoineclark', 'antoine.clark@example.com', 'Antoine', 'Clark', 'Man', 'he/him', 3, 'heyAntoine123'),
-  ('valentinwebb', 'valentin.webb@example.com', 'Valentin', 'Webb', 'Man', 'he/him', 3, 'heyValentin123'),
-  ('oliviamorales', 'olivia.morales@example.com', 'Olivia', 'Morales', 'Woman', 'she/her', 3, 'heyOlivia123'),
-  ('mathieuhebert', 'mathieu.hebert@example.com', 'Mathieu', 'Hebert', 'Man', 'he/him', 3, 'heyMathieu123'),
-  ('rosepatel', 'rose.patel@example.com', 'Rose', 'Patel', 'Woman', 'she/her', 3, 'heyRose123'),
-  ('travisrichards', 'travis.richards@example.com', 'Travis', 'Richards', 'Man', 'he/him', 3, 'heyTravis123'),
-  ('josefinklein', 'josefinklein@example.com', 'Josefin', 'Klein', 'Woman', 'she/her', 3, 'heyJosefin123'),
-  ('finnandersen', 'finn.andersen@example.com', 'Finn', 'Andersen', 'Man', 'he/him', 3, 'heyFinn123'),
-  ('sofiaparker', 'sofia.parker@example.com', 'Sofia', 'Parker', 'Woman', 'she/her', 3, 'heySofia123'),
-  ('theogibson', 'theo.gibson@example.com', 'Theo', 'Gibson', 'Man', 'he/him', 3, 'heyTheo123'),
-  ('floose', 'floose@example.com', 'Floose', 'McGoose', 3, 'any/all', 1, '$2b$10$7pjrECYElk1ithndcAhtcuPytB2Hc8DiDi3e8gAEXYcfIjOVZdEfS')
+  ('lukasbauer', 'lukas.bauer@example.com', 'Lukas', 'Bauer', 'Man', 'he/him', 3, 'heyLukas123'), -- 15
+  ('emmaschmidt', 'emma.schmidt@example.com', 'Emma', 'Schmidt', 'Woman', 'she/her', 3, 'heyEmma123'), -- 16
+  ('liammüller', 'liam.mueller@example.com', 'Liam', 'Müller', 'Man', 'he/him', 3, 'heyLiam123'), -- 17
+  ('hannahfischer', 'hannah.fischer@example.com', 'Hannah', 'Fischer', 'Woman', 'she/her', 3, 'heyHanna123'), -- 18
+  ('oliverkoch', 'oliver.koch@example.com', 'Oliver', 'Koch', 'Man', 'he/him', 3, 'heyOliver123'), -- 19
+  ('clararichter', 'clara.richter@example.com', 'Clara', 'Richter', 'Woman', 'she/her', 3, 'heyClara123'), -- 20
+  ('noahtaylor', 'noah.taylor@example.com', 'Noah', 'Taylor', 'Man', 'he/him', 3, 'heyNoah123'), -- 21
+  ('lisahoffmann', 'lisa.hoffmann@example.com', 'Lisa', 'Hoffmann', 'Woman', 'she/her', 3, 'heyLisa123'), -- 22
+  ('matteorossetti', 'matteo.rossetti@example.com', 'Matteo', 'Rossetti', 'Man', 'he/him', 3, 'heyMatteo123'), -- 23
+  ('giuliarossi', 'giulia.rossi@example.com', 'Giulia', 'Rossi', 'Woman', 'she/her', 3, 'heyGiulia123'), -- 24
+  ('danielebrown', 'daniele.brown@example.com', 'Daniele', 'Brown', 'Non-binary/Non-conforming', 'they/them', 3, 'heyDaniele123'), -- 25
+  ('sofialopez', 'sofia.lopez@example.com', 'Sofia', 'Lopez', 'Woman', 'she/her', 3, 'heySofia123'), -- 26
+  ('sebastienmartin', 'sebastien.martin@example.com', 'Sebastien', 'Martin', 'Man', 'he/him', 3, 'heySebastien123'), -- 27
+  ('elisavolkova', 'elisa.volkova@example.com', 'Elisa', 'Volkova', 'Woman', 'she/her', 3, 'heyElisa123'), -- 28
+  ('adriangarcia', 'adrian.garcia@example.com', 'Adrian', 'Garcia', 'Man', 'he/him', 3, 'heyAdrian123'), -- 29
+  ('amelialeroux', 'amelia.leroux@example.com', 'Amelia', 'LeRoux', 'Woman', 'she/her', 3, 'heyAmelia123'), -- 30
+  ('kasperskov', 'kasper.skov@example.com', 'Kasper', 'Skov', 'Man', 'he/him', 3, 'heyKasper123'), -- 31
+  ('elinefransen', 'eline.fransen@example.com', 'Eline', 'Fransen', 'Woman', 'she/her', 3, 'heyEline123'), -- 32
+  ('andreakovacs', 'andrea.kovacs@example.com', 'Andrea', 'Kovacs', 'Non-binary/Non-conforming', 'they/them', 3, 'heyAndrea123'), -- 33
+  ('petersmith', 'peter.smith@example.com', 'Peter', 'Smith', 'Man', 'he/him', 3, 'heyPeter123'), -- 34
+  ('janinanowak', 'janina.nowak@example.com', 'Janina', 'Nowak', 'Woman', 'she/her', 3, 'heyJanina123'), -- 35
+  ('niklaspetersen', 'niklas.petersen@example.com', 'Niklas', 'Petersen', 'Man', 'he/him', 3, 'heyNiklas123'), -- 36
+  ('martakalinski', 'marta.kalinski@example.com', 'Marta', 'Kalinski', 'Woman', 'she/her', 3, 'heyMarta123'), -- 37
+  ('tomasmarquez', 'tomas.marquez@example.com', 'Tomas', 'Marquez', 'Man', 'he/him', 3, 'heyTomas123'), -- 38
+  ('ireneschneider', 'irene.schneider@example.com', 'Irene', 'Schneider', 'Woman', 'she/her', 3, 'heyIrene123'), -- 39
+  ('maximilianbauer', 'maximilian.bauer@example.com', 'Maximilian', 'Bauer', 'Man', 'he/him', 3, 'heyMaximilian123'), -- 40
+  ('annaschaefer', 'anna.schaefer@example.com', 'Anna', 'Schaefer', 'Woman', 'she/her', 3, 'heyAnna123'), -- 41
+  ('lucasvargas', 'lucas.vargas@example.com', 'Lucas', 'Vargas', 'Man', 'he/him', 3, 'heyLucas123'), -- 42
+  ('sofiacosta', 'sofia.costa@example.com', 'Sofia', 'Costa', 'Woman', 'she/her', 3, 'heySofia123'), -- 43
+  ('alexanderricci', 'alexander.ricci@example.com', 'Alexander', 'Ricci', 'Man', 'he/him', 3, 'heyAlexander123'), -- 44
+  ('noemiecaron', 'noemie.caron@example.com', 'Noemie', 'Caron', 'Woman', 'she/her', 3, 'heyNoemie123'), -- 45
+  ('pietrocapello', 'pietro.capello@example.com', 'Pietro', 'Capello', 'Man', 'he/him', 3, 'heyPietro123'), -- 46
+  ('elisabethjensen', 'elisabeth.jensen@example.com', 'Elisabeth', 'Jensen', 'Woman', 'she/her', 3, 'heyElisabeth123'), -- 47
+  ('dimitripapadopoulos', 'dimitri.papadopoulos@example.com', 'Dimitri', 'Papadopoulos', 'Man', 'he/him', 3, 'heyDimitri123'), -- 48
+  ('marielaramos', 'mariela.ramos@example.com', 'Mariela', 'Ramos', 'Woman', 'she/her', 3, 'heyMariela123'), -- 49
+  ('valeriekeller', 'valerie.keller@example.com', 'Valerie', 'Keller', 'Woman', 'she/her', 3, 'heyValerie123'), -- 50
+  ('dominikbauer', 'dominik.bauer@example.com', 'Dominik', 'Bauer', 'Man', 'he/him', 3, 'heyDominik123'), -- 51
+  ('evaweber', 'eva.weber@example.com', 'Eva', 'Weber', 'Woman', 'she/her', 3, 'heyEva123'), -- 52
+  ('sebastiancortes', 'sebastian.cortes@example.com', 'Sebastian', 'Cortes', 'Man', 'he/him', 3, 'heySebastian123'), -- 53
+  ('manongarcia', 'manon.garcia@example.com', 'Manon', 'Garcia', 'Woman', 'she/her', 3, 'heyManon123'), -- 54
+  ('benjaminflores', 'benjamin.flores@example.com', 'Benjamin', 'Flores', 'Man', 'he/him', 3, 'heyBenjamin123'), -- 55
+  ('saradalgaard', 'sara.dalgaard@example.com', 'Sara', 'Dalgaard', 'Woman', 'she/her', 3, 'heySara123'), -- 56
+  ('jonasmartinez', 'jonas.martinez@example.com', 'Jonas', 'Martinez', 'Man', 'he/him', 3, 'heyJonas123'), -- 57
+  ('alessiadonati', 'alessia.donati@example.com', 'Alessia', 'Donati', 'Woman', 'she/her', 3, 'heyAlessia123'), -- 58
+  ('lucaskovac', 'lucas.kovac@example.com', 'Lucas', 'Kovac', 'Non-binary/Non-conforming', 'they/them', 3, 'heyLucas123'), -- 59
+  ('emiliekoch', 'emilie.koch@example.com', 'Emilie', 'Koch', 'Woman', 'she/her', 3, 'heyEmilie123'), -- 60
+  ('danieljones', 'daniel.jones@example.com', 'Daniel', 'Jones', 'Man', 'he/him', 3, 'heyDaniel123'), -- 61
+  ('mathildevogel', 'mathilde.vogel@example.com', 'Mathilde', 'Vogel', 'Woman', 'she/her', 3, 'heyMathilde123'), -- 62
+  ('thomasleroux', 'thomas.leroux@example.com', 'Thomas', 'LeRoux', 'Man', 'he/him', 3, 'heyThomas123'), -- 63
+  ('angelaperez', 'angela.perez@example.com', 'Angela', 'Perez', 'Woman', 'she/her', 3, 'heyAngela123'), -- 64
+  ('henrikstrom', 'henrik.strom@example.com', 'Henrik', 'Strom', 'Man', 'he/him', 3, 'heyHenrik123'), -- 65
+  ('paulinaklein', 'paulina.klein@example.com', 'Paulina', 'Klein', 'Woman', 'she/her', 3, 'heyPaulina123'), -- 66
+  ('raphaelgonzalez', 'raphael.gonzalez@example.com', 'Raphael', 'Gonzalez', 'Man', 'he/him', 3, 'heyRaphael123'), -- 67
+  ('annaluisachavez', 'anna-luisa.chavez@example.com', 'Anna-Luisa', 'Chavez', 'Woman', 'she/her', 3, 'heyAnna-Luisa123'), -- 68
+  ('fabiomercier', 'fabio.mercier@example.com', 'Fabio', 'Mercier', 'Man', 'he/him', 3, 'heyFabio123'), -- 69
+  ('nataliefischer', 'natalie.fischer@example.com', 'Natalie', 'Fischer', 'Woman', 'she/her', 3, 'heyNatalie123'), -- 70
+  ('georgmayer', 'georg.mayer@example.com', 'Georg', 'Mayer', 'Man', 'he/him', 3, 'heyGeorg123'), -- 71
+  ('julianweiss', 'julian.weiss@example.com', 'Julian', 'Weiss', 'Man', 'he/him', 3, 'heyJulian123'), -- 72
+  ('katharinalopez', 'katharina.lopez@example.com', 'Katharina', 'Lopez', 'Woman', 'she/her', 3, 'heyKatharina123'), -- 73
+  ('simonealvarez', 'simone.alvarez@example.com', 'Simone', 'Alvarez', 'Non-binary/Non-conforming', 'they/them', 3, 'heySimone123'), -- 74
+  ('frederikschmidt', 'frederik.schmidt@example.com', 'Frederik', 'Schmidt', 'Man', 'he/him', 3, 'heyFrederik123'), -- 75
+  ('mariakoval', 'maria.koval@example.com', 'Maria', 'Koval', 'Woman', 'she/her', 3, 'heyMaria123'), -- 76
+  ('lukemccarthy', 'luke.mccarthy@example.com', 'Luke', 'McCarthy', 'Man', 'he/him', 3, 'heyLuke123'), -- 77
+  ('larissahansen', 'larissa.hansen@example.com', 'Larissa', 'Hansen', 'Woman', 'she/her', 3, 'heyLarissa123'), -- 78
+  ('adamwalker', 'adam.walker@example.com', 'Adam', 'Walker', 'Man', 'he/him', 3, 'heyAdam123'), -- 79
+  ('paolamendes', 'paola.mendes@example.com', 'Paola', 'Mendes', 'Woman', 'she/her', 3, 'heyPaola123'), -- 80
+  ('ethanwilliams', 'ethan.williams@example.com', 'Ethan', 'Williams', 'Man', 'he/him', 3, 'heyEthan123'), -- 81
+  ('evastark', 'eva.stark@example.com', 'Eva', 'Stark', 'Woman', 'she/her', 3, 'heyEva123'), -- 82
+  ('juliankovacic', 'julian.kovacic@example.com', 'Julian', 'Kovacic', 'Man', 'he/him', 3, 'heyJulian123'), -- 83
+  ('ameliekrause', 'amelie.krause@example.com', 'Amelie', 'Krause', 'Woman', 'she/her', 3, 'heyAmelie123'), -- 84
+  ('ryanschneider', 'ryan.schneider@example.com', 'Ryan', 'Schneider', 'Man', 'he/him', 3, 'heyRyan123'), -- 85
+  ('monikathomsen', 'monika.thomsen@example.com', 'Monika', 'Thomsen', 'Woman', 'she/her', 3, 'heyMonika123'), -- 86
+  ('daniellefoster', 'danielle.foster@example.com', 'Danielle', 'Foster', 4, 'she/her', 3, 'heyDanielle123'), -- 87
+  ('harrykhan', 'harry.khan@example.com', 'Harry', 'Khan', 'Man', 'he/him', 3, 'heyHarry123'), -- 88
+  ('sophielindgren', 'sophie.lindgren@example.com', 'Sophie', 'Lindgren', 'Woman', 'she/her', 3, 'heySophie123'), -- 89
+  ('oskarpetrov', 'oskar.petrov@example.com', 'Oskar', 'Petrov', 'Man', 'he/him', 3, 'heyOskar123'), -- 90
+  ('lindavon', 'linda.von@example.com', 'Linda', 'Von', 'Woman', 'she/her', 3, 'heyLinda123'), -- 91
+  ('andreaspeicher', 'andreas.peicher@example.com', 'Andreas', 'Peicher', 'Man', 'he/him', 3, 'heyAndreas123'), -- 92
+  ('josephinejung', 'josephine.jung@example.com', 'Josephine', 'Jung', 'Woman', 'she/her', 3, 'heyJosephine123'), -- 93
+  ('marianapaz', 'mariana.paz@example.com', 'Mariana', 'Paz', 'Woman', 'she/her', 3, 'heyMariana123'), -- 94
+  ('fionaberg', 'fiona.berg@example.com', 'Fiona', 'Berg', 'Woman', 'she/her', 3, 'heyFiona123'), -- 95
+  ('joachimkraus', 'joachim.kraus@example.com', 'Joachim', 'Kraus', 'Man', 'he/him', 3, 'heyJoachim123'), -- 96
+  ('michellebauer', 'michelle.bauer@example.com', 'Michelle', 'Bauer', 'Woman', 'she/her', 3, 'heyMichelle123'), -- 97
+  ('mariomatteo', 'mario.matteo@example.com', 'Mario', 'Matteo', 'Man', 'he/him', 3, 'heyMario123'), -- 98
+  ('elizabethsmith', 'elizabeth.smith@example.com', 'Elizabeth', 'Smith', 'Woman', 'she/her', 3, 'heyElizabeth123'), -- 99
+  ('ianlennox', 'ian.lennox@example.com', 'Ian', 'Lennox', 'Man', 'he/him', 3, 'heyIan123'), -- 100
+  ('evabradley', 'eva.bradley@example.com', 'Eva', 'Bradley', 'Woman', 'she/her', 3, 'heyEva123'), -- 101
+  ('francescoantoni', 'francesco.antoni@example.com', 'Francesco', 'Antoni', 'Man', 'he/him', 3, 'heyFrancesco123'), -- 102
+  ('celinebrown', 'celine.brown@example.com', 'Celine', 'Brown', 'Woman', 'she/her', 3, 'heyCeline123'), -- 103
+  ('georgiamills', 'georgia.mills@example.com', 'Georgia', 'Mills', 'Woman', 'she/her', 3, 'heyGeorgia123'), -- 104
+  ('antoineclark', 'antoine.clark@example.com', 'Antoine', 'Clark', 'Man', 'he/him', 3, 'heyAntoine123'), -- 105
+  ('valentinwebb', 'valentin.webb@example.com', 'Valentin', 'Webb', 'Man', 'he/him', 3, 'heyValentin123'), -- 106
+  ('oliviamorales', 'olivia.morales@example.com', 'Olivia', 'Morales', 'Woman', 'she/her', 3, 'heyOlivia123'), -- 107
+  ('mathieuhebert', 'mathieu.hebert@example.com', 'Mathieu', 'Hebert', 'Man', 'he/him', 3, 'heyMathieu123'), -- 108
+  ('rosepatel', 'rose.patel@example.com', 'Rose', 'Patel', 'Woman', 'she/her', 3, 'heyRose123'), -- 109
+  ('travisrichards', 'travis.richards@example.com', 'Travis', 'Richards', 'Man', 'he/him', 3, 'heyTravis123'), -- 110
+  ('josefinklein', 'josefinklein@example.com', 'Josefin', 'Klein', 'Woman', 'she/her', 3, 'heyJosefin123'), -- 111
+  ('finnandersen', 'finn.andersen@example.com', 'Finn', 'Andersen', 'Man', 'he/him', 3, 'heyFinn123'), -- 112
+  ('sofiaparker', 'sofia.parker@example.com', 'Sofia', 'Parker', 'Woman', 'she/her', 3, 'heySofia123'), -- 113
+  ('theogibson', 'theo.gibson@example.com', 'Theo', 'Gibson', 'Man', 'he/him', 3, 'heyTheo123'), -- 114
+  ('floose', 'floose@example.com', 'Floose', 'McGoose', 3, 'any/all', 1, '$2b$10$7pjrECYElk1ithndcAhtcuPytB2Hc8DiDi3e8gAEXYcfIjOVZdEfS') -- 115
 ;
 
 -- Add OPH teams
@@ -1184,123 +1184,123 @@ VALUES
 INSERT INTO league_management.team_memberships
   (user_id, team_id, position, number)
 VALUES
-  (15, 1, 'Center', 8),
-  (16, 1, 'Center', 9),
-  (17, 1, 'Left Wing', 10),
-  (18, 1, 'Left Wing', 11),
-  (19, 1, 'Right Wing', 12),
-  (20, 1, 'Right Wing', 13),
-  (21, 1, 'Center', 14),
-  (22, 1, 'Defense', 15),
-  (23, 1, 'Defense', 16),
-  (24, 1, 'Defense', 17),
-  (25, 1, 'Defense', 18),
-  (26, 1, 'Goalie', 33),
+  (15, 1, 'Center', 8), -- 9
+  (16, 1, 'Center', 9), -- 10
+  (17, 1, 'Left Wing', 10), -- 11
+  (18, 1, 'Left Wing', 11), -- 12
+  (19, 1, 'Right Wing', 12), -- 13
+  (20, 1, 'Right Wing', 13), -- 14
+  (21, 1, 'Center', 14), -- 15
+  (22, 1, 'Defense', 15), -- 16
+  (23, 1, 'Defense', 16), -- 17
+  (24, 1, 'Defense', 17), -- 18
+  (25, 1, 'Defense', 18), -- 19
+  (26, 1, 'Goalie', 33), -- 20
 
-  (27, 2, 'Center', 20),
-  (28, 2, 'Center', 21),
-  (29, 2, 'Center', 22),
-  (30, 2, 'Left Wing', 23),
-  (31, 2, 'Left Wing', 24),
-  (32, 2, 'Right Wing', 25),
-  (33, 2, 'Right Wing', 26),
-  (34, 2, 'Left Wing', 27),
-  (35, 2, 'Right Wing', 28),
-  (36, 2, 'Defense', 29),
-  (37, 2, 'Defense', 30),
-  (38, 2, 'Goalie', 31),
+  (27, 2, 'Center', 20), -- 21
+  (28, 2, 'Center', 21), -- 22
+  (29, 2, 'Center', 22), -- 23
+  (30, 2, 'Left Wing', 23), -- 24
+  (31, 2, 'Left Wing', 24), -- 25
+  (32, 2, 'Right Wing', 25), -- 26
+  (33, 2, 'Right Wing', 26), -- 27
+  (34, 2, 'Left Wing', 27), -- 28
+  (35, 2, 'Right Wing', 28), -- 29
+  (36, 2, 'Defense', 29), -- 30
+  (37, 2, 'Defense', 30), -- 31
+  (38, 2, 'Goalie', 31), -- 32
 
-  (39, 3, 'Center', 40),
-  (40, 3, 'Center', 41),
-  (41, 3, 'Left Wing', 42),
-  (42, 3, 'Left Wing', 43),
-  (43, 3, 'Right Wing', 44),
-  (44, 3, 'Right Wing', 45),
-  (45, 3, 'Center', 46),
-  (46, 3, 'Defense', 47),
-  (47, 3, 'Defense', 48),
-  (48, 3, 'Defense', 49),
-  (49, 3, 'Defense', 50),
-  (50, 3, 'Goalie', 51),
+  (39, 3, 'Center', 40), -- 33
+  (40, 3, 'Center', 41), -- 34
+  (41, 3, 'Left Wing', 42), -- 35
+  (42, 3, 'Left Wing', 43), -- 36
+  (43, 3, 'Right Wing', 44), -- 37
+  (44, 3, 'Right Wing', 45), -- 38
+  (45, 3, 'Center', 46), -- 39
+  (46, 3, 'Defense', 47), -- 40
+  (47, 3, 'Defense', 48), -- 41
+  (48, 3, 'Defense', 49), -- 42
+  (49, 3, 'Defense', 50), -- 43
+  (50, 3, 'Goalie', 51), -- 44
   
-  (51, 4, 'Center', 26),
-  (52, 4, 'Center', 27),
-  (53, 4, 'Left Wing', 28),
-  (54, 4, 'Left Wing', 29),
-  (55, 4, 'Right Wing', 30),
-  (56, 4, 'Right Wing', 31),
-  (57, 4, 'Center', 32),
-  (58, 4, 'Defense', 33),
-  (59, 4, 'Defense', 34),
-  (60, 4, 'Defense', 35),
-  (61, 4, 'Defense', 36),
-  (62, 4, 'Goalie', 37)
+  (51, 4, 'Center', 26), -- 45
+  (52, 4, 'Center', 27), -- 46
+  (53, 4, 'Left Wing', 28), -- 47
+  (54, 4, 'Left Wing', 29), -- 48
+  (55, 4, 'Right Wing', 30), -- 49
+  (56, 4, 'Right Wing', 31), -- 50
+  (57, 4, 'Center', 32), -- 51
+  (58, 4, 'Defense', 33), -- 52
+  (59, 4, 'Defense', 34), -- 53
+  (60, 4, 'Defense', 35), -- 54
+  (61, 4, 'Defense', 36), -- 55
+  (62, 4, 'Goalie', 37) -- 56
 ;
 
 -- Add captains to Hometown Hockey
 INSERT INTO league_management.team_memberships
   (user_id, team_id, team_role, position, number)
 VALUES
-  (1, 5, 3, 'Defense', 93), -- Adam
-  (12, 6, 3, 'Defense', 19), -- Zach
-  (13, 7, 3, 'Defense', 6), -- Andrew
-  (4, 8, 3, 'Defense', 19), -- Caleb
-  (14, 9, 3, 'Left Wing', 9) -- Tim
+  (1, 5, 3, 'Defense', 93), -- Adam - 57
+  (12, 6, 3, 'Defense', 19), -- Zach - 58
+  (13, 7, 3, 'Defense', 6), -- Andrew - 59
+  (4, 8, 3, 'Defense', 19), -- Caleb - 60
+  (14, 9, 3, 'Left Wing', 9) -- Tim - 61
 ;
 
 INSERT INTO league_management.team_memberships
   (user_id, team_id, position, number)
 VALUES
-  (60, 5, null, 60),
-  (61, 5, null, 61),
-  (62, 5, null, 62),
-  (63, 5, null, 63),
-  (64, 5, null, 64),
-  (65, 5, null, 65),
-  (66, 5, null, 66),
-  (67, 5, null, 67),
-  (68, 5, null, 68),
-  (69, 5, 'Goalie', 69),
-  (70, 6, null, 70),
-  (71, 6, null, 71),
-  (72, 6, null, 72),
-  (73, 6, null, 73),
-  (74, 6, null, 74),
-  (75, 6, null, 75),
-  (76, 6, null, 76),
-  (77, 6, null, 77),
-  (78, 6, null, 78),
-  (79, 6, 'Goalie', 79),
-  (80, 7, null, 80),
-  (81, 7, null, 81),
-  (82, 7, null, 82),
-  (83, 7, null, 83),
-  (84, 7, null, 84),
-  (85, 7, null, 85),
-  (86, 7, null, 86),
-  (87, 7, null, 87),
-  (88, 7, null, 88),
-  (89, 7, 'Goalie', 89),
-  (90, 8, null, 90),
-  (91, 8, null, 91),
-  (92, 8, null, 92),
-  (93, 8, null, 93),
-  (94, 8, null, 94),
-  (95, 8, null, 95),
-  (96, 8, null, 96),
-  (97, 8, null, 97),
-  (98, 8, null, 98),
-  (99, 8, 'Goalie', 1),
-  (100, 9, null, 20),
-  (101, 9, null, 21),
-  (102, 9, null, 22),
-  (103, 9, null, 23),
-  (104, 9, null, 24),
-  (105, 9, null, 25),
-  (106, 9, null, 26),
-  (107, 9, null, 27),
-  (108, 9, null, 28),
-  (109, 9, 'Goalie', 29)
+  (60, 5, null, 60), -- 62
+  (61, 5, null, 61), -- 63
+  (62, 5, null, 62), -- 64
+  (63, 5, null, 63), -- 65
+  (64, 5, null, 64), -- 66
+  (65, 5, null, 65), -- 67
+  (66, 5, null, 66), -- 68
+  (67, 5, null, 67), -- 69
+  (68, 5, null, 68), -- 70
+  (69, 5, 'Goalie', 69), -- 71
+  (70, 6, null, 70), -- 72
+  (71, 6, null, 71), -- 73
+  (72, 6, null, 72), -- 74
+  (73, 6, null, 73), -- 75
+  (74, 6, null, 74), -- 76
+  (75, 6, null, 75), -- 77
+  (76, 6, null, 76), -- 78
+  (77, 6, null, 77), -- 79
+  (78, 6, null, 78), -- 80
+  (79, 6, 'Goalie', 79), -- 81
+  (80, 7, null, 80), -- 82
+  (81, 7, null, 81), -- 83
+  (82, 7, null, 82), -- 84
+  (83, 7, null, 83), -- 85
+  (84, 7, null, 84), -- 86
+  (85, 7, null, 85), -- 87
+  (86, 7, null, 86), -- 88
+  (87, 7, null, 87), -- 89
+  (88, 7, null, 88), -- 90
+  (89, 7, 'Goalie', 89), -- 91
+  (90, 8, null, 90), -- 92
+  (91, 8, null, 91), -- 93
+  (92, 8, null, 92), -- 94
+  (93, 8, null, 93), -- 95
+  (94, 8, null, 94), -- 96
+  (95, 8, null, 95), -- 97
+  (96, 8, null, 96), -- 98
+  (97, 8, null, 97), -- 99
+  (98, 8, null, 98), -- 100
+  (99, 8, 'Goalie', 1), -- 101
+  (100, 9, null, 20), -- 102
+  (101, 9, null, 21), -- 103
+  (102, 9, null, 22), -- 104
+  (103, 9, null, 23), -- 105
+  (104, 9, null, 24), -- 106
+  (105, 9, null, 25), -- 107
+  (106, 9, null, 26), -- 108
+  (107, 9, null, 27), -- 109
+  (108, 9, null, 28), -- 110
+  (109, 9, 'Goalie', 29) -- 111
 ;
 
 -- Default leagues
@@ -1375,21 +1375,165 @@ VALUES
 INSERT INTO league_management.division_teams
   (division_id, team_id)
 VALUES
+  (1, 1), -- 1
+  (1, 2), -- 2
+  (1, 3), -- 3
+  (1, 4), -- 4
+  (4, 5), -- 5
+  (4, 6), -- 6
+  (4, 7), -- 7
+  (4, 8), -- 8
+  (4, 9), -- 9
+  (11, 10), -- 10
+  (11, 11), -- 11
+  (11, 12), -- 12
+  (11, 13), -- 13
+  (11, 14), -- 14
+  (4, 2) -- 15
+;
+
+-- Default division_rosters
+-- Put players who have a team role on list for team within specific season
+INSERT INTO league_management.division_rosters
+  (division_team_id, team_membership_id)
+VALUES
+  -- Significant Otters
   (1, 1),
   (1, 2),
-  (1, 3),
-  (1, 4),
-  (4, 5),
-  (4, 6),
+  -- Otterwa Senators
+  (2, 3),
+  (2, 4),
+  -- Otter Chaos
+  (3, 5),
+  (3, 6),
+  -- Otter Nonsense
   (4, 7),
   (4, 8),
-  (4, 9),
-  (11, 10),
-  (11, 11),
-  (11, 12),
-  (11, 13),
-  (11, 14),
-  (4, 2)
+  -- Significant Otters
+  (1, 9),
+  (1, 10),
+  (1, 11),
+  (1, 12),
+  (1, 13),
+  (1, 14),
+  (1, 15),
+  (1, 16),
+  -- (1, 17),
+  -- (1, 18),
+  (1, 19),
+  (1, 20),
+  -- Otterwa Senators
+  (2, 21),
+  (2, 22),
+  -- (2, 23),
+  -- (2, 24),
+  (2, 25),
+  (2, 26),
+  (2, 27),
+  (2, 28),
+  (2, 29),
+  (2, 30),
+  (2, 31),
+  (2, 32),
+  -- Otter Chaos
+  (3, 33),
+  (3, 34),
+  (3, 35),
+  (3, 36),
+  (3, 37),
+  -- (3, 38),
+  (3, 39),
+  (3, 40),
+  (3, 41),
+  (3, 42),
+  -- (3, 43),
+  (3, 44),
+  -- Otter Nonsense
+  (4, 45),
+  -- (4, 46),
+  (4, 47),
+  -- (4, 48),
+  (4, 49),
+  (4, 50),
+  (4, 51),
+  (4, 52),
+  (4, 53),
+  (4, 54),
+  (4, 55),
+  (4, 56),
+
+  (5, 57), -- Adam
+  (6, 58), -- Zach
+  (7, 59), -- Andrew
+  (8, 60), -- Caleb
+  (9, 61), -- Tim
+
+  -- (5, 62),
+  (5, 63),
+  -- (5, 64),
+  (5, 65),
+  (5, 66),
+  (5, 67),
+  (5, 68),
+  (5, 69),
+  (5, 70),
+  (5, 71),
+
+  (6, 72),
+  (6, 73),
+  -- (6, 74),
+  (6, 75),
+  (6, 76),
+  (6, 77),
+  (6, 78),
+  -- (6, 79),
+  (6, 80),
+  (6, 81),
+
+  (7, 82),
+  (7, 83),
+  -- (7, 84),
+  (7, 85),
+  (7, 86),
+  -- (7, 87),
+  (7, 88),
+  (7, 89),
+  (7, 90),
+  (7, 91),
+
+  -- (8, 92),
+  (8, 93),
+  (8, 94),
+  (8, 95),
+  (8, 96),
+  (8, 97),
+  (8, 98),
+  (8, 99),
+  -- (8, 100),
+  (8, 101),
+
+  -- (9, 102),
+  (9, 103),
+  (9, 104),
+  (9, 105),
+  -- (9, 106),
+  (9, 107),
+  (9, 108),
+  (9, 109),
+  (9, 110),
+  (9, 111),
+
+  -- Otterwa Senators - Hometown Hockey
+  (15, 3),
+  (15, 4),
+  (15, 23),
+  (15, 24),
+  (15, 27),
+  (15, 28),
+  (15, 29),
+  (15, 30),
+  (15, 31),
+  (15, 32)
 ;
 
 -- Default list of venues
@@ -1571,7 +1715,7 @@ INSERT INTO stats.goals VALUES (60, 28, 3, 2, 1, '00:16:24', false, false, false
 INSERT INTO stats.goals VALUES (61, 28, 10, 2, 2, '00:06:10', false, false, false, '2025-01-29 21:15:51.815019');
 INSERT INTO stats.goals VALUES (62, 28, 11, 3, 2, '00:10:23', false, true, false, '2025-01-29 21:16:33.015637');
 INSERT INTO stats.goals VALUES (63, 28, 3, 2, 3, '00:05:24', false, false, false, '2025-01-29 21:16:54.809394');
-INSERT INTO stats.goals VALUES (64, 28, 30, 2, 3, '00:12:56', false, false, false, '2025-01-29 21:17:20.723557');
+INSERT INTO stats.goals VALUES (64, 28, 32, 2, 3, '00:12:56', false, false, false, '2025-01-29 21:17:20.723557');
 INSERT INTO stats.goals VALUES (65, 28, 10, 2, 3, '00:17:17', false, false, false, '2025-01-29 21:18:11.700948');
 INSERT INTO stats.goals VALUES (66, 34, 10, 2, 3, '00:19:50', false, false, false, '2025-01-30 19:29:25.056506');
 INSERT INTO stats.goals VALUES (70, 46, 94, 8, 1, '00:03:12', false, false, false, '2025-01-31 12:48:22.153813');
@@ -1612,10 +1756,10 @@ ALTER SEQUENCE stats.goals_goal_id_seq RESTART WITH 95;
 -- ;
 
 INSERT INTO stats.assists VALUES (1, 1, 31, 33, 2, true, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.assists VALUES (2, 1, 31, 30, 2, false, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.assists VALUES (2, 1, 31, 32, 2, false, '2025-01-28 15:35:00.023976');
 INSERT INTO stats.assists VALUES (3, 2, 31, 3, 2, true, '2025-01-28 15:35:00.023976');
 INSERT INTO stats.assists VALUES (4, 3, 31, 16, 1, true, '2025-01-28 15:35:00.023976');
-INSERT INTO stats.assists VALUES (5, 4, 31, 30, 2, true, '2025-01-28 15:35:00.023976');
+INSERT INTO stats.assists VALUES (5, 4, 31, 32, 2, true, '2025-01-28 15:35:00.023976');
 INSERT INTO stats.assists VALUES (28, 31, 33, 7, 1, true, '2025-01-28 22:12:20.844298');
 INSERT INTO stats.assists VALUES (29, 32, 33, 22, 1, true, '2025-01-28 22:22:01.452293');
 INSERT INTO stats.assists VALUES (30, 34, 33, 6, 1, true, '2025-01-28 22:26:59.666412');
