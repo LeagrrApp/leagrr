@@ -294,7 +294,9 @@ export async function getTeam(
   return teamResult;
 }
 
-export async function getDivisionsByTeam(team_id: number) {
+export async function getDivisionsByTeam(
+  team_id: number,
+): Promise<ResultProps<TeamDivisionsProps[]>> {
   // verify signed in
   await verifySession();
 
@@ -305,6 +307,8 @@ export async function getDivisionsByTeam(team_id: number) {
       d.slug AS division_slug,
       s.name AS season,
       s.slug AS season_slug,
+      s.start_date AS start_date,
+      s.end_date AS end_date,
       l.name AS league,
       l.slug AS league_slug
     FROM
@@ -316,7 +320,7 @@ export async function getDivisionsByTeam(team_id: number) {
     JOIN
       league_management.seasons AS s
     ON
-      s.season_id = d.division_id
+      s.season_id = d.season_id
     JOIN
       league_management.leagues AS l
     ON

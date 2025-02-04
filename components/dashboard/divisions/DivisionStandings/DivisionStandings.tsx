@@ -51,12 +51,7 @@ export default function DivisionStandings({
               data-highlighted={t.team_id === currentTeam || undefined}
             >
               <th scope="row">
-                <Link
-                  href={createDashboardUrl(
-                    { t: t.slug },
-                    `?div=${division_id}`,
-                  )}
-                >
+                <Link href={createDashboardUrl({ t: t.slug, d: division_id })}>
                   {t.name}
                 </Link>
               </th>

@@ -129,7 +129,9 @@ export default async function TeamMembers({ teamMembers }: TeamMembersProps) {
                     <td>{p.saves}</td>
                     <td>{p.goals_against}</td>
                     <td>
-                      {Math.round((p.saves / p.shots_against) * 1000) / 1000}
+                      {p.saves && p.shots_against
+                        ? Math.round((p.saves / p.shots_against) * 1000) / 1000
+                        : `-`}
                     </td>
                   </tr>
                 );

@@ -10,34 +10,21 @@ import { createDashboardUrl } from "@/utils/helpers/formatting";
 
 interface DivisionSelectorProps {
   canEdit: boolean;
-  divisions: {
-    division: string;
-    division_id: number;
-    division_slug: string;
-    season: string;
-    season_slug: string;
-    league: string;
-    league_slug: string;
-  }[];
+  divisions: TeamDivisionsProps[];
 }
 
 export default function DivisionSelector({
   divisions,
   canEdit,
 }: DivisionSelectorProps) {
-  const params = useParams();
-  const searchParams = useSearchParams();
+  const { team, id } = useParams();
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  const queryDiv = searchParams.get("div");
-  let currentDiv = divisions[0];
+  const division_id = parseInt(id as string);
 
-  if (queryDiv !== null) {
-    const foundQueryDiv = divisions.find(
-      (d) => d.division_id === parseInt(queryDiv),
-    );
-    if (foundQueryDiv) currentDiv = foundQueryDiv;
-  }
+  const currentDiv = divisions.find((d) => d.division_id === division_id);
+
+  if (!currentDiv) return null;
 
   return (
     <>
@@ -56,12 +43,12 @@ export default function DivisionSelector({
         <h2>Select a Division</h2>
         <ol>
           {divisions?.map((division) => (
-            <li key={division.division_slug}>
+            <li key={`${division.division_id}`}>
               <Link
-                href={createDashboardUrl(
-                  { t: params.team as string },
-                  `?div=${division.division_id}`,
-                )}
+                href={createDashboardUrl({
+                  t: team as string,
+                  d: division.division_id,
+                })}
                 onClick={() => dialogRef?.current?.close()}
               >
                 {division.division}{" "}

@@ -6,13 +6,17 @@ export function createDashboardUrl(
   dirs: {
     l?: string;
     s?: string;
-    d?: string;
+    d?: string | number;
     g?: string | number;
     t?: string;
   },
   additional?: string,
 ): string {
   let url = `/dashboard`;
+
+  if (dirs.t) {
+    url = `${url}/t/${dirs.t}`;
+  }
 
   if (dirs.l) {
     url = `${url}/l/${dirs.l}`;
@@ -28,10 +32,6 @@ export function createDashboardUrl(
 
   if (dirs.g) {
     url = `${url}/g/${dirs.g}`;
-  }
-
-  if (dirs.t) {
-    url = `${url}/t/${dirs.t}`;
   }
 
   if (additional) {

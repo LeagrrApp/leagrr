@@ -30,6 +30,18 @@ type TeamPageData = TeamData & {
   members: Omit<UserData, "password_hash">[];
 };
 
+type TeamDivisionsProps = {
+  division: string;
+  division_id: number;
+  division_slug: string;
+  season: string;
+  season_slug: string;
+  start_date: Date;
+  end_date: Date;
+  league: string;
+  league_slug: string;
+};
+
 type TeamStandingsData = Pick<
   TeamData,
   "team_id" | "slug" | "name" | "status"

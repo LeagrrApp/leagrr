@@ -6,7 +6,10 @@ import { verifySession } from "@/lib/session";
 import { z } from "zod";
 import { canEditLeague } from "./leagues";
 import { redirect } from "next/navigation";
-import { createMetaTitle } from "@/utils/helpers/formatting";
+import {
+  createDashboardUrl,
+  createMetaTitle,
+} from "@/utils/helpers/formatting";
 
 const DivisionFormSchema = z.object({
   division_id: z.number().min(1).optional(),
@@ -624,6 +627,63 @@ export async function getDivisionMetaInfo(
     status: result.status,
     data: metaData,
   };
+}
+
+export async function getDivisionUrlById(
+  division_id: number,
+): Promise<string | undefined> {
+  const sql = `
+    SELECT
+      d.slug AS division_slug,
+      s.slug AS season_slug,
+      l.slug AS league_slug
+    FROM
+      league_management.divisions AS d
+    JOIN
+      league_management.seasons AS s
+    ON
+      s.season_id = d.season_id
+    JOIN
+      league_management.leagues AS l
+    ON
+      s.league_id = l.league_id
+    WHERE
+      d.division_id = $1
+  `;
+
+  const result: ResultProps<{
+    division_slug: string;
+    season_slug: string;
+    league_slug: string;
+  }> = await db
+    .query(sql, [division_id])
+    .then((res) => {
+      if (res.rowCount === 0) {
+        throw new Error("Division not found!");
+      }
+
+      return {
+        data: res.rows[0],
+        message: "Division data found",
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (!result.data) {
+    return undefined;
+  }
+
+  return createDashboardUrl({
+    l: result.data.league_slug,
+    s: result.data.season_slug,
+    d: result.data.division_slug,
+  });
 }
 
 export async function editDivision(
