@@ -28,7 +28,11 @@ export default async function Layout({
 
   return (
     <>
-      <TeamHeader team={teamData} canEdit={canEdit} divisions={divisions} />
+      <TeamHeader
+        team={teamData}
+        canEdit={canEdit}
+        divisions={divisions || []}
+      />
 
       <Container>{children}</Container>
     </>

@@ -7,19 +7,12 @@ import css from "./teamHeader.module.css";
 import DHeader from "../../DHeader/DHeader";
 import IconSport from "@/components/ui/Icon/IconSport";
 import DivisionSelector from "../DivisionSelector/DivisionSelector";
+import { CSSProperties } from "react";
 
 interface TeamHeaderProps {
   team: TeamData;
   canEdit: boolean;
-  divisions: {
-    division: string;
-    division_id: number;
-    division_slug: string;
-    season: string;
-    season_slug: string;
-    league: string;
-    league_slug: string;
-  }[];
+  divisions: TeamDivisionsProps[];
 }
 
 export default function TeamHeader({
@@ -42,6 +35,7 @@ export default function TeamHeader({
     <DHeader
       className={css.team_header}
       containerClassName={css.team_header_container}
+      color={color}
       hideLine
     >
       <div className={css.team_header_unit}>
