@@ -10,6 +10,7 @@ import Grid from "@/components/ui/layout/Grid";
 import { color_options } from "@/lib/definitions";
 import { useActionState, useState } from "react";
 import css from "./teamForm.module.css";
+import Col from "@/components/ui/layout/Col";
 
 interface EditTeamProps {
   team: TeamData;
@@ -31,24 +32,28 @@ export default function EditTeam({ team, backLink }: EditTeamProps) {
   });
 
   return (
-    <form action={action}>
-      <Grid gap="base">
-        <Input
-          label="Name"
-          name="name"
-          value={teamName}
-          onChange={(e) => setTeamName(e.target.value)}
-          errors={{ errs: state?.errors?.name, type: "danger" }}
-          required
-        />
-        <TextArea
-          label="Description"
-          name="description"
-          defaultValue={team.description}
-          errors={{ errs: state?.errors?.description, type: "danger" }}
-          optional
-        />
-        <div className={css.color_wrap}>
+    <form action={action} className="push">
+      <Grid gap="base" cols={{ xs: 1, m: 2 }}>
+        <Col fullSpan>
+          <Input
+            label="Name"
+            name="name"
+            value={teamName}
+            onChange={(e) => setTeamName(e.target.value)}
+            errors={{ errs: state?.errors?.name, type: "danger" }}
+            required
+          />
+        </Col>
+        <Col fullSpan>
+          <TextArea
+            label="Description"
+            name="description"
+            defaultValue={team.description}
+            errors={{ errs: state?.errors?.description, type: "danger" }}
+            optional
+          />
+        </Col>
+        <Col fullSpan className={css.color_wrap}>
           <Select
             label="Color"
             name="color"
@@ -69,7 +74,7 @@ export default function EditTeam({ team, backLink }: EditTeamProps) {
               required
             />
           )}
-        </div>
+        </Col>
         <input type="hidden" name="team_id" value={team.team_id} />
         <Button type="submit" disabled={pending}>
           <Icon icon="save" label={`Save ${teamName}`} />

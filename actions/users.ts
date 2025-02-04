@@ -164,8 +164,6 @@ export async function getUserData(
       };
     });
 
-  console.log(result);
-
   return result;
 }
 
@@ -192,7 +190,6 @@ export async function getUserRole(): Promise<number> {
     })
     .catch((err) => {
       // TODO: add more comprehensive error handling
-      console.log(err);
       return 0;
     });
 

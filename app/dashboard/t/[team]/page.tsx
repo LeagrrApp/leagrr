@@ -58,8 +58,6 @@ export default async function Page({
   // get list of public divisions the team is currently in
   const { data: divisions } = await getDivisionsByTeam(team_id);
 
-  console.log(divisions);
-
   if (divisions.length === 0) {
     return (
       <>

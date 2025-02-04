@@ -690,7 +690,6 @@ export async function editDivision(
       divisionData.division_id,
     ])
     .then((res) => {
-      console.log(res);
       return {
         message: "Division teams loaded",
         status: 200,
@@ -968,7 +967,6 @@ export async function deleteDivision(state: {
   const { canEdit: canDelete } = await canEditLeague(state.league_id);
 
   if (!canDelete) {
-    console.log("can't delete");
     // failed both user role check and league role check, shortcut out
     return {
       message: "You do not have permission to delete this division.",

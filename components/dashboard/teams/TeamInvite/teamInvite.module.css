@@ -1,0 +1,23 @@
+.input_wrap {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--spacer-base);
+}
+
+.join_code_info {
+  padding: var(--spacer-m);
+  background-color: var(--color-grey-light);
+  border: 0.0625rem solid var(--color-grey);
+  border-radius: var(--spacer-s);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--spacer-ml) var(--spacer-ml);
+  margin-block-end: var(--spacer-base);
+}
+
+.join_code_info_line {
+  padding: var(--spacer-xs) var(--spacer-m);
+  background-color: var(--color-grey);
+  border-radius: var(--spacer-xs);
+  font-family: var(--font-mono);
+}

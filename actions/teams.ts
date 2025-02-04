@@ -8,6 +8,7 @@ import { getDivisionStandings } from "./divisions";
 import { getUserRole, verifyUserRole } from "./users";
 import { team_roles } from "@/lib/definitions";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
+import slugify from "slugify";
 
 const CreateTeamSchema = z.object({
   user_id: z.number().min(1),
@@ -23,11 +24,13 @@ const CreateTeamSchema = z.object({
 });
 
 type TeamErrorProps = {
+  team_id?: string[] | undefined;
   user_id?: string[] | undefined;
   name?: string[] | undefined;
   description?: string[] | undefined;
   color?: string[] | undefined;
   custom_color?: string[] | undefined;
+  join_code?: string[] | undefined;
 };
 
 type TeamFormState =
@@ -261,7 +264,8 @@ export async function getTeam(
       name,
       description,
       status,
-      color
+      color,
+      join_code
     FROM
       league_management.teams
     WHERE slug = $1
@@ -603,12 +607,82 @@ export async function editTeam(
       };
     });
 
-  console.log(result);
-
   if (result?.data?.slug)
     redirect(createDashboardUrl({ t: result?.data?.slug }));
 
   return result;
+}
+
+const TeamJoinCodeSchema = z.object({
+  join_code: z
+    .string()
+    .min(6, { message: "Join code must be at least 6 characters long" })
+    .regex(/[a-zA-Z0-9-]/, { message: "Fails regex" }),
+  team_id: z.number().min(1),
+});
+
+export async function setTeamJoinCode(
+  state: TeamFormState,
+  formData: FormData,
+): Promise<TeamFormState> {
+  const teamData = {
+    join_code: formData.get("join_code") as string,
+    team_id: parseInt(formData.get("team_id") as string),
+  };
+
+  // Validate data
+  const validatedFields = TeamJoinCodeSchema.safeParse(teamData);
+
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  // Check if user can edit
+  const { canEdit } = await canEditTeam(teamData.team_id);
+
+  if (!canEdit) {
+    // failed role check, shortcut out
+    return {
+      message: "You do not have permission to edit this team.",
+      status: 401,
+    };
+  }
+
+  const sql = `
+    UPDATE league_management.teams
+    SET
+      join_code = $1
+    WHERE
+      team_id = $2
+    RETURNING
+      join_code
+  `;
+
+  // query database
+  const result: ResultProps<{ join_code: string }> = await db
+    .query(sql, [teamData.join_code, teamData.team_id])
+    .then((res) => {
+      return {
+        message: `Join code updated!`,
+        status: 200,
+        data: res.rows[0],
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  return {
+    data: result.data,
+    message: result.message,
+    status: result.status,
+  };
 }
 
 export async function deleteTeam(state: { team_id: number }) {

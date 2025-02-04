@@ -3,6 +3,7 @@
 import { ChangeEvent, PropsWithChildren, useEffect, useState } from "react";
 import Alert from "../Alert/Alert";
 import css from "./forms.module.css";
+import { apply_classes_conditional } from "@/utils/helpers/html-attributes";
 
 interface InputWrapProps {
   isPassword: boolean;
@@ -20,6 +21,7 @@ interface InputProps extends Partial<HTMLInputElement> {
   label?: string;
   labelAfter?: boolean;
   labelAsPlaceholder?: boolean;
+  hideLabel?: boolean;
   onChange?(e: ChangeEvent<HTMLInputElement>): any;
   errors?: {
     errs?: string[];
@@ -34,6 +36,7 @@ export default function Input({
   name,
   labelAfter,
   labelAsPlaceholder,
+  hideLabel,
   placeholder,
   value,
   defaultValue,
@@ -74,7 +77,10 @@ export default function Input({
   return (
     <div className={css.unit}>
       {!labelAfter && (
-        <label className={css.label} htmlFor={name}>
+        <label
+          className={apply_classes_conditional(css.label, "srt", hideLabel)}
+          htmlFor={name}
+        >
           {label}{" "}
           {optional && <span className={css.label_optional}>(Optional)</span>}
         </label>
@@ -111,7 +117,10 @@ export default function Input({
         )}
       </InputWrap>
       {labelAfter && (
-        <label className={css.label} htmlFor={name}>
+        <label
+          className={apply_classes_conditional(css.label, "srt", hideLabel)}
+          htmlFor={name}
+        >
           {label}{" "}
           {optional && <span className={css.label_optional}>(Optional)</span>}
         </label>

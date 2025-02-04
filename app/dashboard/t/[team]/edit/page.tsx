@@ -1,20 +1,18 @@
-import {
-  canEditTeam,
-  deleteTeam,
-  getTeam,
-  getTeamRole,
-  verifyTeamRoleLevel,
-} from "@/actions/teams";
+import { canEditTeam, deleteTeam, getTeam } from "@/actions/teams";
 import { verifyUserRole } from "@/actions/users";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
 import EditTeam from "@/components/dashboard/teams/EditTeam";
-import Container from "@/components/ui/Container/Container";
+import Col from "@/components/ui/layout/Col";
+import Grid from "@/components/ui/layout/Grid";
 import {
   createDashboardUrl,
   createMetaTitle,
 } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
-import { useState } from "react";
+import css from "./page.module.css";
+import Card from "@/components/ui/Card/Card";
+import TeamInvite from "@/components/dashboard/teams/TeamInvite/TeamInvite";
+import Icon from "@/components/ui/Icon/Icon";
 
 export async function generateMetadata({
   params,
@@ -56,27 +54,38 @@ export default async function Page({
   const canDelete = await verifyUserRole(1);
 
   return (
-    <>
-      <h2>Edit</h2>
-      <EditTeam team={teamData} backLink={backLink} />
-      {canDelete && (
-        <ModalConfirmAction
-          defaultState={{
-            team_id: teamData.team_id,
-          }}
-          actionFunction={deleteTeam}
-          confirmationHeading={`Are you sure you want to delete ${teamData.name}?`}
-          confirmationByline={`This action is permanent cannot be undone and will likely have side effects on game and stat data. It is better to mark the team as "Inactive".`}
-          trigger={{
-            icon: "delete",
-            label: "Delete Team",
-            buttonStyles: {
-              variant: "danger",
-              fullWidth: true,
-            },
-          }}
+    <div className={css.layout}>
+      <Col fullSpan>
+        <Icon
+          href={backLink}
+          className="push"
+          icon="chevron_left"
+          label="Back to team"
         />
-      )}
-    </>
+        <h2>Edit Team</h2>
+      </Col>
+      <div>
+        <EditTeam team={teamData} backLink={backLink} />
+        {canDelete && (
+          <ModalConfirmAction
+            defaultState={{
+              team_id: teamData.team_id,
+            }}
+            actionFunction={deleteTeam}
+            confirmationHeading={`Are you sure you want to delete ${teamData.name}?`}
+            confirmationByline={`This action is permanent cannot be undone and will likely have side effects on game and stat data. It is better to mark the team as "Inactive".`}
+            trigger={{
+              icon: "delete",
+              label: "Delete Team",
+              buttonStyles: {
+                variant: "danger",
+                fullWidth: true,
+              },
+            }}
+          />
+        )}
+      </div>
+      <TeamInvite team={teamData} />
+    </div>
   );
 }

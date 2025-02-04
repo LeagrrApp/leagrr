@@ -23,6 +23,7 @@ type TeamData = {
   description?: string;
   status?: "active" | "inactive" | "suspended" | "banned";
   color?: string;
+  join_code?: string;
 };
 
 type TeamPageData = TeamData & {

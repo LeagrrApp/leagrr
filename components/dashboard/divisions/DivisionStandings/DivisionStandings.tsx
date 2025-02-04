@@ -26,8 +26,6 @@ export default function DivisionStandings({
     { title: "Goal Differential", shorthand: "+/-" },
   ];
 
-  console.log(division_id);
-
   // heading column width as percentage of the total table width
   const hColWidth = 40;
 

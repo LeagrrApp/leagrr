@@ -16,8 +16,6 @@ export default function DivisionTabs({ divisions, canAdd }: DivisionProps) {
   const params = useParams();
   const pathname = usePathname();
 
-  console.log(pathname);
-
   const classes = [css.division_tabs];
 
   if (canAdd) classes.push(css.division_tabs_can_add);

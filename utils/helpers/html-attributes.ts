@@ -22,7 +22,7 @@ export function apply_classes(
 export function apply_classes_conditional(
   initialClass: string | string[],
   additionalClass: string | string[],
-  condition: boolean,
+  condition: boolean | undefined,
 ): string {
   if (condition) {
     return apply_classes(initialClass, additionalClass);
