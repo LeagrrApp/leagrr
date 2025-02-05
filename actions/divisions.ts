@@ -475,7 +475,7 @@ export async function getDivision(
     divisionGamesSql = `
       ${divisionGamesSql}
       AND
-      status = 'completed'
+      status IN ('completed', 'public', 'postponed', 'cancelled')
     `;
   }
 
@@ -956,20 +956,32 @@ export async function getDivisionStatLeaders(
       u.username,
       count(*) AS count
     FROM
-      league_management.teams AS t
+      league_management.division_teams AS dt
     JOIN
-      league_management.games AS ga
+      league_management.division_rosters AS dr
     ON
-      t.team_id IN (ga.home_team_id, ga.away_team_id)
+      dr.division_team_id = dt.division_team_id
+    JOIN
+      league_management.teams AS t
+    ON
+      t.team_id = dt.team_id
     JOIN
       league_management.team_memberships AS tm
     ON
-      tm.team_id = t.team_id
+      dr.team_membership_id = tm.team_membership_id
     JOIN
       admin.users AS u
     ON
       u.user_id = tm.user_id
-    WHERE
+    JOIN
+      league_management.games AS ga
+    ON
+      t.team_id IN (ga.home_team_id, ga.away_team_id)
+    WHERE 
+      dt.division_id = $1
+      AND
+      dr.position = 'Goalie'
+      AND
       ga.division_id = $1
       AND
       ga.status = 'completed'
@@ -979,8 +991,6 @@ export async function getDivisionStatLeaders(
         OR
         ((t.team_id = ga.away_team_id) AND ga.home_team_score = 0)
       )
-      AND
-      tm.position = 'Goalie'
     GROUP BY team, u.username, u.first_name, u.last_name
     ORDER BY count DESC, u.last_name ASC, u.first_name ASC
     LIMIT $2

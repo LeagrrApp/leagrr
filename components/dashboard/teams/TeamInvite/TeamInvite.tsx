@@ -15,9 +15,10 @@ import Col from "@/components/ui/layout/Col";
 
 interface TeamInviteProps {
   team: TeamData;
+  division_id?: number;
 }
 
-export default function TeamInvite({ team }: TeamInviteProps) {
+export default function TeamInvite({ team, division_id }: TeamInviteProps) {
   const { name, join_code } = team;
 
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -33,7 +34,7 @@ export default function TeamInvite({ team }: TeamInviteProps) {
     if (typeof team_slug !== "string") return;
 
     const copyLink = createDashboardUrl(
-      { t: team_slug },
+      { t: team_slug, d: division_id },
       `join/?join_code=${joinCodeValue}`,
     );
 
@@ -51,7 +52,7 @@ export default function TeamInvite({ team }: TeamInviteProps) {
   if (join_code && join_code !== "" && !updating)
     return (
       <>
-        <Card padding="l">
+        <Card padding="l" isContainer>
           <h3 className="push-m">Team Invite</h3>
           <p className="push">
             Invite players to join <strong>{name}</strong>! This code allows
@@ -59,29 +60,29 @@ export default function TeamInvite({ team }: TeamInviteProps) {
             team administrator to approve a join request.
           </p>
           <dl className={css.join_code_info}>
-            <dt>Team Name:</dt>
+            <dt>Team:</dt>
             <dd>
               <span className={css.join_code_info_line}>{team.name}</span>
             </dd>
-            <dt>Join Code:</dt>
+            <dt>Code:</dt>
             <dd>
               <span className={css.join_code_info_line}>{team.join_code}</span>
             </dd>
           </dl>
-          <Grid cols={2} gap="base">
+          <div className={css.button_wrap}>
             <Button
               onClick={copyCodeLink}
               variant={hasBeenCopied ? "success" : "primary"}
             >
               <Icon
                 icon={hasBeenCopied ? "check_circle" : "content_copy"}
-                label={hasBeenCopied ? "Copied!" : "Copy Code Link"}
+                label={hasBeenCopied ? "Copied!" : "Copy Invite Link"}
               />
             </Button>
             <Button onClick={() => setUpdating(true)} variant="grey">
               <Icon icon="update" label="Update Join Code" />
             </Button>
-          </Grid>
+          </div>
         </Card>
       </>
     );

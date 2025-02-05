@@ -27,6 +27,11 @@ export default async function GameFeed({
     game.home_team_id,
     game.division_id,
   );
+  const gameTeamRosters = await getGameTeamRosters(
+    game.away_team_id,
+    game.home_team_id,
+    game.division_id,
+  );
 
   if (!teamRosters) return null;
 

@@ -28,6 +28,7 @@ export default async function GamePreview({
   includeGameLink,
 }: GamePreviewProps) {
   const {
+    division_id,
     game_id,
     home_team,
     home_team_id,
@@ -135,7 +136,12 @@ export default async function GamePreview({
             />
             <div>
               <h3 className={css.game_preview_team}>
-                <Link href={createDashboardUrl({ t: away_team_slug })}>
+                <Link
+                  href={createDashboardUrl({
+                    t: away_team_slug,
+                    d: division_id,
+                  })}
+                >
                   {away_team}
                 </Link>
               </h3>
@@ -182,7 +188,12 @@ export default async function GamePreview({
             />
             <div>
               <h3 className={css.game_preview_team}>
-                <Link href={createDashboardUrl({ t: home_team_slug })}>
+                <Link
+                  href={createDashboardUrl({
+                    t: home_team_slug,
+                    d: division_id,
+                  })}
+                >
                   {home_team}
                 </Link>
               </h3>

@@ -1,130 +1,8 @@
--- Create the leagrr Database on PostgreSQL server
 
-----------------------------------------------------------
--- EMPTY THE LEAGRR DATABASE IN CASE IT CONTAINS CONTENT
-----------------------------------------------------------
-
--- Create admin
-DROP TABLE IF EXISTS admin.user_roles CASCADE;
-DROP TABLE IF EXISTS admin.league_roles CASCADE;
-DROP TABLE IF EXISTS admin.season_roles CASCADE;
-DROP TABLE IF EXISTS admin.playoff_structures CASCADE;
-DROP TABLE IF EXISTS admin.team_roles CASCADE;
-DROP TABLE IF EXISTS admin.sports CASCADE;
-DROP TABLE IF EXISTS admin.genders CASCADE;
-DROP TABLE IF EXISTS admin.users CASCADE;
-DROP SCHEMA IF EXISTS admin CASCADE;
-
--- league_management
-DROP TABLE IF EXISTS league_management.teams CASCADE;
-DROP TABLE IF EXISTS league_management.team_memberships CASCADE;
-DROP TABLE IF EXISTS league_management.leagues CASCADE;
-DROP TABLE IF EXISTS league_management.league_admins CASCADE;
-DROP TABLE IF EXISTS league_management.seasons CASCADE;
-DROP TABLE IF EXISTS league_management.season_admins CASCADE;
-DROP TABLE IF EXISTS league_management.divisions CASCADE;
-DROP TABLE IF EXISTS league_management.division_teams CASCADE;
-DROP TABLE IF EXISTS league_management.division_rosters CASCADE;
-DROP TABLE IF EXISTS league_management.playoffs CASCADE;
-DROP TABLE IF EXISTS league_management.venues CASCADE;
-DROP TABLE IF EXISTS league_management.arenas CASCADE;
-DROP TABLE IF EXISTS league_management.league_venues CASCADE;
-DROP TABLE IF EXISTS league_management.games CASCADE;
-DROP SCHEMA IF EXISTS league_management CASCADE;
-
--- stats
-DROP TABLE IF EXISTS stats.goals CASCADE;
-DROP TABLE IF EXISTS stats.assists CASCADE;
-DROP TABLE IF EXISTS stats.penalties CASCADE;
-DROP TABLE IF EXISTS stats.shots CASCADE;
-DROP TABLE IF EXISTS stats.saves CASCADE;
-DROP TABLE IF EXISTS stats.shutouts CASCADE;
-DROP SCHEMA IF EXISTS stats CASCADE;
-
------------------------------------
--- CREATE THE TABLE STRUCTURE
------------------------------------
-
--- ADD SLUGS TO MOST TABLES!
-
--- Create the database schemas
 CREATE SCHEMA league_management;
 CREATE SCHEMA admin;
 CREATE SCHEMA stats;
 
--- Alter roles to view schemas and tables
-ALTER ROLE postgres SET search_path = league_management, admin;
-
--- Create admin.user_roles
--- Defines the roles assigned to all users for basic app wide permissions
--- CREATE TABLE admin.user_roles (
---   user_role_id    SERIAL NOT NULL PRIMARY KEY,
---   name            VARCHAR(50) NOT NULL,
---   description     TEXT,
---   created_on      TIMESTAMP DEFAULT NOW()
--- );
-
--- Create admin.league_roles
--- Defines the roles and permissions assignable to individual users for specific leagues
--- CREATE TABLE admin.league_roles (
---   league_role_id    SERIAL NOT NULL PRIMARY KEY,
---   name            VARCHAR(50) NOT NULL,
---   description     TEXT,
---   created_on      TIMESTAMP DEFAULT NOW()
--- );
-
--- Create admin.season_roles
--- Defines the roles and permissions assignable to individual users for specific seasons
--- CREATE TABLE admin.season_roles (
---   season_role_id    SERIAL NOT NULL PRIMARY KEY,
---   name            VARCHAR(50) NOT NULL,
---   description     TEXT,
---   created_on      TIMESTAMP DEFAULT NOW()
--- );
-
--- Create admin.playoff_structures
--- Define different types of playoff structures
--- CREATE TABLE admin.playoff_structures (
---   playoff_structure_id    SERIAL NOT NULL PRIMARY KEY,
---   name                    VARCHAR(50) NOT NULL,
---   description             TEXT,
---   created_on              TIMESTAMP DEFAULT NOW()
--- );
-
--- Create admin.team_roles
--- Defines the roles and permissions assignable to individual users for specific teams
--- CREATE TABLE admin.team_roles (
---   team_role_id    SERIAL NOT NULL PRIMARY KEY,
---   name            VARCHAR(50) NOT NULL,
---   description     TEXT,
---   created_on      TIMESTAMP DEFAULT NOW()
--- );
-
--- Create admin.sports
--- Define list of sports supported by the app
--- CREATE TABLE admin.sports (
---   sport_id        SERIAL NOT NULL PRIMARY KEY,
---   slug            VARCHAR(50) NOT NULL UNIQUE,
---   name            VARCHAR(50) NOT NULL,
---   description     TEXT,
---   status          VARCHAR(20) NOT NULL DEFAULT 'public',
---   created_on      TIMESTAMP DEFAULT NOW()
--- );
-
--- ALTER TABLE IF EXISTS admin.sports
---     ADD CONSTRAINT sport_status_enum CHECK (status IN ('draft', 'public', 'archived'));
-
--- Create admin.genders
--- List of gender options selected by users and used to restrict rosters in divisions
--- CREATE TABLE admin.genders (
---   gender_id       SERIAL NOT NULL PRIMARY KEY,
---   slug            VARCHAR(50) NOT NULL UNIQUE,
---   name            VARCHAR(50) NOT NULL,
---   created_on      TIMESTAMP DEFAULT NOW()
--- );
-
--- Create admin.users
--- Define user table for all user accounts
 CREATE TABLE admin.users (
   user_id         SERIAL NOT NULL PRIMARY KEY,
   username        VARCHAR(50) NOT NULL UNIQUE,
@@ -139,19 +17,11 @@ CREATE TABLE admin.users (
   created_on      TIMESTAMP DEFAULT NOW()
 );
 
--- ALTER TABLE admin.users
--- ADD CONSTRAINT fk_users_user_role FOREIGN KEY (user_role)
---     REFERENCES admin.user_roles (user_role_id);
-
--- ALTER TABLE admin.users
--- ADD CONSTRAINT fk_users_gender_id FOREIGN KEY (gender_id)
---     REFERENCES admin.genders (gender_id);
+-- user roles range from 1 - 3. 1 is a site admin, 2 is a site commissioner with permission to create leagues, and 3 is a standard user
 
 ALTER TABLE IF EXISTS admin.users
     ADD CONSTRAINT user_status_enum CHECK (status IN ('active', 'inactive', 'suspended', 'banned'));
 
--- Create league_management.teams
--- Create team that can be connected to multiple divisions in different leagues.
 CREATE TABLE league_management.teams (
   team_id         SERIAL NOT NULL PRIMARY KEY,
   slug            VARCHAR(50) NOT NULL UNIQUE,
@@ -166,88 +36,17 @@ CREATE TABLE league_management.teams (
 ALTER TABLE IF EXISTS league_management.teams
     ADD CONSTRAINT team_status_enum CHECK (status IN ('active', 'inactive', 'suspended', 'banned'));
 
-CREATE OR REPLACE FUNCTION generate_team_slug()
-RETURNS TRIGGER AS $$
-DECLARE
-    base_slug TEXT;
-    temp_slug TEXT;
-    final_slug TEXT;
-    slug_rank INT;
-    exact_match INT;
-BEGIN
-	IF NEW.name <> OLD.name OR tg_op = 'INSERT' THEN
-	    -- Generate the initial slug by processing the name
-	    base_slug := lower(
-	                      regexp_replace(
-	                          regexp_replace(
-	                              regexp_replace(NEW.name, '\s+', '-', 'g'),
-	                              '[^a-zA-Z0-9\-]', '', 'g'
-	                          ),
-	                      '-+', '-', 'g')
-	                  );
-	
-	    -- Check if this slug already exists and if so, append a number to ensure uniqueness
-	
-		-- this SELECT checks if there are other EXACT slug matches
-	    SELECT COUNT(*) INTO exact_match
-	    FROM league_management.teams
-	    WHERE slug = base_slug;
-	
-	    IF exact_match = 0 THEN
-	        -- No duplicates found, assign base slug
-	        final_slug := base_slug;
-	    ELSE
-			-- this SELECT checks if there are teams with slugs starting with the base_slug
-		    SELECT COUNT(*) INTO slug_rank
-		    FROM league_management.teams
-		    WHERE slug LIKE base_slug || '%';
-			
-	        -- Duplicates found, append the count as a suffix
-	        temp_slug := base_slug || '-' || slug_rank;
-			
-			-- check if exact match of temp_slug found
-			SELECT COUNT(*) INTO exact_match
-		    FROM league_management.teams
-		    WHERE slug = temp_slug;
-	
-			IF exact_match = 1 THEN
-				-- increase slug_rank by 1 and create final slug
-				final_slug := base_slug || '-' || (slug_rank + 1);
-			ELSE
-				-- change temp slug to final slug
-				final_slug = temp_slug;
-			END IF;
-	    END IF;
-	
-	    -- Assign the final slug to the new record
-	    NEW.slug := final_slug;
-
-	END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE TRIGGER set_teams_slug
-    BEFORE INSERT ON league_management.teams
-	FOR EACH ROW
-	EXECUTE FUNCTION generate_team_slug();
-
-CREATE OR REPLACE TRIGGER update_teams_slug
-    BEFORE UPDATE OF name ON league_management.teams
-	FOR EACH ROW
-	EXECUTE FUNCTION generate_team_slug();
-
-
--- Create league_management.team_memberships
--- Joiner table adding users to teams with a specific team role
 CREATE TABLE league_management.team_memberships (
   team_membership_id    SERIAL NOT NULL PRIMARY KEY,
   user_id               INT NOT NULL,
   team_id               INT NOT NULL,
   team_role             INT DEFAULT 5,
+  position              VARCHAR(50),
+  number                INT,
   created_on            TIMESTAMP DEFAULT NOW()
 );
+
+-- team role range from 1 to 6 which represent in order Manager, Coach, Captain, Alternate Captain, Player, and Spare
 
 ALTER TABLE league_management.team_memberships
 ADD CONSTRAINT fk_team_memberships_user_id FOREIGN KEY (user_id)
@@ -257,12 +56,6 @@ ALTER TABLE league_management.team_memberships
 ADD CONSTRAINT fk_team_memberships_team_id FOREIGN KEY (team_id)
     REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
 
--- ALTER TABLE league_management.team_memberships
--- ADD CONSTRAINT fk_team_memberships_team_role_id FOREIGN KEY (team_role_id)
---     REFERENCES admin.team_roles (team_role_id);
-
--- Create league_management.leagues
--- Define league table structure
 CREATE TABLE league_management.leagues (
   league_id         SERIAL NOT NULL PRIMARY KEY,
   slug            VARCHAR(50) NOT NULL UNIQUE,
@@ -276,95 +69,15 @@ CREATE TABLE league_management.leagues (
 ALTER TABLE IF EXISTS league_management.leagues
     ADD CONSTRAINT league_status_enum CHECK (status IN ('draft', 'public', 'archived'));
 
--- ALTER TABLE league_management.leagues
--- ADD CONSTRAINT fk_leagues_sport_id FOREIGN KEY (sport_id)
---     REFERENCES admin.sports (sport_id);
-
-CREATE OR REPLACE FUNCTION generate_league_slug()
-RETURNS TRIGGER AS $$
-DECLARE
-    base_slug TEXT;
-    temp_slug TEXT;
-    final_slug TEXT;
-    slug_rank INT;
-    exact_match INT;
-BEGIN
-	IF NEW.name <> OLD.name OR tg_op = 'INSERT' THEN
-    -- Generate the initial slug by processing the name
-    base_slug := lower(
-                      regexp_replace(
-                          regexp_replace(
-                              regexp_replace(NEW.name, '\s+', '-', 'g'),
-                              '[^a-zA-Z0-9\-]', '', 'g'
-                          ),
-                      '-+', '-', 'g')
-                  );
-
-    -- Check if this slug already exists and if so, append a number to ensure uniqueness
-
-		-- this SELECT checks if there are other EXACT slug matches
-    SELECT COUNT(*) INTO exact_match
-    FROM league_management.leagues
-    WHERE slug = base_slug;
-
-    IF exact_match = 0 THEN
-        -- No duplicates found, assign base slug
-        final_slug := base_slug;
-    ELSE
-    -- this SELECT checks if there are leagues with slugs starting with the base_slug
-      SELECT COUNT(*) INTO slug_rank
-      FROM league_management.leagues
-      WHERE slug LIKE base_slug || '%';
-    
-        -- Duplicates found, append the count as a suffix
-        temp_slug := base_slug || '-' || slug_rank;
-    
-    -- check if exact match of temp_slug found
-    SELECT COUNT(*) INTO exact_match
-      FROM league_management.leagues
-      WHERE slug = temp_slug;
-
-    IF exact_match = 1 THEN
-      -- increase slug_rank by 1 and create final slug
-      final_slug := base_slug || '-' || (slug_rank + 1);
-    ELSE
-      -- change temp slug to final slug
-      final_slug = temp_slug;
-    END IF;
-    END IF;
-
-    -- Assign the final slug to the new record
-    NEW.slug := final_slug;
-
-	END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE TRIGGER set_leagues_slug
-    BEFORE INSERT ON league_management.leagues
-	FOR EACH ROW
-	EXECUTE FUNCTION generate_league_slug();
-
-CREATE OR REPLACE TRIGGER update_leagues_slug
-    BEFORE UPDATE OF name ON league_management.leagues
-	FOR EACH ROW
-	EXECUTE FUNCTION generate_league_slug();
-
--- Create league_management.league_admins
--- A joiner table that connects a user with a league and assigns them a specific role
 CREATE TABLE league_management.league_admins (
   league_admin_id     SERIAL NOT NULL PRIMARY KEY,
-  league_role      INT,
-  league_id           INT,
-  user_id             INT,
+  league_role         INT NOT NULL,
+  league_id           INT NOT NULL,
+  user_id             INT NOT NULL,
   created_on          TIMESTAMP DEFAULT NOW()
 );
 
--- ALTER TABLE league_management.league_admins
--- ADD CONSTRAINT fk_league_admins_league_role_id FOREIGN KEY (league_role_id)
---     REFERENCES admin.league_roles (league_role_id) ON DELETE CASCADE;
+-- league_role can be either 1 or 2, 1 is Commissioner and 2 is Manager
 
 ALTER TABLE league_management.league_admins
 ADD CONSTRAINT fk_league_admins_league_id FOREIGN KEY (league_id)
@@ -374,8 +87,6 @@ ALTER TABLE league_management.league_admins
 ADD CONSTRAINT fk_league_admins_user_id FOREIGN KEY (user_id)
     REFERENCES admin.users (user_id) ON DELETE CASCADE;
 
--- Create league_management.seasons
--- Define season table. Seasons are reoccurring time periods within a league, can feature multiple divisions
 CREATE TABLE league_management.seasons (
   season_id       SERIAL NOT NULL PRIMARY KEY,
   slug            VARCHAR(50) NOT NULL,
@@ -395,82 +106,6 @@ ADD CONSTRAINT fk_seasons_league_id FOREIGN KEY (league_id)
 ALTER TABLE IF EXISTS league_management.seasons
     ADD CONSTRAINT season_status_enum CHECK (status IN ('draft', 'public', 'archived'));
 
-CREATE OR REPLACE FUNCTION generate_season_slug()
-RETURNS TRIGGER AS $$
-DECLARE
-    base_slug TEXT;
-    temp_slug TEXT;
-    final_slug TEXT;
-    slug_rank INT;
-    exact_match INT;
-BEGIN
-
-	IF NEW.name <> OLD.name OR tg_op = 'INSERT' THEN
-	
-    -- Generate the initial slug by processing the name
-    base_slug := lower(
-                      regexp_replace(
-                          regexp_replace(
-                              regexp_replace(NEW.name, '\s+', '-', 'g'),
-                              '[^a-zA-Z0-9\-]', '', 'g'
-                          ),
-                      '-+', '-', 'g')
-                  );
-
-    -- Check if this slug already exists and if so, append a number to ensure uniqueness
-
-  -- this SELECT checks if there are other EXACT slug matches
-    SELECT COUNT(*) INTO exact_match
-    FROM league_management.seasons
-    WHERE slug = base_slug AND league_id = NEW.league_id;
-
-    IF exact_match = 0 THEN
-        -- No duplicates found, assign base slug
-        final_slug := base_slug;
-    ELSE
-    -- this SELECT checks if there are seasons with slugs starting with the base_slug
-      SELECT COUNT(*) INTO slug_rank
-      FROM league_management.seasons
-      WHERE slug LIKE base_slug || '%' AND league_id = NEW.league_id;
-    
-        -- Duplicates found, append the count as a suffix
-        temp_slug := base_slug || '-' || slug_rank;
-    
-    -- check if exact match of temp_slug found
-    SELECT COUNT(*) INTO exact_match
-      FROM league_management.seasons
-      WHERE slug = temp_slug AND league_id = NEW.league_id;
-
-    IF exact_match = 1 THEN
-      -- increase slug_rank by 1 and create final slug
-      final_slug := base_slug || '-' || (slug_rank + 1);
-    ELSE
-      -- change temp slug to final slug
-      final_slug = temp_slug;
-    END IF;
-    END IF;
-
-    -- Assign the final slug to the new record
-    NEW.slug := final_slug;
-	
-	END IF;
-	
-	RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE TRIGGER set_seasons_slug
-    BEFORE INSERT ON league_management.seasons
-	FOR EACH ROW
-	EXECUTE FUNCTION generate_season_slug();
-
-CREATE OR REPLACE TRIGGER update_seasons_slug
-    BEFORE UPDATE OF name ON league_management.seasons
-	FOR EACH ROW
-	EXECUTE FUNCTION generate_season_slug();
-
--- Create league_management.season_admins
--- A joiner table that connects a user with a season and assigns them a specific role
 CREATE TABLE league_management.season_admins (
   season_admin_id     SERIAL NOT NULL PRIMARY KEY,
   season_role      INT,
@@ -478,10 +113,6 @@ CREATE TABLE league_management.season_admins (
   user_id             INT,
   created_on          TIMESTAMP DEFAULT NOW()
 );
-
--- ALTER TABLE league_management.season_admins
--- ADD CONSTRAINT fk_season_admins_season_role_id FOREIGN KEY (season_role_id)
---     REFERENCES admin.season_roles (season_role_id) ON DELETE CASCADE;
 
 ALTER TABLE league_management.season_admins
 ADD CONSTRAINT fk_season_admins_season_id FOREIGN KEY (season_id)
@@ -491,8 +122,6 @@ ALTER TABLE league_management.season_admins
 ADD CONSTRAINT fk_season_admins_user_id FOREIGN KEY (user_id)
     REFERENCES admin.users (user_id) ON DELETE CASCADE;
 
--- Create league_management.divisions
--- A division is a grouping of teams of same skill level within a season.
 CREATE TABLE league_management.divisions (
   division_id     SERIAL NOT NULL PRIMARY KEY,
   slug            VARCHAR(50) NOT NULL,
@@ -516,82 +145,6 @@ ALTER TABLE IF EXISTS league_management.divisions
 ALTER TABLE IF EXISTS league_management.divisions
     ADD CONSTRAINT division_status_enum CHECK (status IN ('draft', 'public', 'archived'));
 
-CREATE OR REPLACE FUNCTION generate_division_slug()
-RETURNS TRIGGER AS $$
-DECLARE
-    base_slug TEXT;
-    temp_slug TEXT;
-    final_slug TEXT;
-    slug_rank INT;
-    exact_match INT;
-BEGIN
-
-	IF NEW.name <> OLD.name OR tg_op = 'INSERT' THEN
-	
-    -- Generate the initial slug by processing the name
-    base_slug := lower(
-                      regexp_replace(
-                          regexp_replace(
-                              regexp_replace(NEW.name, '\s+', '-', 'g'),
-                              '[^a-zA-Z0-9\-]', '', 'g'
-                          ),
-                      '-+', '-', 'g')
-                  );
-
-    -- Check if this slug already exists and if so, append a number to ensure uniqueness
-
-  -- this SELECT checks if there are other EXACT slug matches
-    SELECT COUNT(*) INTO exact_match
-    FROM league_management.divisions
-    WHERE slug = base_slug AND season_id = NEW.season_id;
-
-    IF exact_match = 0 THEN
-        -- No duplicates found, assign base slug
-        final_slug := base_slug;
-    ELSE
-    -- this SELECT checks if there are divisions with slugs starting with the base_slug
-      SELECT COUNT(*) INTO slug_rank
-      FROM league_management.divisions
-      WHERE slug LIKE base_slug || '%' AND season_id = NEW.season_id;
-    
-        -- Duplicates found, append the count as a suffix
-        temp_slug := base_slug || '-' || slug_rank;
-    
-    -- check if exact match of temp_slug found
-    SELECT COUNT(*) INTO exact_match
-      FROM league_management.divisions
-      WHERE slug = temp_slug AND season_id = NEW.season_id;
-
-    IF exact_match = 1 THEN
-      -- increase slug_rank by 1 and create final slug
-      final_slug := base_slug || '-' || (slug_rank + 1);
-    ELSE
-      -- change temp slug to final slug
-      final_slug = temp_slug;
-    END IF;
-    END IF;
-
-    -- Assign the final slug to the new record
-    NEW.slug := final_slug;
-	
-	END IF;
-	
-	RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE TRIGGER set_divisions_slug
-    BEFORE INSERT ON league_management.divisions
-	FOR EACH ROW
-	EXECUTE FUNCTION generate_division_slug();
-
-CREATE OR REPLACE TRIGGER update_divisions_slug
-    BEFORE UPDATE OF name ON league_management.divisions
-	FOR EACH ROW
-	EXECUTE FUNCTION generate_division_slug();
-
--- Create league_management.division_teams
--- Joiner table connecting teams with divisions
 CREATE TABLE league_management.division_teams (
   division_team_id    SERIAL NOT NULL PRIMARY KEY,
   division_id         INT,
@@ -607,14 +160,11 @@ ALTER TABLE league_management.division_teams
 ADD CONSTRAINT fk_division_teams_team_id FOREIGN KEY (team_id)
     REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
 
--- Create league_management.division_rosters
--- Joiner table assigning players to a team within divisions
+-- division rosters consist of members of the team_membership but are a smaller sub group of players
 CREATE TABLE league_management.division_rosters (
   division_roster_id    SERIAL NOT NULL PRIMARY KEY,
   division_team_id      INT,
   team_membership_id    INT,
-  position              VARCHAR(50),
-  number                INT,
   created_on            TIMESTAMP DEFAULT NOW()
 );
 
@@ -626,34 +176,6 @@ ALTER TABLE league_management.division_rosters
 ADD CONSTRAINT fk_division_rosters_team_membership_id FOREIGN KEY (team_membership_id)
     REFERENCES league_management.team_memberships (team_membership_id) ON DELETE CASCADE;
 
--- Create league_management.playoffs
--- Create a playoff round that is connected to a division and is assigned a playoff_structure
-CREATE TABLE league_management.playoffs (
-  playoff_id            SERIAL NOT NULL PRIMARY KEY,
-  slug                  VARCHAR(50) NOT NULL,
-  name                  VARCHAR(50) NOT NULL,
-  description           TEXT,
-  playoff_structure     VARCHAR(20) NOT NULL DEFAULT 'bracket',
-  season_id             INT,
-  status                VARCHAR(20) NOT NULL DEFAULT 'draft',
-  created_on            TIMESTAMP DEFAULT NOW()
-);
-
--- ALTER TABLE league_management.playoffs
--- ADD CONSTRAINT fk_playoffs_playoff_structure_id FOREIGN KEY (playoff_structure_id)
---     REFERENCES admin.playoff_structures (playoff_structure_id) ON DELETE CASCADE;
-
-ALTER TABLE league_management.playoffs
-ADD CONSTRAINT fk_playoffs_season_id FOREIGN KEY (season_id)
-    REFERENCES league_management.seasons (season_id) ON DELETE CASCADE;
-
-ALTER TABLE IF EXISTS league_management.playoffs
-    ADD CONSTRAINT playoffs_status_enum CHECK (status IN ('draft', 'public', 'archived'));
-
-ALTER TABLE IF EXISTS league_management.playoffs
-    ADD CONSTRAINT playoffs_structure_enum CHECK (playoff_structure IN ('bracket', 'round-robin'));
-
--- Create league_management.venues
 CREATE TABLE league_management.venues (
   venue_id            SERIAL NOT NULL PRIMARY KEY,
   slug                VARCHAR(50) NOT NULL UNIQUE,
@@ -663,7 +185,6 @@ CREATE TABLE league_management.venues (
   created_on          TIMESTAMP DEFAULT NOW()
 );
 
--- Create league_management.arenas
 CREATE TABLE league_management.arenas (
   arena_id            SERIAL NOT NULL PRIMARY KEY,
   slug                VARCHAR(50) NOT NULL,
@@ -677,8 +198,6 @@ ALTER TABLE league_management.arenas
 ADD CONSTRAINT fk_arena_venue_id FOREIGN KEY (venue_id)
     REFERENCES league_management.venues (venue_id) ON DELETE CASCADE;
 
--- Create league_management.league_venues
--- Joiner table that allows leagues to create a list of venues used within the league
 CREATE TABLE league_management.league_venues (
   league_venue_id     SERIAL NOT NULL PRIMARY KEY,
   venue_id            INT,
@@ -694,7 +213,6 @@ ALTER TABLE league_management.league_venues
 ADD CONSTRAINT fk_league_venue_league_id FOREIGN KEY (league_id)
     REFERENCES league_management.leagues (league_id) ON DELETE CASCADE;
 
--- Create league_management.games
 CREATE TABLE league_management.games (
   game_id               SERIAL NOT NULL PRIMARY KEY,
   home_team_id          INT,
@@ -725,32 +243,6 @@ ADD CONSTRAINT fk_game_arena_id FOREIGN KEY (arena_id)
 ALTER TABLE IF EXISTS league_management.games
     ADD CONSTRAINT game_status_enum CHECK (status IN ('draft', 'public', 'completed', 'cancelled', 'postponed', 'archived'));
 
-CREATE OR REPLACE FUNCTION mark_game_as_published()
-RETURNS TRIGGER AS $$
-BEGIN
-
-	IF NEW.status <> OLD.status AND NEW.status != 'draft' THEN
-		NEW.has_been_published = true;
-	END IF;
-	
-	RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE TRIGGER insert_game_status_check
-    BEFORE INSERT ON league_management.games
-	FOR EACH ROW
-	EXECUTE FUNCTION mark_game_as_published();
-
-CREATE OR REPLACE TRIGGER update_game_status_check
-    BEFORE UPDATE OF status ON league_management.games
-	FOR EACH ROW
-	EXECUTE FUNCTION mark_game_as_published();
-  
--- Stats
-
--- Create goals
--- Track goals and connect the goal to a game and a player
 CREATE TABLE stats.goals (
   goal_id         SERIAL NOT NULL PRIMARY KEY,
   game_id         INT NOT NULL,
@@ -776,28 +268,6 @@ ALTER TABLE stats.goals
 ADD CONSTRAINT fk_goals_team_id FOREIGN KEY (team_id)
     REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
 
-CREATE OR REPLACE FUNCTION update_game_score()
-RETURNS TRIGGER AS $$
-BEGIN
-
-	UPDATE league_management.games AS g
-	SET
-		home_team_score = (SELECT COUNT(*) FROM stats.goals AS goals WHERE goals.team_id = g.home_team_id AND goals.game_id IN (NEW.game_id, OLD.game_id)),
-		away_team_score = (SELECT COUNT(*) FROM stats.goals AS goals WHERE goals.team_id = g.away_team_id AND goals.game_id IN (NEW.game_id, OLD.game_id))
-	WHERE
-		g.game_id IN (NEW.game_id, OLD.game_id);
-	
-	RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE TRIGGER goal_update_game_score
-    AFTER INSERT OR DELETE ON stats.goals
-	FOR EACH ROW
-	EXECUTE FUNCTION update_game_score();
-
--- Create Assist
--- An assist marks players who passed to the goal scorer
 CREATE TABLE stats.assists (
   assist_id       SERIAL NOT NULL PRIMARY KEY,
   goal_id         INT NOT NULL,
@@ -824,8 +294,6 @@ ALTER TABLE stats.assists
 ADD CONSTRAINT fk_assists_team_id FOREIGN KEY (team_id)
     REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
 
--- Create penalties
--- Tracks individual penalties committed by players and connects them with games
 CREATE TABLE stats.penalties (
   penalty_id      SERIAL NOT NULL PRIMARY KEY,
   game_id         INT NOT NULL,
@@ -850,8 +318,6 @@ ALTER TABLE stats.penalties
 ADD CONSTRAINT fk_penalties_team_id FOREIGN KEY (team_id)
     REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
 
--- Create shots
--- Track shots and connect the shots to a game and a player
 CREATE TABLE stats.shots (
   shot_id         SERIAL NOT NULL PRIMARY KEY,
   game_id         INT NOT NULL,
@@ -881,8 +347,6 @@ ALTER TABLE stats.shots
 ADD CONSTRAINT fk_shots_goal_id FOREIGN KEY (goal_id)
     REFERENCES stats.goals (goal_id) ON DELETE CASCADE;
 
--- Create saves
--- Track saves and connect the saves to a game and a player
 CREATE TABLE stats.saves (
   save_id         SERIAL NOT NULL PRIMARY KEY,
   game_id         INT NOT NULL,
@@ -912,27 +376,6 @@ ALTER TABLE stats.saves
 ADD CONSTRAINT fk_saves_shot_id FOREIGN KEY (shot_id)
     REFERENCES stats.shots (shot_id) ON DELETE CASCADE;
 
--- Create shutout
--- Track shoutouts and connect the shutout to a game and a player
-CREATE TABLE stats.shutouts (
-  shutout_id         SERIAL NOT NULL PRIMARY KEY,
-  game_id            INT NOT NULL,
-  user_id            INT NOT NULL,
-  team_id            INT NOT NULL,
-  created_on         TIMESTAMP DEFAULT NOW()
-);
-
-ALTER TABLE stats.shutouts
-ADD CONSTRAINT fk_shutouts_game_id FOREIGN KEY (game_id)
-    REFERENCES league_management.games (game_id) ON DELETE CASCADE;
-
-ALTER TABLE stats.shutouts
-ADD CONSTRAINT fk_shutouts_user_id FOREIGN KEY (user_id)
-    REFERENCES admin.users (user_id) ON DELETE CASCADE;
-
-ALTER TABLE stats.shutouts
-ADD CONSTRAINT fk_shutouts_team_id FOREIGN KEY (team_id)
-    REFERENCES league_management.teams (team_id) ON DELETE CASCADE;
 
 -----------------------------------
 -- INSERT DATA INTO TABLES 
@@ -1168,139 +611,139 @@ VALUES
 
 -- Add captains to OPH teams
 INSERT INTO league_management.team_memberships
-  (user_id, team_id, team_role)
+  (user_id, team_id, team_role, position, number)
 VALUES
-  (6, 1, 3), -- Stephen
-  (7, 1, 4), -- Levi
-  (10, 2, 3), -- Jayce
-  (3, 2, 4), -- Aida
-  (8, 3, 3), -- Cheryl
-  (11, 3, 4), -- Britt
-  (9, 4, 3), -- Mason
-  (5, 4, 4)  -- Kat
+  (6, 1, 3, 'Center', 30), -- Stephen
+  (7, 1, 4, 'Defense', 25), -- Levi
+  (10, 2, 3, 'Defense', 18), -- Jayce
+  (3, 2, 4, 'Defense', 47), -- Aida
+  (8, 3, 3, 'Center', 12), -- Cheryl
+  (11, 3, 4, 'Left Wing', 9), -- Britt
+  (9, 4, 3, 'Right Wing', 8), -- Mason
+  (5, 4, 4, 'Defense', 10)  -- Kat
 ;
 
 -- Add sample players to OPH teams as players
 INSERT INTO league_management.team_memberships
-  (user_id, team_id)
+  (user_id, team_id, position, number)
 VALUES
-  (15, 1), -- 9
-  (16, 1), -- 10
-  (17, 1), -- 11
-  (18, 1), -- 12
-  (19, 1), -- 13
-  (20, 1), -- 14
-  (21, 1), -- 15
-  (22, 1), -- 16
-  (23, 1), -- 17
-  (24, 1), -- 18
-  (25, 1), -- 19
-  (26, 1), -- 20
+  (15, 1, 'Center', 8), -- 9
+  (16, 1, 'Center', 9), -- 10
+  (17, 1, 'Left Wing', 10), -- 11
+  (18, 1, 'Left Wing', 11), -- 12
+  (19, 1, 'Right Wing', 12), -- 13
+  (20, 1, 'Right Wing', 13), -- 14
+  (21, 1, 'Center', 14), -- 15
+  (22, 1, 'Defense', 15), -- 16
+  (23, 1, 'Defense', 16), -- 17
+  (24, 1, 'Defense', 17), -- 18
+  (25, 1, 'Defense', 18), -- 19
+  (26, 1, 'Goalie', 33), -- 20
 
-  (27, 2), -- 21
-  (28, 2), -- 22
-  (29, 2), -- 23
-  (30, 2), -- 24
-  (31, 2), -- 25
-  (32, 2), -- 26
-  (33, 2), -- 27
-  (34, 2), -- 28
-  (35, 2), -- 29
-  (36, 2), -- 30
-  (37, 2), -- 31
-  (38, 2), -- 32
+  (27, 2, 'Center', 20), -- 21
+  (28, 2, 'Center', 21), -- 22
+  (29, 2, 'Center', 22), -- 23
+  (30, 2, 'Left Wing', 23), -- 24
+  (31, 2, 'Left Wing', 24), -- 25
+  (32, 2, 'Right Wing', 25), -- 26
+  (33, 2, 'Right Wing', 26), -- 27
+  (34, 2, 'Left Wing', 27), -- 28
+  (35, 2, 'Right Wing', 28), -- 29
+  (36, 2, 'Defense', 29), -- 30
+  (37, 2, 'Defense', 30), -- 31
+  (38, 2, 'Goalie', 31), -- 32
 
-  (39, 3), -- 33
-  (40, 3), -- 34
-  (41, 3), -- 35
-  (42, 3), -- 36
-  (43, 3), -- 37
-  (44, 3), -- 38
-  (45, 3), -- 39
-  (46, 3), -- 40
-  (47, 3), -- 41
-  (48, 3), -- 42
-  (49, 3), -- 43
-  (50, 3), -- 44
+  (39, 3, 'Center', 40), -- 33
+  (40, 3, 'Center', 41), -- 34
+  (41, 3, 'Left Wing', 42), -- 35
+  (42, 3, 'Left Wing', 43), -- 36
+  (43, 3, 'Right Wing', 44), -- 37
+  (44, 3, 'Right Wing', 45), -- 38
+  (45, 3, 'Center', 46), -- 39
+  (46, 3, 'Defense', 47), -- 40
+  (47, 3, 'Defense', 48), -- 41
+  (48, 3, 'Defense', 49), -- 42
+  (49, 3, 'Defense', 50), -- 43
+  (50, 3, 'Goalie', 51), -- 44
   
-  (51, 4), -- 45
-  (52, 4), -- 46
-  (53, 4), -- 47
-  (54, 4), -- 48
-  (55, 4), -- 49
-  (56, 4), -- 50
-  (57, 4), -- 51
-  (58, 4), -- 52
-  (59, 4), -- 53
-  (60, 4), -- 54
-  (61, 4), -- 55
-  (62, 4) -- 56
+  (51, 4, 'Center', 26), -- 45
+  (52, 4, 'Center', 27), -- 46
+  (53, 4, 'Left Wing', 28), -- 47
+  (54, 4, 'Left Wing', 29), -- 48
+  (55, 4, 'Right Wing', 30), -- 49
+  (56, 4, 'Right Wing', 31), -- 50
+  (57, 4, 'Center', 32), -- 51
+  (58, 4, 'Defense', 33), -- 52
+  (59, 4, 'Defense', 34), -- 53
+  (60, 4, 'Defense', 35), -- 54
+  (61, 4, 'Defense', 36), -- 55
+  (62, 4, 'Goalie', 37) -- 56
 ;
 
 -- Add captains to Hometown Hockey
 INSERT INTO league_management.team_memberships
-  (user_id, team_id, team_role)
+  (user_id, team_id, team_role, position, number)
 VALUES
-  (1, 5, 3), -- Adam - 57
-  (12, 6, 3), -- Zach - 58
-  (13, 7, 3), -- Andrew - 59
-  (4, 8, 3), -- Caleb - 60
-  (14, 9, 3) -- Tim - 61
+  (1, 5, 3, 'Defense', 93), -- Adam - 57
+  (12, 6, 3, 'Defense', 19), -- Zach - 58
+  (13, 7, 3, 'Defense', 6), -- Andrew - 59
+  (4, 8, 3, 'Defense', 19), -- Caleb - 60
+  (14, 9, 3, 'Left Wing', 9) -- Tim - 61
 ;
 
 INSERT INTO league_management.team_memberships
-  (user_id, team_id)
+  (user_id, team_id, position, number)
 VALUES
-  (60, 5), -- 62
-  (61, 5), -- 63
-  (62, 5), -- 64
-  (63, 5), -- 65
-  (64, 5), -- 66
-  (65, 5), -- 67
-  (66, 5), -- 68
-  (67, 5), -- 69
-  (68, 5), -- 70
-  (69, 5), -- 71
-  (70, 6), -- 72
-  (71, 6), -- 73
-  (72, 6), -- 74
-  (73, 6), -- 75
-  (74, 6), -- 76
-  (75, 6), -- 77
-  (76, 6), -- 78
-  (77, 6), -- 79
-  (78, 6), -- 80
-  (79, 6), -- 81
-  (80, 7), -- 82
-  (81, 7), -- 83
-  (82, 7), -- 84
-  (83, 7), -- 85
-  (84, 7), -- 86
-  (85, 7), -- 87
-  (86, 7), -- 88
-  (87, 7), -- 89
-  (88, 7), -- 90
-  (89, 7), -- 91
-  (90, 8), -- 92
-  (91, 8), -- 93
-  (92, 8), -- 94
-  (93, 8), -- 95
-  (94, 8), -- 96
-  (95, 8), -- 97
-  (96, 8), -- 98
-  (97, 8), -- 99
-  (98, 8), -- 100
-  (99, 8), -- 101
-  (100, 9), -- 102
-  (101, 9), -- 103
-  (102, 9), -- 104
-  (103, 9), -- 105
-  (104, 9), -- 106
-  (105, 9), -- 107
-  (106, 9), -- 108
-  (107, 9), -- 109
-  (108, 9), -- 110
-  (109, 9) -- 111
+  (60, 5, null, 60), -- 62
+  (61, 5, null, 61), -- 63
+  (62, 5, null, 62), -- 64
+  (63, 5, null, 63), -- 65
+  (64, 5, null, 64), -- 66
+  (65, 5, null, 65), -- 67
+  (66, 5, null, 66), -- 68
+  (67, 5, null, 67), -- 69
+  (68, 5, null, 68), -- 70
+  (69, 5, 'Goalie', 69), -- 71
+  (70, 6, null, 70), -- 72
+  (71, 6, null, 71), -- 73
+  (72, 6, null, 72), -- 74
+  (73, 6, null, 73), -- 75
+  (74, 6, null, 74), -- 76
+  (75, 6, null, 75), -- 77
+  (76, 6, null, 76), -- 78
+  (77, 6, null, 77), -- 79
+  (78, 6, null, 78), -- 80
+  (79, 6, 'Goalie', 79), -- 81
+  (80, 7, null, 80), -- 82
+  (81, 7, null, 81), -- 83
+  (82, 7, null, 82), -- 84
+  (83, 7, null, 83), -- 85
+  (84, 7, null, 84), -- 86
+  (85, 7, null, 85), -- 87
+  (86, 7, null, 86), -- 88
+  (87, 7, null, 87), -- 89
+  (88, 7, null, 88), -- 90
+  (89, 7, 'Goalie', 89), -- 91
+  (90, 8, null, 90), -- 92
+  (91, 8, null, 91), -- 93
+  (92, 8, null, 92), -- 94
+  (93, 8, null, 93), -- 95
+  (94, 8, null, 94), -- 96
+  (95, 8, null, 95), -- 97
+  (96, 8, null, 96), -- 98
+  (97, 8, null, 97), -- 99
+  (98, 8, null, 98), -- 100
+  (99, 8, 'Goalie', 1), -- 101
+  (100, 9, null, 20), -- 102
+  (101, 9, null, 21), -- 103
+  (102, 9, null, 22), -- 104
+  (103, 9, null, 23), -- 105
+  (104, 9, null, 24), -- 106
+  (105, 9, null, 25), -- 107
+  (106, 9, null, 26), -- 108
+  (107, 9, null, 27), -- 109
+  (108, 9, null, 28), -- 110
+  (109, 9, 'Goalie', 29) -- 111
 ;
 
 -- Default leagues
@@ -1395,146 +838,145 @@ VALUES
 -- Default division_rosters
 -- Put players who have a team role on list for team within specific season
 INSERT INTO league_management.division_rosters
-  (division_team_id, team_membership_id, position, number)
+  (division_team_id, team_membership_id)
 VALUES
   -- Significant Otters
-  (1, 1, 'Center', 30),
-  (1, 2, 'Defense', 25),
+  (1, 1),
+  (1, 2),
   -- Otterwa Senators
-  (2, 3, 'Defense', 18),
-  (2, 4, 'Defense', 47),
+  (2, 3),
+  (2, 4),
   -- Otter Chaos
-  (3, 5, 'Center', 12),
-  (3, 6, 'Left Wing', 9),
+  (3, 5),
+  (3, 6),
   -- Otter Nonsense
-  (4, 7, 'Right Wing', 8),
-  (4, 8, 'Defense', 10),
+  (4, 7),
+  (4, 8),
   -- Significant Otters
-  (1, 9, 'Center', 8),
-  (1, 10, 'Center', 9),
-  (1, 11, 'Left Wing', 10),
-  (1, 12, 'Left Wing', 11),
-  (1, 13, 'Right Wing', 12),
-  (1, 14, 'Right Wing', 13),
-  (1, 15, 'Center', 14),
-  (1, 16, 'Defense', 15),
-  -- (1, 17, 'Defense', 16),
-  -- (1, 18, 'Defense', 17),
-  (1, 19, 'Defense', 18),
-  (1, 20, 'Goalie', 33),
+  (1, 9),
+  (1, 10),
+  (1, 11),
+  (1, 12),
+  (1, 13),
+  (1, 14),
+  (1, 15),
+  (1, 16),
+  -- (1, 17),
+  -- (1, 18),
+  (1, 19),
+  (1, 20),
   -- Otterwa Senators
-  (2, 21, 'Center', 20),
-  (2, 22, 'Center', 21),
-  -- (2, 23, 'Center', 22),
-  -- (2, 24, 'Left Wing', 23),
-  (2, 25, 'Left Wing', 24),
-  (2, 26, 'Right Wing', 25),
-  (2, 27, 'Right Wing', 26),
-  (2, 28, 'Left Wing', 27),
-  (2, 29, 'Right Wing', 28),
-  (2, 30, 'Defense', 29),
-  (2, 31, 'Defense', 30),
-  (2, 32, 'Goalie', 31),
+  (2, 21),
+  (2, 22),
+  -- (2, 23),
+  -- (2, 24),
+  (2, 25),
+  (2, 26),
+  (2, 27),
+  (2, 28),
+  (2, 29),
+  (2, 30),
+  (2, 31),
+  (2, 32),
   -- Otter Chaos
-  (3, 33, 'Center', 40),
-  (3, 34, 'Center', 41),
-  (3, 35, 'Left Wing', 42),
-  (3, 36, 'Left Wing', 43),
-  (3, 37, 'Right Wing', 44),
-  -- (3, 38, 'Right Wing', 45),
-  (3, 39, 'Center', 46),
-  (3, 40, 'Defense', 47),
-  (3, 41, 'Defense', 48),
-  (3, 42, 'Defense', 49),
-  -- (3, 43, 'Defense', 50),
-  (3, 44, 'Goalie', 51),
+  (3, 33),
+  (3, 34),
+  (3, 35),
+  (3, 36),
+  (3, 37),
+  -- (3, 38),
+  (3, 39),
+  (3, 40),
+  (3, 41),
+  (3, 42),
+  -- (3, 43),
+  (3, 44),
   -- Otter Nonsense
-  (4, 45, 'Center', 26),
-  -- (4, 46, 'Center', 27),
-  (4, 47, 'Left Wing', 28),
-  -- (4, 48, 'Left Wing', 29),
-  (4, 49, 'Right Wing', 30),
-  (4, 50, 'Right Wing', 31),
-  (4, 51, 'Center', 32),
-  (4, 52, 'Defense', 33),
-  (4, 53, 'Defense', 34),
-  (4, 54, 'Defense', 35),
-  (4, 55, 'Defense', 36),
-  (4, 56, 'Goalie', 3),
+  (4, 45),
+  -- (4, 46),
+  (4, 47),
+  -- (4, 48),
+  (4, 49),
+  (4, 50),
+  (4, 51),
+  (4, 52),
+  (4, 53),
+  (4, 54),
+  (4, 55),
+  (4, 56),
 
-  (5, 57, 'Defense', 93), -- Adam
-  (6, 58, 'Defense', 13), -- Zach
-  (7, 59, 'Defense', 6), -- Andrew
-  (8, 60, 'Defense', 19), -- Caleb
-  (9, 61, 'Left Wing', 9), -- Tim
+  (5, 57), -- Adam
+  (6, 58), -- Zach
+  (7, 59), -- Andrew
+  (8, 60), -- Caleb
+  (9, 61), -- Tim
 
-  -- (5, 62, null, 60),
-  (5, 63, null, 61),
-  -- (5, 64, null, 62),
-  (5, 65, null, 63),
-  (5, 66, null, 64),
-  (5, 67, null, 65),
-  (5, 68, null, 66),
-  (5, 69, null, 67),
-  (5, 70, null, 68),
-  (5, 71, 'Goalie', 69),
+  -- (5, 62),
+  (5, 63),
+  -- (5, 64),
+  (5, 65),
+  (5, 66),
+  (5, 67),
+  (5, 68),
+  (5, 69),
+  (5, 70),
+  (5, 71),
 
-  (6, 72, null, 70),
-  (6, 73, null, 71),
-  -- (6, 74, null, 72),
-  (6, 75, null, 73),
-  (6, 76, null, 74),
-  (6, 77, null, 75),
-  (6, 78, null, 76),
-  -- (6, 79, null, 77),
-  (6, 80, null, 78),
-  (6, 81, 'Goalie', 79),
+  (6, 72),
+  (6, 73),
+  -- (6, 74),
+  (6, 75),
+  (6, 76),
+  (6, 77),
+  (6, 78),
+  -- (6, 79),
+  (6, 80),
+  (6, 81),
 
-  (7, 82, null, 80),
-  (7, 83, null, 81),
-  -- (7, 84, null, 82),
-  (7, 85, null, 83),
-  (7, 86, null, 84),
-  -- (7, 87, null, 85),
-  (7, 88, null, 86),
-  (7, 89, null, 87),
-  (7, 90, null, 88),
-  (7, 91, 'Goalie', 89),
+  (7, 82),
+  (7, 83),
+  -- (7, 84),
+  (7, 85),
+  (7, 86),
+  -- (7, 87),
+  (7, 88),
+  (7, 89),
+  (7, 90),
+  (7, 91),
 
-  -- (8, 92, null, 90),
-  (8, 93, null, 91),
-  (8, 94, null, 92),
-  (8, 95, null, 93),
-  (8, 96, null, 94),
-  (8, 97, null, 95),
-  (8, 98, null, 96),
-  (8, 99, null, 97),
-  -- (8, 100, null, 98),
-  (8, 101, 'Goalie', 1),
+  -- (8, 92),
+  (8, 93),
+  (8, 94),
+  (8, 95),
+  (8, 96),
+  (8, 97),
+  (8, 98),
+  (8, 99),
+  -- (8, 100),
+  (8, 101),
 
-  -- (9, 102, null, 20),
-  (9, 103, null, 21),
-  (9, 104, null, 22),
-  (9, 105, null, 23),
-  -- (9, 106, null, 24),
-  (9, 107, null, 25),
-  (9, 108, null, 26),
-  (9, 109, null, 27),
-  (9, 110, null, 28),
-  (9, 111, 'Goalie', 29),
+  -- (9, 102),
+  (9, 103),
+  (9, 104),
+  (9, 105),
+  -- (9, 106),
+  (9, 107),
+  (9, 108),
+  (9, 109),
+  (9, 110),
+  (9, 111),
 
   -- Otterwa Senators - Hometown Hockey
-  (15, 3, 'Defense', 18),
-  (15, 4, 'Center', 47),
-  (15, 21, 'Goalie', 20),
-  (15, 22, 'Right Wing', 21),
-  (15, 23, 'Center', 22),
-  (15, 24, 'Left Wing', 23),
-  (15, 27, 'Defense', 26),
-  (15, 28, 'Left Wing', 27),
-  (15, 29, 'Right Wing', 28),
-  (15, 30, 'Defense', 29),
-  (15, 31, 'Left Wing', 30)
+  (15, 3),
+  (15, 4),
+  (15, 23),
+  (15, 24),
+  (15, 27),
+  (15, 28),
+  (15, 29),
+  (15, 30),
+  (15, 31),
+  (15, 32)
 ;
 
 -- Default list of venues

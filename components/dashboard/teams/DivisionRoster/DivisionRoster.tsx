@@ -1,19 +1,21 @@
 import Card from "@/components/ui/Card/Card";
-import css from "./teamMembers.module.css";
+import css from "./divisionRoster.module.css";
 import Table from "@/components/ui/Table/Table";
 import { verifySession } from "@/lib/session";
 import Link from "next/link";
 import { makeAcronym, nameDisplay } from "@/utils/helpers/formatting";
 
-interface TeamMembersProps {
-  teamMembers: any[];
+interface DivisionRosterProps {
+  divisionRoster: PlayerStats[];
 }
 
-export default async function TeamMembers({ teamMembers }: TeamMembersProps) {
+export default async function DivisionRoster({
+  divisionRoster,
+}: DivisionRosterProps) {
   const { user_id } = await verifySession();
 
-  const players = teamMembers.filter((p) => p.position !== "Goalie");
-  const goalies = teamMembers.filter((p) => p.position === "Goalie");
+  const players = divisionRoster.filter((p) => p.position !== "Goalie");
+  const goalies = divisionRoster.filter((p) => p.position === "Goalie");
 
   // player table settings
   const playerHeadings = [
@@ -48,7 +50,7 @@ export default async function TeamMembers({ teamMembers }: TeamMembersProps) {
     (100 - goalieHColWidth) / goalieHeadings.length - 1
   }%`;
   return (
-    <>
+    <div>
       <h3 className={css.team_stats_heading}>Player Stats</h3>
       <Card className="push" padding="ml">
         <Table hColWidth={`${playerHColWidth}%`} colWidth={playerColWidth}>
@@ -141,6 +143,6 @@ export default async function TeamMembers({ teamMembers }: TeamMembersProps) {
           </tbody>
         </Table>
       </Card>
-    </>
+    </div>
   );
 }

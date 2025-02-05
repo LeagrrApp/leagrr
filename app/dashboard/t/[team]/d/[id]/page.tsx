@@ -1,4 +1,5 @@
 import {
+  canEditTeam,
   getDivisionsByTeam,
   getTeam,
   getTeamDashboardData,
@@ -14,10 +15,11 @@ import DashboardUnitHeader from "@/components/dashboard/DashboardUnitHeader/Dash
 import Icon from "@/components/ui/Icon/Icon";
 import Card from "@/components/ui/Card/Card";
 import GamePreview from "@/components/dashboard/games/GamePreview/GamePreview";
-import TeamMembers from "@/components/dashboard/teams/TeamMembers/TeamMembers";
+import TeamMembers from "@/components/dashboard/teams/DivisionRoster/DivisionRoster";
 import Button from "@/components/ui/Button/Button";
 import DivisionStandings from "@/components/dashboard/divisions/DivisionStandings/DivisionStandings";
 import { getDivisionUrlById } from "@/actions/divisions";
+import DivisionRoster from "@/components/dashboard/teams/DivisionRoster/DivisionRoster";
 
 type PageParams = {
   params: Promise<{ team: string; id: string }>;
@@ -54,6 +56,8 @@ export default async function Page({ params }: PageParams) {
     await getTeamDashboardData(team_id, division_id);
 
   const leagueUrl = await getDivisionUrlById(division_id);
+
+  const { canEdit } = await canEditTeam(team);
 
   return (
     <div className={css.team_grid}>
@@ -93,10 +97,15 @@ export default async function Page({ params }: PageParams) {
       <DashboardUnit gridArea="members">
         <DashboardUnitHeader>
           <h2>
-            <Icon label="Team Members" icon="group" labelFirst gap="m" />
+            <Icon label="Roster" icon="group" labelFirst gap="m" />
           </h2>
+          {canEdit && (
+            <Button href={createDashboardUrl({ t: team, d: id }, "/roster")}>
+              <Icon icon="group" label="Manage Roster" />
+            </Button>
+          )}
         </DashboardUnitHeader>
-        <TeamMembers teamMembers={teamMembers} />
+        <DivisionRoster divisionRoster={teamMembers} />
       </DashboardUnit>
 
       <DashboardUnit gridArea="leagues">
@@ -104,7 +113,9 @@ export default async function Page({ params }: PageParams) {
           <h2>
             <Icon label="Standings" icon="trophy" labelFirst gap="m" />
           </h2>
-          <Button href={leagueUrl}>View League</Button>
+          <Button href={leagueUrl}>
+            <Icon icon="trophy" label="View League" />
+          </Button>
         </DashboardUnitHeader>
         {divisionStandings && divisionStandings.length > 0 ? (
           <DivisionStandings

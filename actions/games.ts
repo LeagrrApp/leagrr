@@ -641,8 +641,8 @@ export async function getTeamGameStats(
       u.username,
       u.first_name,
       u.last_name,
-      tm.number,
-      tm.position,
+      dr.number,
+      dr.position,
       (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = tm.user_id AND g.game_id = $1)::int AS goals,
       (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = tm.user_id AND a.game_id = $1)::int AS assists,
       (
@@ -989,7 +989,7 @@ export async function getGameTeamRosters(
       u.user_id,
       u.first_name,
       u.last_name,
-      tm.position
+      dr.position
     FROM
       league_management.division_rosters AS dr
     JOIN

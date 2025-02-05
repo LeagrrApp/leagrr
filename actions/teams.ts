@@ -1,14 +1,13 @@
 "use server";
 import { db } from "@/db/pg";
+import { team_roles } from "@/lib/definitions";
 import { verifySession } from "@/lib/session";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { check_string_is_color_hex } from "@/utils/helpers/validators";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getDivisionStandings } from "./divisions";
-import { getUserRole, verifyUserRole } from "./users";
-import { team_roles } from "@/lib/definitions";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
-import slugify from "slugify";
+import { verifyUserRole } from "./users";
 
 const CreateTeamSchema = z.object({
   user_id: z.number().min(1),
@@ -294,6 +293,143 @@ export async function getTeam(
   return teamResult;
 }
 
+export async function getDivisionTeamId(team_id: number, division_id: number) {
+  // confirm logged in
+  await verifySession();
+
+  const sql = `
+    SELECT
+      division_team_id
+    FROM
+      league_management.division_teams AS dt
+    WHERE
+      team_id = $1 AND division_id = $2
+  `;
+
+  const result: ResultProps<number> = await db
+    .query(sql, [team_id, division_id])
+    .then((res) => {
+      return {
+        message: "Team list found",
+        status: 200,
+        data: res.rows[0].division_team_id,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  return result;
+}
+
+export async function getAllTeamMembers(team_id: number) {
+  // confirm logged in
+  await verifySession();
+
+  const sql = `
+    SELECT
+      u.user_id,
+      u.first_name,
+      u.last_name,
+      u.username,
+      u.email,
+      u.pronouns,
+      u.gender,
+      tm.team_membership_id
+    FROM
+      league_management.team_memberships AS tm
+    JOIN
+      admin.users AS u
+    ON
+      tm.user_id = u.user_id
+    WHERE
+      tm.team_id = $1
+    ORDER BY
+      u.last_name, u.first_name
+  `;
+
+  const result: ResultProps<TeamUserData[]> = await db
+    .query(sql, [team_id])
+    .then((res) => {
+      return {
+        message: "Team list found",
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  return result;
+}
+
+export async function getTeamDivisionRoster(
+  team_id: number,
+  division_id: number,
+) {
+  // confirm logged in
+  await verifySession();
+
+  const sql = `
+    SELECT
+      u.user_id,
+      u.first_name,
+      u.last_name,
+      u.username,
+      u.email,
+      u.pronouns,
+      u.gender,
+      dr.number,
+      dr.position,
+      tm.team_membership_id,
+      dt.division_team_id,
+      dr.division_roster_id
+    FROM
+      league_management.division_rosters AS dr
+    JOIN
+      league_management.team_memberships AS tm
+    ON
+      dr.team_membership_id = tm.team_membership_id
+    JOIN
+      admin.users AS u
+    ON
+      tm.user_id = u.user_id
+    JOIN
+      league_management.division_teams AS dt
+    ON
+      dt.division_team_id = dr.division_team_id
+    WHERE
+      dt.team_id = $1 AND dt.division_id = $2
+    ORDER BY
+      tm.team_id, u.last_name, u.first_name
+  `;
+
+  const result: ResultProps<TeamUserData[]> = await db
+    .query(sql, [team_id, division_id])
+    .then((res) => {
+      return {
+        message: "Division roster found",
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  return result;
+}
+
 export async function getDivisionsByTeam(
   team_id: number,
 ): Promise<ResultProps<TeamDivisionsProps[]>> {
@@ -363,6 +499,7 @@ export async function getTeamGamePreviews(
 ) {
   const sql = `
     SELECT
+      division_id,
       game_id,
       home_team_id,
       (SELECT name FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team,
@@ -423,61 +560,12 @@ export async function getTeamGamePreviews(
   return result;
 }
 
-export async function getTeamMembers(team_id: number, division_id: number) {
+export async function getTeamDivisionRosterStats(
+  team_id: number,
+  division_id: number,
+) {
   // confirm logged in
   await verifySession();
-
-  // out of date version that looks at all team members, not just current division members
-  // const sql = `
-  //   SELECT
-  //     u.user_id,
-  //     u.first_name,
-  //     u.last_name,
-  //     u.username,
-  //     u.pronouns,
-  //     u.email,
-  //     tm.position,
-  //     tm.number,
-  //     tm.team_role,
-  //     (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = tm.user_id AND g.game_id IN (
-  //       SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
-  //     ))::int AS goals,
-  //     (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = tm.user_id AND a.game_id IN (
-  //       SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
-  //     ))::int AS assists,
-  //     (
-  //       (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = tm.user_id AND g.game_id IN (
-  //       SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
-  //     )) +
-  //       (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = tm.user_id AND a.game_id IN (
-  //       SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
-  //     ))
-  //     )::int AS points,
-  //     (SELECT COUNT(*) FROM stats.shots AS s WHERE s.user_id = tm.user_id AND s.game_id IN (
-  //       SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
-  //     ))::int AS shots,
-  //     (SELECT COALESCE(SUM(minutes), 0) FROM stats.penalties AS p WHERE p.user_id = tm.user_id AND p.game_id IN (
-  //     SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
-  //     ))::int AS penalties_in_minutes,
-  //     (SELECT COUNT(*) FROM stats.saves AS sa WHERE sa.user_id = tm.user_id AND sa.game_id IN (
-  //       SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
-  //     ))::int AS saves,
-  //     (SELECT COUNT(*) FROM stats.goals AS goal WHERE goal.team_id != $1 AND goal.game_id IN (
-  //       SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
-  //     ))::int AS goals_against,
-  //     (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id != $1 AND sh.game_id IN (
-  //       SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
-  //     ))::int AS shots_against
-  //   FROM
-  //     league_management.team_memberships AS tm
-  //   JOIN
-  //     admin.users AS u
-  //   ON
-  //     u.user_id = tm.user_id
-  //   WHERE
-  //     tm.team_id = $1
-  //   ORDER BY points DESC, goals DESC, assists DESC, shots DESC, last_name ASC, first_name ASC
-  // `;
 
   // new version, references team members of the specific division's roster, not all team members
   const sql = `
@@ -489,8 +577,8 @@ export async function getTeamMembers(team_id: number, division_id: number) {
       u.username,
       u.pronouns,
       u.email,
-      tm.position,
-      tm.number,
+      dr.position,
+      dr.number,
       tm.team_role,
       (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = tm.user_id AND g.game_id IN (
         SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
@@ -579,7 +667,10 @@ export async function getTeamDashboardData(
   );
 
   // get team members
-  const { data: teamMembers } = await getTeamMembers(team_id, division_id);
+  const { data: teamMembers } = await getTeamDivisionRosterStats(
+    team_id,
+    division_id,
+  );
 
   // get current div/season/league data
   const { data: divisionStandings } = await getDivisionStandings(division_id);
@@ -749,6 +840,257 @@ export async function setTeamJoinCode(
     message: result.message,
     status: result.status,
   };
+}
+
+const AddPlayerToDivisionTeamSchema = z.object({
+  division_team_id: z.number().min(1),
+  team_membership_id: z.number().min(1),
+  number: z.number().min(1).max(98),
+  position: z.string(),
+});
+
+type AddPlayerToDivisionTeamErrorProps = {
+  division_roster_id?: string[] | undefined;
+  division_team_id?: string[] | undefined;
+  team_membership_id?: string[] | undefined;
+  number?: string[] | undefined;
+  position?: string[] | undefined;
+};
+
+type AddPlayerToDivisionTeamFormState =
+  | {
+      errors?: AddPlayerToDivisionTeamErrorProps;
+      message?: string;
+      status?: number;
+      link?: string;
+      data?: {
+        team_id?: number;
+        division_team_id?: number;
+        team_membership_id?: number;
+        number?: number;
+        position?: string;
+      };
+    }
+  | undefined;
+
+export async function addPlayerToDivisionTeam(
+  state: AddPlayerToDivisionTeamFormState,
+  formData: FormData,
+) {
+  const submittedData = {
+    team_id: parseInt(formData.get("team_id") as string),
+    division_team_id: parseInt(formData.get("division_team_id") as string),
+    team_membership_id: parseInt(formData.get("team_membership_id") as string),
+    number: parseInt(formData.get("number") as string),
+    position: formData.get("position"),
+  };
+
+  // Validate data
+  const validatedFields =
+    AddPlayerToDivisionTeamSchema.safeParse(submittedData);
+
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    return {
+      state,
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  // Check if user can edit
+  const { canEdit } = await canEditTeam(submittedData.team_id);
+
+  if (!canEdit) {
+    // failed role check, shortcut out
+    return {
+      message: "You do not have permission to modify rosters for this team.",
+      status: 401,
+    };
+  }
+
+  const sql = `
+    INSERT INTO league_management.division_rosters
+      (division_team_id, team_membership_id, number, position)
+    VALUES
+      ($1, $2, $3, $4)
+  `;
+
+  const result = await db
+    .query(sql, [
+      submittedData.division_team_id,
+      submittedData.team_membership_id,
+      submittedData.number,
+      submittedData.position,
+    ])
+    .then((res) => {
+      return {
+        message: "Player added to division team!",
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (result.status === 200) {
+    state?.link && redirect(state.link);
+  }
+
+  return state;
+}
+
+const EditPlayerOnDivisionTeamSchema = z.object({
+  number: z.number().min(1).max(98),
+  division_roster_id: z.number().min(1),
+  position: z.string(),
+});
+
+export async function editPlayerOnDivisionTeam(
+  state: AddPlayerToDivisionTeamFormState,
+  formData: FormData,
+) {
+  const submittedData = {
+    team_id: parseInt(formData.get("team_id") as string),
+    division_roster_id: parseInt(formData.get("division_roster_id") as string),
+    number: parseInt(formData.get("number") as string),
+    position: formData.get("position"),
+  };
+
+  // Validate data
+  const validatedFields =
+    EditPlayerOnDivisionTeamSchema.safeParse(submittedData);
+
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    return {
+      state,
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  // Check if user can edit
+  const { canEdit } = await canEditTeam(submittedData.team_id);
+
+  if (!canEdit) {
+    // failed role check, shortcut out
+    return {
+      message: "You do not have permission to modify rosters for this team.",
+      status: 401,
+    };
+  }
+
+  const sql = `
+    UPDATE league_management.division_rosters
+    SET 
+      number = $1,
+      position = $2
+    WHERE
+      division_roster_id = $3
+  `;
+
+  const result = await db
+    .query(sql, [
+      submittedData.number,
+      submittedData.position,
+      submittedData.division_roster_id,
+    ])
+    .then((res) => {
+      return {
+        message: "Player information updated!",
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (result.status === 200) {
+    state?.link && redirect(state.link);
+  }
+
+  return state;
+}
+
+const RemovePlayerFromDivisionTeamSchema = z.object({
+  division_roster_id: z.number().min(1),
+});
+
+type RemovePlayerFromDivisionTeamFormState =
+  | {
+      errors?: AddPlayerToDivisionTeamErrorProps;
+      message?: string;
+      status?: number;
+      link?: string;
+      data?: {
+        team_id?: number;
+        division_team_id?: number;
+      };
+    }
+  | undefined;
+
+export async function removePlayerFromDivisionTeam(
+  state: RemovePlayerFromDivisionTeamFormState,
+  formData: FormData,
+) {
+  const submittedData = {
+    team_id: parseInt(formData.get("team_id") as string),
+    division_roster_id: parseInt(formData.get("division_roster_id") as string),
+  };
+
+  // Validate data
+  const validatedFields =
+    RemovePlayerFromDivisionTeamSchema.safeParse(submittedData);
+
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    return {
+      state,
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  // Check if user can edit
+  const { canEdit } = await canEditTeam(submittedData.team_id);
+
+  if (!canEdit) {
+    // failed role check, shortcut out
+    return {
+      message: "You do not have permission to modify rosters for this team.",
+      status: 401,
+    };
+  }
+
+  const sql = `
+    DELETE FROM league_management.division_rosters
+    WHERE division_roster_id = $1
+  `;
+
+  const result = await db
+    .query(sql, [submittedData.division_roster_id])
+    .then((res) => {
+      return {
+        message: "Player removed from team!",
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (result.status === 200) {
+    state?.link && redirect(state.link);
+  }
+
+  return state;
 }
 
 export async function deleteTeam(state: { team_id: number }) {

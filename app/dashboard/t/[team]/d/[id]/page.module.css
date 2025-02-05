@@ -1,6 +1,6 @@
 .team_grid {
   display: grid;
-  gap: var(--spacer-base);
+  gap: var(--spacer-l) var(--spacer-base);
   grid-template-areas:
     "next_game"
     "prev_game"

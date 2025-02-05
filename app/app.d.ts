@@ -11,8 +11,8 @@ type UserData = {
   username?: string;
   email?: string;
   pronouns?: string;
+  gender?: string;
   user_role: number;
-  role_name?: string;
   password_hash?: string;
 };
 
@@ -56,6 +56,25 @@ type TeamStandingsData = Pick<
 };
 
 type QuickTeam = Pick<TeamData, "team_id" | "name">;
+
+type TeamUserData = Required<
+  Pick<
+    UserData,
+    | "user_id"
+    | "first_name"
+    | "last_name"
+    | "username"
+    | "email"
+    | "pronouns"
+    | "gender"
+  >
+> & {
+  number: number;
+  position: string;
+  team_membership_id?: number;
+  division_team_id?: number;
+  division_roster_id?: number;
+};
 
 type TeamRosterItem = {
   team_id: number;
@@ -161,6 +180,8 @@ type PlayerStats = {
   shots: number;
   saves: number;
   penalties_in_minutes: number;
+  shots_against: number;
+  goals_against: number;
 };
 
 type StatsData = {
