@@ -1,31 +1,30 @@
 "use client";
 
-import {
-  editPlayerOnDivisionTeam,
-  removePlayerFromDivisionTeam,
-} from "@/actions/teams";
+import { editTeamMembership, removeTeamMembership } from "@/actions/teams";
 import Button from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
-import Input from "@/components/ui/forms/Input";
 import Select from "@/components/ui/forms/Select";
 import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import Table from "@/components/ui/Table/Table";
-import { makeAcronym, nameDisplay } from "@/utils/helpers/formatting";
+import { team_roles } from "@/lib/definitions";
+import { nameDisplay } from "@/utils/helpers/formatting";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useActionState, useRef, useState } from "react";
 
-interface ActiveRosterProps {
+interface TeamMembersProps {
   team_id: number;
   teamMembers: TeamUserData[];
+  canEdit: boolean;
 }
 
-export default function ActiveRoster({
+export default function TeamMembers({
   team_id,
   teamMembers,
-}: ActiveRosterProps) {
+  canEdit,
+}: TeamMembersProps) {
   const pathname = usePathname();
 
   const editDialogRef = useRef<HTMLDialogElement>(null);
@@ -34,13 +33,13 @@ export default function ActiveRoster({
     teamMembers[0],
   );
   const [editState, editAction, editPending] = useActionState(
-    editPlayerOnDivisionTeam,
+    editTeamMembership,
     {
       link: pathname,
     },
   );
   const [removeState, removeAction, removePending] = useActionState(
-    removePlayerFromDivisionTeam,
+    removeTeamMembership,
     {
       link: pathname,
     },
@@ -60,26 +59,25 @@ export default function ActiveRoster({
     }
   }
 
-  const colHeaders = [
+  let colHeaders = [
     { title: "Name", highlightCol: true },
     { title: "Pronouns" },
     { title: "Gender" },
-    { title: "Position", shorthand: "Pos" },
-    { title: "Number", shorthand: "Num" },
-    { title: "Edit" },
-    { title: "Remove" },
+    { title: "Team Role" },
+    { title: "Joined" },
   ];
+
+  if (canEdit) {
+    colHeaders = [...colHeaders, ...[{ title: "Edit" }, { title: "Remove" }]];
+  }
 
   const hColWidth = 20;
   const colWidth = `${(100 - hColWidth) / colHeaders.length - 1}%`;
 
   return (
     <>
-      <h3>Active Roster</h3>
-      <p className="push-m">
-        These players are currently active as part of the current division.
-      </p>
       {teamMembers && teamMembers.length > 1 && (
+        // <Table hColWidth={`${hColWidth}%`} colWidth={colWidth}>
         <Table hColWidth={`${hColWidth}%`} colWidth={colWidth}>
           <thead>
             <tr>
@@ -87,20 +85,25 @@ export default function ActiveRoster({
                 <th
                   key={th.title}
                   scope="col"
-                  title={th.shorthand ? th.title : undefined}
                   data-highlight-col={th.highlightCol ? true : undefined}
                 >
-                  {th.shorthand ? (
-                    <span aria-hidden="true">{th.shorthand}</span>
-                  ) : (
-                    <>{th.title}</>
-                  )}
+                  {th.title}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
             {teamMembers.map((p) => {
+              const joined = p.joined
+                ? p.joined.toLocaleDateString("en-CA", {
+                    month: "short",
+                    day: "2-digit",
+                    year: "numeric",
+                  })
+                : "";
+
+              const role = p.team_role && team_roles.get(p.team_role)?.title;
+
               return (
                 <tr key={p.username}>
                   <th scope="row">
@@ -110,26 +113,30 @@ export default function ActiveRoster({
                   </th>
                   <td>{p.pronouns}</td>
                   <td>{p.gender}</td>
-                  <td title={p.position}>{makeAcronym(p.position || "")}</td>
-                  <td>{p.number}</td>
-                  <td>
-                    <Button
-                      style={{ position: "relative" }}
-                      variant="grey"
-                      onClick={() => handleClick(p.user_id)}
-                    >
-                      <Icon icon="edit_square" label="Edit" hideLabel />
-                    </Button>
-                  </td>
-                  <td>
-                    <Button
-                      style={{ position: "relative" }}
-                      variant="danger"
-                      onClick={() => handleClick(p.user_id, true)}
-                    >
-                      <Icon icon="person_remove" label="Remove" hideLabel />
-                    </Button>
-                  </td>
+                  <td>{role === "Manager" ? <strong>{role}</strong> : role}</td>
+                  <td>{joined}</td>
+                  {canEdit && (
+                    <>
+                      <td>
+                        <Button
+                          style={{ position: "relative" }}
+                          variant="grey"
+                          onClick={() => handleClick(p.user_id)}
+                        >
+                          <Icon icon="edit_square" label="Edit" hideLabel />
+                        </Button>
+                      </td>
+                      <td>
+                        <Button
+                          style={{ position: "relative" }}
+                          variant="danger"
+                          onClick={() => handleClick(p.user_id, true)}
+                        >
+                          <Icon icon="person_remove" label="Remove" hideLabel />
+                        </Button>
+                      </td>
+                    </>
+                  )}
                 </tr>
               );
             })}
@@ -145,31 +152,21 @@ export default function ActiveRoster({
             <input type="hidden" name="team_id" value={team_id} />
             <input
               type="hidden"
-              name="division_roster_id"
-              value={teamMemberToEdit.division_roster_id}
+              name="team_membership_id"
+              value={teamMemberToEdit.team_membership_id}
             />
-            <Input
-              name="number"
-              label="Number"
-              type="number"
-              min="1"
-              max="98"
-              defaultValue={teamMemberToEdit?.number?.toString()}
-              errors={{ errs: editState?.errors?.number, type: "danger" }}
-            />
-            <Select
-              name="position"
-              label="Position"
-              choices={[
-                "Center",
-                "Right Wing",
-                "Left Wing",
-                "Defense",
-                "Goalie",
-              ]}
-              errors={{ errs: editState?.errors?.position, type: "danger" }}
-              selected={teamMemberToEdit.position}
-            />
+            <Col fullSpan>
+              <Select
+                name="team_role"
+                label="Team Role"
+                choices={[
+                  { label: "Manager", value: 1 },
+                  { label: "Member", value: 2 },
+                ]}
+                errors={{ errs: editState?.errors?.team_role, type: "danger" }}
+                selected={teamMemberToEdit.team_role}
+              />
+            </Col>
             <Button type="submit" disabled={editPending}>
               <Icon icon="save" label="Save" />
             </Button>
@@ -191,8 +188,8 @@ export default function ActiveRoster({
             <input type="hidden" name="team_id" value={team_id} />
             <input
               type="hidden"
-              name="division_roster_id"
-              value={teamMemberToEdit.division_roster_id}
+              name="team_membership_id"
+              value={teamMemberToEdit.team_membership_id}
             />
             <Button type="submit" disabled={removePending} variant="danger">
               <Icon icon="delete" label="Confirm" />

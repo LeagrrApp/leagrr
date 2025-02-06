@@ -27,11 +27,6 @@ export default async function GameFeed({
     game.home_team_id,
     game.division_id,
   );
-  const gameTeamRosters = await getGameTeamRosters(
-    game.away_team_id,
-    game.home_team_id,
-    game.division_id,
-  );
 
   if (!teamRosters) return null;
 
@@ -88,6 +83,13 @@ export default async function GameFeed({
 
   let running_away_team_score = 0;
   let running_home_team_score = 0;
+
+  let game_end_highlight_class = css.tie_game;
+
+  if (game.home_team_score > game.away_team_score)
+    game_end_highlight_class = css.home_team_win;
+  if (game.home_team_score < game.away_team_score)
+    game_end_highlight_class = css.away_team_win;
 
   return (
     <section id="game-feed" className={css.game_feed}>
@@ -146,7 +148,7 @@ export default async function GameFeed({
                 ) : (
                   <p>No events this period!</p>
                 )}
-                {i !== 2 && (
+                {i !== 2 && currentTime.period !== i + 1 && (
                   <div className={css.game_feed_summary}>
                     <h5>{addNumberOrdinals(i + 1)} Period Score</h5>
                     <p>
@@ -197,9 +199,7 @@ export default async function GameFeed({
             className={apply_classes([
               css.game_feed_summary,
               css.game_feed_completed,
-              game.home_team_score > game.away_team_score
-                ? css.home_team_win
-                : css.away_team_win,
+              game_end_highlight_class,
             ])}
           >
             <h4 className={css.game_feed_summary_heading}>Final Score</h4>

@@ -2,17 +2,15 @@ import { canEditTeam, deleteTeam, getTeam } from "@/actions/teams";
 import { verifyUserRole } from "@/actions/users";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
 import EditTeam from "@/components/dashboard/teams/EditTeam";
+import TeamInvite from "@/components/dashboard/teams/TeamInvite/TeamInvite";
+import BackButton from "@/components/ui/BackButton/BackButton";
 import Col from "@/components/ui/layout/Col";
-import Grid from "@/components/ui/layout/Grid";
 import {
   createDashboardUrl,
   createMetaTitle,
 } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
 import css from "./page.module.css";
-import Card from "@/components/ui/Card/Card";
-import TeamInvite from "@/components/dashboard/teams/TeamInvite/TeamInvite";
-import Icon from "@/components/ui/Icon/Icon";
 
 export async function generateMetadata({
   params,
@@ -23,9 +21,9 @@ export async function generateMetadata({
 
   const { data: teamData } = await getTeam(team);
 
-  const titleArray = teamData?.name
-    ? ["Edit", teamData.name, "Teams"]
-    : ["Edit", "Teams"];
+  if (!teamData) return null;
+
+  const titleArray = ["Edit", teamData.name, "Teams"];
 
   return {
     title: createMetaTitle(titleArray),
@@ -56,12 +54,7 @@ export default async function Page({
   return (
     <div className={css.layout}>
       <Col fullSpan>
-        <Icon
-          href={backLink}
-          className="push"
-          icon="chevron_left"
-          label="Back to team"
-        />
+        <BackButton label="Back to team" href={backLink} />
         <h2>Edit Team</h2>
       </Col>
       <div>

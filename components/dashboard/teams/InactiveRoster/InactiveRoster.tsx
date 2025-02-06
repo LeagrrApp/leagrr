@@ -44,12 +44,15 @@ export default function InactiveRoster({
     dialogRef?.current?.showModal();
   }
 
-  const inActiveHeaders = [
-    { title: "Name" },
+  const colHeaders = [
+    { title: "Name", highlightCol: true },
     { title: "Pronouns" },
     { title: "Gender" },
     { title: "Add" },
   ];
+
+  const hColWidth = 40;
+  const colWidth = `${(100 - hColWidth) / colHeaders.length - 1}%`;
 
   return (
     <>
@@ -58,11 +61,19 @@ export default function InactiveRoster({
         These team members are not currently active in this division.
       </p>
       {teamMembers && teamMembers.length > 0 && (
-        <Table className="push-l">
+        <Table
+          className="push-l"
+          hColWidth={`${hColWidth}%`}
+          colWidth={colWidth}
+        >
           <thead>
             <tr>
-              {inActiveHeaders.map((th) => (
-                <th key={th.title} scope="col">
+              {colHeaders.map((th) => (
+                <th
+                  key={th.title}
+                  scope="col"
+                  data-highlight-col={th.highlightCol ? true : undefined}
+                >
                   {th.title}
                 </th>
               ))}
@@ -84,7 +95,7 @@ export default function InactiveRoster({
                       onClick={() => handleClick(p.user_id)}
                       style={{ position: "relative" }}
                     >
-                      <Icon icon="add_circle" label="Activate" />
+                      <Icon icon="person_add" label="Add" hideLabel />
                     </Button>
                   </td>
                 </tr>

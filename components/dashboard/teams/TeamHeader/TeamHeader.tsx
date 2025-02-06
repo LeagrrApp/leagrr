@@ -1,13 +1,13 @@
 "use client";
 
 import Badge from "@/components/ui/Badge/Badge";
+import Button from "@/components/ui/Button/Button";
 import Icon from "@/components/ui/Icon/Icon";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { usePathname } from "next/navigation";
-import css from "./teamHeader.module.css";
 import DHeader from "../../DHeader/DHeader";
-import IconSport from "@/components/ui/Icon/IconSport";
 import DivisionSelector from "../DivisionSelector/DivisionSelector";
-import { CSSProperties } from "react";
+import css from "./teamHeader.module.css";
 
 interface TeamHeaderProps {
   team: TeamData;
@@ -29,7 +29,8 @@ export default function TeamHeader({
   if (status === "suspended") badgeColor = "caution";
   if (status === "banned") badgeColor = "danger";
 
-  const editLink = `/dashboard/t/${slug}/edit`;
+  const editLink = createDashboardUrl({ t: slug }, "edit");
+  const membersLink = createDashboardUrl({ t: slug }, "members");
 
   return (
     <DHeader
@@ -57,9 +58,19 @@ export default function TeamHeader({
         {description && <p>{description}</p>}
       </div>
 
-      {divisions?.length > 0 && (
-        <DivisionSelector divisions={divisions} canEdit={canEdit} />
-      )}
+      <div className={css.team_header_controls}>
+        {divisions?.length > 0 && (
+          <DivisionSelector divisions={divisions} canEdit={canEdit} />
+        )}
+        {membersLink !== pathname && (
+          <Button href={membersLink} size="xs">
+            <Icon
+              label={canEdit ? "Manage Team Members" : "View Team Members"}
+              icon="groups"
+            />
+          </Button>
+        )}
+      </div>
     </DHeader>
   );
 }

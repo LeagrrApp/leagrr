@@ -30,6 +30,11 @@ export default function TeamInvite({ team, division_id }: TeamInviteProps) {
   const [updating, setUpdating] = useState<boolean>(false);
   const [hasBeenCopied, setHasBeenCopied] = useState<boolean>(false);
 
+  useEffect(() => {
+    state?.data?.join_code && setJoinCodeValue(state?.data?.join_code);
+    setUpdating(false);
+  }, [state]);
+
   function copyCodeLink() {
     if (typeof team_slug !== "string") return;
 
@@ -66,7 +71,7 @@ export default function TeamInvite({ team, division_id }: TeamInviteProps) {
             </dd>
             <dt>Code:</dt>
             <dd>
-              <span className={css.join_code_info_line}>{team.join_code}</span>
+              <span className={css.join_code_info_line}>{joinCodeValue}</span>
             </dd>
           </dl>
           <div className={css.button_wrap}>
@@ -91,12 +96,16 @@ export default function TeamInvite({ team, division_id }: TeamInviteProps) {
     <>
       <Card padding="l">
         <h3 className="push-m">{updating ? "Update" : "Create a"} Join Code</h3>
-        <p className="push">
+        <p className="push-s">
           This code allows players to easily join <strong>{name}</strong>{" "}
-          without needing a team administrator to approve a join request. The
-          code needs to be unique, minimum of 6 characters and cannot contain
-          any spaces, use dashes or underscores instead.
+          without needing a team administrator to approve a join request.
         </p>
+        <small className="push block">
+          <strong>Note:</strong> The code needs to be unique, minimum of 6
+          characters and url safe, meaning no spaces or special characters. The
+          code will automatically be made url safe in the database, so make sure
+          to copy the correct update code provided.
+        </small>
         <form action={action}>
           <Grid cols={2} gap="base">
             <Col fullSpan>

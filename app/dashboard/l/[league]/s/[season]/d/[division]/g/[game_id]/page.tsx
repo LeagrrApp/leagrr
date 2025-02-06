@@ -10,6 +10,7 @@ import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import css from "./page.module.css";
 import { apply_classes_conditional } from "@/utils/helpers/html-attributes";
+import BackButton from "@/components/ui/BackButton/BackButton";
 
 interface GameStyles extends CSSProperties {
   "--color-home": string;
@@ -63,12 +64,7 @@ export default async function Page({
 
   return (
     <>
-      <Icon
-        className="push"
-        href={backLink}
-        icon="chevron_left"
-        label="Return to division"
-      />
+      <BackButton label="Back to division" href={backLink} />
 
       <article
         style={styles}

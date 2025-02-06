@@ -16,6 +16,7 @@ import { get_unique_items_by_key } from "@/utils/helpers/objects";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
 import TeamInvite from "@/components/dashboard/teams/TeamInvite/TeamInvite";
+import BackButton from "@/components/ui/BackButton/BackButton";
 
 type PageParams = {
   params: Promise<{ team: string; id: string }>;
@@ -26,9 +27,9 @@ export async function generateMetadata({ params }: PageParams) {
 
   const { data: teamData } = await getTeam(team);
 
-  const titleArray = teamData?.name
-    ? [teamData.name, "Teams", "Manage Members"]
-    : ["Teams", "Manage Members"];
+  if (!teamData) return null;
+
+  const titleArray = ["Manage Roster", teamData.name, "Teams"];
 
   return {
     title: createMetaTitle(titleArray),
@@ -64,12 +65,8 @@ export default async function Page({ params }: PageParams) {
   if (!teamMembers || !divisionRoster || !division_team_id)
     return (
       <>
-        <Icon
-          icon="chevron_left"
-          label="Back to team page"
-          href={backLink}
-          className="push"
-        />
+        <BackButton label="Back to team" href={backLink} />
+
         <h2>Manage Roster</h2>
         <Alert
           alert="Sorry, team member lists could not be loaded."
@@ -86,12 +83,8 @@ export default async function Page({ params }: PageParams) {
 
   return (
     <>
-      <Icon
-        icon="chevron_left"
-        label="Back to team page"
-        href={backLink}
-        className="push"
-      />
+      <BackButton label="Back to team" href={backLink} />
+
       <h2 className="push">Manage Roster</h2>
 
       <div className={css.layout}>

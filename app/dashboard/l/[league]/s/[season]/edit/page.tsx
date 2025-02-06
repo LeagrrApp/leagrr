@@ -2,6 +2,7 @@ import { canEditLeague } from "@/actions/leagues";
 import { deleteSeason, getSeason } from "@/actions/seasons";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
 import EditSeason from "@/components/dashboard/seasons/EditSeason";
+import BackButton from "@/components/ui/BackButton/BackButton";
 import Container from "@/components/ui/Container/Container";
 import Icon from "@/components/ui/Icon/Icon";
 import { notFound, redirect } from "next/navigation";
@@ -26,13 +27,8 @@ export default async function Page({
 
   return (
     <Container>
-      <Icon
-        icon="chevron_left"
-        label="Back to season"
-        size="h4"
-        href={backLink}
-        className="push"
-      />
+      <BackButton label="Back to season" href={backLink} />
+
       <h2 className="push">Edit Season</h2>
       <EditSeason backLink={backLink} season={seasonData} />
 

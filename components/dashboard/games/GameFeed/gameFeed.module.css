@@ -154,11 +154,24 @@
   margin-block-start: var(--spacer-base);
   padding-block: var(--spacer-base);
   background: linear-gradient(
+      225deg,
+      hsla(from var(--color-home, var(--color-white)) h s l / 0.25),
+      transparent 40%
+    ),
+    linear-gradient(
+      135deg,
+      hsla(from var(--color-away, var(--color-white)) h s l / 0.25),
+      transparent 40%
+    );
+  border-radius: var(--spacer-s);
+}
+
+.home_team_win {
+  background: linear-gradient(
     225deg,
     hsla(from var(--color-home, var(--color-white)) h s l / 0.25),
     transparent 75%
   );
-  border-radius: var(--spacer-s);
 }
 
 .away_team_win {

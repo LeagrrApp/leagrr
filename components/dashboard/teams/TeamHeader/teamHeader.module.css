@@ -25,3 +25,10 @@
   align-items: center;
   gap: var(--spacer-base);
 }
+
+.team_header_controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacer-base);
+  flex-wrap: wrap;
+}

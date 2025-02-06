@@ -69,11 +69,13 @@ type TeamUserData = Required<
     | "gender"
   >
 > & {
-  number: number;
-  position: string;
+  number?: number;
+  position?: string;
   team_membership_id?: number;
   division_team_id?: number;
   division_roster_id?: number;
+  joined?: Date;
+  team_role?: number;
 };
 
 type TeamRosterItem = {

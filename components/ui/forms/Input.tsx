@@ -48,6 +48,7 @@ export default function Input({
   onChange,
   errors,
   optional,
+  disabled,
 }: InputProps) {
   const [inputValue, setInputValue] = useState(value || defaultValue || "");
   const [inputType, setInputType] = useState(type || "");
@@ -99,6 +100,7 @@ export default function Input({
           step={step}
           required={required}
           autoCapitalize={autocapitalize}
+          disabled={disabled}
         />
         {type === "password" && (
           <button

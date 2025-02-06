@@ -34,7 +34,7 @@ export default async function Layout({
         divisions={divisions || []}
       />
 
-      <Container>{children}</Container>
+      <Container className="pbe-l">{children}</Container>
     </>
   );
 }

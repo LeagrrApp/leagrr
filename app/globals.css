@@ -336,6 +336,12 @@ select[multiple] {
   font-size: var(--icon-size, 1.25em) !important;
 }
 
+/* ---------- Layout ---------- */
+
+.block {
+  display: block;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(var(--cols, 1), 1fr);
@@ -366,4 +372,8 @@ select[multiple] {
 
 .push-l {
   margin-block-end: var(--spacer-l);
+}
+
+.pbe-l {
+  padding-block-end: var(--spacer-l);
 }

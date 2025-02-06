@@ -1,25 +1,19 @@
-import {
-  canEditTeam,
-  getDivisionsByTeam,
-  getTeam,
-  getTeamDashboardData,
-} from "@/actions/teams";
+import { getDivisionUrlById } from "@/actions/divisions";
+import { canEditTeam, getTeam, getTeamDashboardData } from "@/actions/teams";
+import DashboardUnit from "@/components/dashboard/DashboardUnit/DashboardUnit";
+import DashboardUnitHeader from "@/components/dashboard/DashboardUnitHeader/DashboardUnitHeader";
+import DivisionStandings from "@/components/dashboard/divisions/DivisionStandings/DivisionStandings";
+import GamePreview from "@/components/dashboard/games/GamePreview/GamePreview";
+import DivisionRoster from "@/components/dashboard/teams/DivisionRoster/DivisionRoster";
+import Button from "@/components/ui/Button/Button";
+import Card from "@/components/ui/Card/Card";
+import Icon from "@/components/ui/Icon/Icon";
 import {
   createDashboardUrl,
   createMetaTitle,
 } from "@/utils/helpers/formatting";
+import { notFound } from "next/navigation";
 import css from "./page.module.css";
-import { notFound, redirect } from "next/navigation";
-import DashboardUnit from "@/components/dashboard/DashboardUnit/DashboardUnit";
-import DashboardUnitHeader from "@/components/dashboard/DashboardUnitHeader/DashboardUnitHeader";
-import Icon from "@/components/ui/Icon/Icon";
-import Card from "@/components/ui/Card/Card";
-import GamePreview from "@/components/dashboard/games/GamePreview/GamePreview";
-import TeamMembers from "@/components/dashboard/teams/DivisionRoster/DivisionRoster";
-import Button from "@/components/ui/Button/Button";
-import DivisionStandings from "@/components/dashboard/divisions/DivisionStandings/DivisionStandings";
-import { getDivisionUrlById } from "@/actions/divisions";
-import DivisionRoster from "@/components/dashboard/teams/DivisionRoster/DivisionRoster";
 
 type PageParams = {
   params: Promise<{ team: string; id: string }>;
@@ -30,7 +24,9 @@ export async function generateMetadata({ params }: PageParams) {
 
   const { data: teamData } = await getTeam(team);
 
-  const titleArray = teamData?.name ? [teamData.name, "Teams"] : ["Teams"];
+  if (!teamData) return null;
+
+  const titleArray = [teamData.name, "Teams"];
 
   return {
     title: createMetaTitle(titleArray),

@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 import css from "./divisionSelector.module.css";
 import { useRef } from "react";
 import Button from "@/components/ui/Button/Button";
@@ -17,6 +17,7 @@ export default function DivisionSelector({
   divisions,
   canEdit,
 }: DivisionSelectorProps) {
+  const pathname = usePathname();
   const { team, id } = useParams();
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -25,6 +26,10 @@ export default function DivisionSelector({
   const currentDiv = divisions.find((d) => d.division_id === division_id);
 
   if (!currentDiv) return null;
+
+  let hrefAddition: string | undefined = undefined;
+
+  if (pathname.includes("roster")) hrefAddition = "roster";
 
   return (
     <>
@@ -45,10 +50,13 @@ export default function DivisionSelector({
           {divisions?.map((division) => (
             <li key={`${division.division_id}`}>
               <Link
-                href={createDashboardUrl({
-                  t: team as string,
-                  d: division.division_id,
-                })}
+                href={createDashboardUrl(
+                  {
+                    t: team as string,
+                    d: division.division_id,
+                  },
+                  hrefAddition,
+                )}
                 onClick={() => dialogRef?.current?.close()}
               >
                 {division.division}{" "}

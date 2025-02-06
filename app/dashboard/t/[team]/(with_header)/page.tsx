@@ -15,7 +15,9 @@ export async function generateMetadata({
 
   const { data: teamData } = await getTeam(team);
 
-  const titleArray = teamData?.name ? [teamData.name, "Teams"] : ["Teams"];
+  if (!teamData) return null;
+
+  const titleArray = [teamData.name, "Teams"];
 
   return {
     title: createMetaTitle(titleArray),
@@ -25,13 +27,10 @@ export async function generateMetadata({
 
 export default async function Page({
   params,
-  searchParams,
 }: {
   params: Promise<{ team: string }>;
-  searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
   const { team } = await params;
-  const { div: queryDiv } = await searchParams;
 
   // get team data
   const { data: teamData } = await getTeam(team);
