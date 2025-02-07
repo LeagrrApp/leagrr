@@ -215,3 +215,16 @@ export function applyAppropriateTextColor(color: string): string {
   }
   return "white";
 }
+
+export function convert_roles_to_select_choices(roles: Map<number, RoleData>) {
+  const choices: { value: number; label: string }[] = [];
+
+  roles.forEach((r) => {
+    choices.push({
+      value: r.role,
+      label: r.title,
+    });
+  });
+
+  return choices;
+}

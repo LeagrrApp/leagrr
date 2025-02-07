@@ -32,6 +32,7 @@
   cursor: pointer;
   border-radius: var(--spacer-m);
   transition: all var(--transition);
+  text-align: center;
 
   &:has(input:checked) {
     color: var(--color-primary);
