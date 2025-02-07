@@ -3,12 +3,38 @@
 import { db } from "@/db/pg";
 import {
   league_roles,
-  LeagueFormSchema,
-  LeagueFormState,
+  sports_options,
+  status_options,
 } from "@/lib/definitions";
-import { redirect } from "next/navigation";
-import { verifyUserRole } from "./users";
 import { verifySession } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { z } from "zod";
+import { verifyUserRole } from "./users";
+
+const LeagueFormSchema = z.object({
+  name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters long." })
+    .trim(),
+  description: z.string().trim().optional(),
+  sport: z.enum(sports_options),
+  status: z.enum(status_options).optional(),
+});
+
+interface LeagueErrorProps {
+  name?: string[] | undefined;
+  description?: string[] | undefined;
+  sport?: string[] | undefined;
+  status?: string[] | undefined;
+}
+
+export type LeagueFormState =
+  | {
+      errors?: LeagueErrorProps;
+      message?: string;
+      status?: number;
+    }
+  | undefined;
 
 export async function createLeague(
   state: LeagueFormState,
@@ -21,7 +47,7 @@ export async function createLeague(
   const leagueData = {
     name: formData.get("name"),
     description: formData.get("description"),
-    sport_id: parseInt(formData.get("sport_id") as string),
+    sport: formData.get("sport"),
   };
 
   // let errors: ErrorProps = {};
@@ -39,7 +65,7 @@ export async function createLeague(
   // Build insert sql statement
   const leagueInsertSql = `
     INSERT INTO league_management.leagues
-      (name, description, sport_id)
+      (name, description, sport)
     VALUES
       ($1, $2, $3)
     RETURNING league_id, slug
@@ -50,7 +76,7 @@ export async function createLeague(
     .query(leagueInsertSql, [
       leagueData.name,
       leagueData.description,
-      leagueData.sport_id,
+      leagueData.sport,
     ])
     .then((res) => {
       return {
@@ -76,14 +102,13 @@ export async function createLeague(
 
   // Insert user and league into the league_admins table as Commissioner (league_role_id = 1)
   const leagueAdminSql = `
-    INSERT INTO league_management.league_admins (league_role_id, league_id, user_id)
+    INSERT INTO league_management.league_admins (league_role, league_id, user_id)
     VALUES (1, $1, $2)
   `;
 
   const leagueAdminInsertResult = await db
     .query(leagueAdminSql, [league_id, user_id])
-    .then((res) => {
-      console.log("league_admins", res);
+    .then(() => {
       return {
         message: "User added as league admin",
         status: 200,
@@ -173,12 +198,17 @@ export async function verifyLeagueAdminRole(
 export async function canEditLeague(
   league: number | string,
   commissionerOnly?: boolean,
-): Promise<{ canEdit: boolean; role: string | undefined }> {
+): Promise<{ canEdit: boolean; role: RoleData | undefined }> {
   // check if they are a site wide admin
   const isAdmin = await verifyUserRole(1);
 
-  // set the role name
-  let role: string | undefined = isAdmin ? "admin" : undefined;
+  // set the role data if site wide admin
+  let role: RoleData | undefined = isAdmin
+    ? {
+        role: 1,
+        title: "Site Admin",
+      }
+    : undefined;
 
   // set initial canEdit to whether or not user is site wide admin
   let canEdit = isAdmin;
@@ -195,7 +225,7 @@ export async function canEditLeague(
         ? leagueAdminResult === 1
         : leagueAdminResult === 1 || leagueAdminResult === 2;
       // set name of role
-      role = league_roles.get(leagueAdminResult)?.name;
+      role = league_roles.get(leagueAdminResult);
     }
   }
 
@@ -218,8 +248,7 @@ export async function getLeagueData(
       slug,
       name,
       description,
-      sport_id,
-      (SELECT name FROM admin.sports as s WHERE s.sport_id = l.sport_id) as sport,
+      sport,
       status
     FROM
       league_management.leagues as l
@@ -311,7 +340,7 @@ export async function editLeague(
   const leagueData = {
     name: formData.get("name"),
     description: formData.get("description"),
-    sport_id: parseInt(formData.get("sport_id") as string),
+    sport: formData.get("sport"),
     status: formData.get("status"),
     league_id: parseInt(formData.get("league_id") as string),
   };
@@ -344,7 +373,7 @@ export async function editLeague(
     SET
       name = $1,
       description = $2,
-      sport_id = $3,
+      sport = $3,
       status = $4
     WHERE
       league_id = $5
@@ -357,12 +386,11 @@ export async function editLeague(
     .query(sql, [
       leagueData.name,
       leagueData.description,
-      leagueData.sport_id,
+      leagueData.sport,
       leagueData.status,
       leagueData.league_id,
     ])
     .then((res) => {
-      console.log(res);
       return {
         message: "League updated",
         status: 200,
@@ -419,10 +447,9 @@ export async function deleteLeague(state: { league_id: number }) {
   // query the database
   const deleteResult = await db
     .query(sql, [state.league_id])
-    .then((res) => {
+    .then(() => {
       return {
         message: "League deleted",
-        data: res.rows[0],
         status: 200,
       };
     })
@@ -433,7 +460,9 @@ export async function deleteLeague(state: { league_id: number }) {
       };
     });
 
-  redirect("/dashboard/");
+  if (deleteResult.status === 400) {
+    return deleteResult;
+  }
 
-  return deleteResult;
+  redirect("/dashboard/");
 }

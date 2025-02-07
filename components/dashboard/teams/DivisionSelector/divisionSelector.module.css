@@ -1,0 +1,37 @@
+.division_info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacer-s);
+  flex-wrap: wrap;
+}
+
+.division_modal {
+  text-align: center;
+
+  & h2 {
+    font-size: var(--type-scale-h5);
+  }
+
+  & a {
+    display: inline-block;
+    text-decoration: none;
+
+    &:where(:hover, :focus-visible) {
+      scale: 1.05;
+    }
+  }
+
+  & ol {
+    padding: 0;
+    list-style: none;
+    margin-block-end: var(--spacer-m);
+
+    & a {
+      font-size: var(--type-scale-h4);
+    }
+  }
+
+  & p {
+    margin-block-end: var(--spacer-m);
+  }
+}

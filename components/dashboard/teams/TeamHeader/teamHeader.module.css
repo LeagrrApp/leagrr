@@ -1,0 +1,34 @@
+.team_header {
+  margin-block-end: var(--spacer-l);
+}
+
+.team_header_container {
+  --display: grid;
+
+  grid-template-columns: repeat(12, 1fr);
+  container-type: inline-size;
+  gap: var(--spacer-base) var(--spacer-ml);
+
+  & > * {
+    grid-column: 1 / -1;
+  }
+}
+
+.team_header_admin_bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacer-base);
+}
+
+.team_header_headline {
+  display: flex;
+  align-items: center;
+  gap: var(--spacer-base);
+}
+
+.team_header_controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacer-base);
+  flex-wrap: wrap;
+}

@@ -11,8 +11,8 @@ type UserData = {
   username?: string;
   email?: string;
   pronouns?: string;
+  gender?: string;
   user_role: number;
-  role_name?: string;
   password_hash?: string;
 };
 
@@ -21,8 +21,25 @@ type TeamData = {
   slug: string;
   name: string;
   description?: string;
+  status?: "active" | "inactive" | "suspended" | "banned";
+  color?: string;
   join_code?: string;
-  status?: string;
+};
+
+type TeamPageData = TeamData & {
+  members: Omit<UserData, "password_hash">[];
+};
+
+type TeamDivisionsProps = {
+  division: string;
+  division_id: number;
+  division_slug: string;
+  season: string;
+  season_slug: string;
+  start_date: Date;
+  end_date: Date;
+  league: string;
+  league_slug: string;
 };
 
 type TeamStandingsData = Pick<
@@ -40,6 +57,28 @@ type TeamStandingsData = Pick<
 
 type QuickTeam = Pick<TeamData, "team_id" | "name">;
 
+type TeamUserData = Required<
+  Pick<
+    UserData,
+    | "user_id"
+    | "first_name"
+    | "last_name"
+    | "username"
+    | "email"
+    | "pronouns"
+    | "gender"
+  >
+> & {
+  number?: number;
+  position?: string;
+  roster_role?: number;
+  team_membership_id?: number;
+  division_team_id?: number;
+  division_roster_id?: number;
+  joined?: Date;
+  team_role?: number;
+};
+
 type TeamRosterItem = {
   team_id: number;
   user_id: number;
@@ -53,8 +92,7 @@ type LeagueData = {
   slug: string;
   name: string;
   description?: string;
-  sport_id: number;
-  sport?: string;
+  sport: "hockey" | "soccer" | "basketball" | "pickleball" | "badminton";
   status: string;
   seasons?: SeasonData[];
   league_role_id?: number;
@@ -113,7 +151,7 @@ type GameData = {
   away_team_shots: number;
   division_id: number;
   playoff_id?: number;
-  date_time: Date | string;
+  date_time: Date;
   arena_id: number;
   arena: string;
   venue: string;
@@ -145,6 +183,8 @@ type PlayerStats = {
   shots: number;
   saves: number;
   penalties_in_minutes: number;
+  shots_against: number;
+  goals_against: number;
 };
 
 type StatsData = {
@@ -178,6 +218,11 @@ type StatLeaderBoardItem = {
   last_name: string;
   username: string;
   count: number;
+};
+
+type RoleData = {
+  role: number;
+  title: string;
 };
 
 // type ShotStatData = BaseStatsData & {

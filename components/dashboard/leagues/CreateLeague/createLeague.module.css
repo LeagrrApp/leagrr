@@ -1,0 +1,55 @@
+.form_background {
+  min-height: 100dvh;
+  background-image: linear-gradient(to bottom, #fffa, #fffa), var(--bg-image);
+  background-size: cover;
+  background-position: center;
+  align-content: center;
+  position: relative;
+
+  &::before {
+    content: " ";
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(0.25rem) grayscale(50%);
+  }
+}
+
+.form_wrap {
+  position: relative;
+}
+
+.sport_wrap {
+  display: grid;
+  gap: var(--spacer-ml);
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.sport_option {
+  /* flex-grow: 1;
+  flex-shrink: 0; */
+  padding: var(--spacer-base) var(--spacer-ml);
+  border: 0.0625rem solid var(--color-grey);
+  cursor: pointer;
+  border-radius: var(--spacer-m);
+  transition: all var(--transition);
+
+  &:has(input:checked) {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    background-color: var(--color-primary-pale);
+  }
+
+  &:has(input:disabled) {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  & input {
+    appearance: none;
+    position: absolute;
+  }
+}
+
+.sport_icon {
+  flex-direction: column;
+}

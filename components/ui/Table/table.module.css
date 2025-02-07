@@ -42,7 +42,8 @@
     }
   }
 
-  & th:first-child {
+  & th:first-of-type:where(:not(:has(~ [data-highlight-col]))),
+  & [data-highlight-col] {
     text-align: left;
     width: var(--h-col-width, auto);
   }

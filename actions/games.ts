@@ -7,7 +7,10 @@ import { z } from "zod";
 import { game_status_options } from "@/lib/definitions";
 import { isObjectEmpty } from "@/utils/helpers/objects";
 import { redirect } from "next/navigation";
-import { createPeriodTimeString } from "@/utils/helpers/formatting";
+import {
+  createDashboardUrl,
+  createPeriodTimeString,
+} from "@/utils/helpers/formatting";
 
 // TODO: Rename this function to something clearer
 export async function getLeagueInfoForGames(
@@ -348,6 +351,73 @@ export async function getGame(game_id: number) {
   return gameResult;
 }
 
+export async function getGameUrl(game_id: number) {
+  // verify user is signed in
+  await verifySession();
+
+  const sql = `
+    SELECT
+      g.game_id,
+      d.slug AS division_slug,
+      s.slug AS season_slug,
+      l.slug AS league_slug
+    FROM
+      league_management.games AS g
+    JOIN
+      league_management.divisions AS d
+    ON
+      g.division_id = d.division_id
+    JOIN
+      league_management.seasons AS s
+    ON
+      s.season_id = d.division_id
+    JOIN
+      league_management.leagues AS l
+    ON
+      s.league_id = l.league_id
+    WHERE
+      game_id = $1
+  `;
+
+  const result: ResultProps<{
+    game_id: number;
+    league_slug: string;
+    division_slug: string;
+    season_slug: string;
+  }> = await db
+    .query(sql, [game_id])
+    .then((res) => {
+      return {
+        message: "Game data found!",
+        status: 200,
+        data: res.rows[0],
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (!result.data) return result;
+
+  const urlParts = result.data;
+
+  const url = createDashboardUrl({
+    l: urlParts.league_slug,
+    s: urlParts.season_slug,
+    d: urlParts.division_slug,
+    g: urlParts.game_id,
+  });
+
+  return {
+    message: "Game url created!",
+    status: 200,
+    data: url,
+  };
+}
+
 const GameEditFormSchema = z.object({
   game_id: z.number().min(1),
   league_id: z.number().min(1),
@@ -557,7 +627,11 @@ export async function setGameScore(
   redirect(state.link);
 }
 
-export async function getTeamGameStats(game_id: number, team_id: number) {
+export async function getTeamGameStats(
+  game_id: number,
+  team_id: number,
+  division_id: number,
+) {
   // verify user is signed in
   await verifySession();
 
@@ -567,8 +641,8 @@ export async function getTeamGameStats(game_id: number, team_id: number) {
       u.username,
       u.first_name,
       u.last_name,
-      tm.number,
-      tm.position,
+      dr.number,
+      dr.position,
       (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = tm.user_id AND g.game_id = $1)::int AS goals,
       (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = tm.user_id AND a.game_id = $1)::int AS assists,
       (
@@ -579,18 +653,30 @@ export async function getTeamGameStats(game_id: number, team_id: number) {
       (SELECT COUNT(*) FROM stats.saves AS sa WHERE sa.user_id = tm.user_id AND sa.game_id = $1)::int AS saves,
       (SELECT SUM(minutes) FROM stats.penalties AS p WHERE p.user_id = tm.user_id AND p.game_id = $1)::int AS penalties_in_minutes
     FROM
+      league_management.division_rosters AS dr
+    JOIN
       league_management.team_memberships AS tm
+    ON
+      dr.team_membership_id = tm.team_membership_id
     JOIN
       admin.users AS u
     ON
-      u.user_id = tm.user_id
+      tm.user_id = u.user_id
+    JOIN
+      league_management.division_teams AS dt
+    ON
+      dt.division_team_id = dr.division_team_id
     WHERE
-      tm.team_id = $2
+      dt.team_id = $2
+      AND
+      dt.division_id = $3
+      AND
+      dr.roster_role IN (2, 3, 4)
     ORDER BY points DESC, goals DESC, assists DESC, shots DESC, last_name ASC, first_name ASC
   `;
 
   const teamGameStatsResult: ResultProps<PlayerStats[]> = await db
-    .query(sql, [game_id, team_id])
+    .query(sql, [game_id, team_id, division_id])
     .then((res) => {
       return {
         message: "Player stats loaded",
@@ -896,6 +982,7 @@ export async function getGameFeed(game_id: number): Promise<
 export async function getGameTeamRosters(
   away_team_id: number,
   home_team_id: number,
+  division_id: number,
 ) {
   // verify user is signed in
   await verifySession();
@@ -906,23 +993,29 @@ export async function getGameTeamRosters(
       u.user_id,
       u.first_name,
       u.last_name,
-      tm.position
+      dr.position
     FROM
-      league_management.team_memberships as tm
+      league_management.division_rosters AS dr
+    JOIN
+      league_management.team_memberships AS tm
+    ON
+      dr.team_membership_id = tm.team_membership_id
     JOIN
       admin.users AS u
     ON
-      u.user_id = tm.user_id
+      tm.user_id = u.user_id
+    JOIN
+      league_management.division_teams AS dt
+    ON
+      dt.division_team_id = dr.division_team_id
     WHERE
-      team_id = $1
-      OR
-      team_id = $2
+      dt.team_id IN ($1, $2) AND dt.division_id = $3
     ORDER BY
       tm.team_id, u.last_name, u.first_name
   `;
 
   const rosterResult: ResultProps<TeamRosterItem[]> = await db
-    .query(rostersSql, [away_team_id, home_team_id])
+    .query(rostersSql, [away_team_id, home_team_id, division_id])
     .then((res) => {
       return {
         message: "Rosters loaded",
@@ -989,7 +1082,6 @@ export async function addToGameFeed(
   state: AddGameFeedState,
   formData: FormData,
 ): Promise<AddGameFeedState> {
-  const messages: string[] = [];
   const type = formData.get("type");
   const feedItemData = {
     game_id: parseInt(formData.get("game_id") as string),
@@ -1057,7 +1149,6 @@ export async function addToGameFeed(
       // if goal adding was successful, update the game score
       if (goalResult.data) {
         inserted_goal_id = goalResult.data.goal_id;
-        messages.push(`A goal with id ${inserted_goal_id}`);
       } else {
         return goalResult;
       }
@@ -1101,8 +1192,6 @@ export async function addToGameFeed(
 
           assistCount++;
         }
-
-        messages.push("Has assists!");
       }
     }
 
@@ -1146,9 +1235,8 @@ export async function addToGameFeed(
       throw new Error(shotResult.message);
     }
 
-    messages.push("A shot!");
-    if (type !== "goal" && shotResult.data) {
-      // -- -- add save if not goal
+    if (type !== "goal" && shotResult.data && feedItemData.goalie_id !== 0) {
+      // -- -- add save if not goal and the team has a goalie registered
 
       const saveSql = `
         INSERT INTO stats.saves
@@ -1185,7 +1273,6 @@ export async function addToGameFeed(
       if (saveResult.status === 400) {
         throw new Error(saveResult.message);
       }
-      messages.push("A save!");
     }
   }
 
@@ -1225,7 +1312,6 @@ export async function addToGameFeed(
     if (penaltyResult.status === 400) {
       throw new Error(penaltyResult.message);
     }
-    messages.push("A penalty!");
   }
 
   state?.link && redirect(`${state?.link}#game-feed-add`);

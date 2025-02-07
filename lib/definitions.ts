@@ -45,31 +45,6 @@ export type SignInUpFormState =
     }
   | undefined;
 
-export const LeagueFormSchema = z.object({
-  name: z
-    .string()
-    .min(2, { message: "Name must be at least 2 characters long." })
-    .trim(),
-  description: z.string().trim().optional(),
-  sport_id: z.number(),
-  status: z.enum(["draft", "public", "archived"]).optional(),
-});
-
-interface LeagueErrorProps {
-  name?: string[] | undefined;
-  description?: string[] | undefined;
-  sport_id?: string[] | undefined;
-  status?: string[] | undefined;
-}
-
-export type LeagueFormState =
-  | {
-      errors?: LeagueErrorProps;
-      message?: string;
-      status?: number;
-    }
-  | undefined;
-
 export const SeasonFormSchema = z.object({
   name: z
     .string()
@@ -99,27 +74,12 @@ export type SeasonFormState =
     }
   | undefined;
 
-export const sports_options = [
-  {
-    value: 1,
-    label: "Hockey",
-  },
-  {
-    value: 2,
-    label: "Soccer",
-  },
-  {
-    value: 3,
-    label: "Basketball",
-  },
-  {
-    value: 4,
-    label: "Pickleball",
-  },
-  {
-    value: 5,
-    label: "Badminton",
-  },
+export const sports_options: readonly [string, ...string[]] = [
+  "hockey",
+  "soccer",
+  "basketball",
+  "pickleball",
+  "badminton",
 ];
 
 export const status_options: readonly [string, ...string[]] = [
@@ -143,10 +103,38 @@ export const gender_options: readonly [string, ...string[]] = [
   "women",
 ];
 
-export const league_roles = new Map<
-  number,
-  { league_role_id: number; name: string }
->();
+export const color_options: readonly [string, ...string[]] = [
+  "black",
+  "blue",
+  "brown",
+  "cyan",
+  "green",
+  "grey",
+  "indigo",
+  "magenta",
+  "orange",
+  "pink",
+  "purple",
+  "red",
+  "violet",
+  "white",
+  "yellow",
+];
 
-league_roles.set(1, { league_role_id: 1, name: "Commissioner" });
-league_roles.set(2, { league_role_id: 2, name: "Manager" });
+export const league_roles = new Map<number, RoleData>();
+
+league_roles.set(1, { role: 1, title: "Commissioner" });
+league_roles.set(2, { role: 2, title: "Manager" });
+
+export const team_roles = new Map<number, RoleData>();
+
+team_roles.set(1, { role: 1, title: "Manager" });
+team_roles.set(2, { role: 2, title: "Member" });
+
+export const roster_roles = new Map<number, RoleData>();
+
+roster_roles.set(1, { role: 1, title: "Coach" });
+roster_roles.set(2, { role: 2, title: "Captain" });
+roster_roles.set(3, { role: 3, title: "Alternate" });
+roster_roles.set(4, { role: 4, title: "Player" });
+roster_roles.set(5, { role: 5, title: "Spare" });

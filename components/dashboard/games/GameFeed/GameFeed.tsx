@@ -6,6 +6,8 @@ import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
 import GameFeedAdd from "../GameFeedAdd/GameFeedAdd";
 import css from "./gameFeed.module.css";
 import GameFeedItem from "./GameFeedItem";
+import { addNumberOrdinals } from "@/utils/helpers/formatting";
+import { apply_classes } from "@/utils/helpers/html-attributes";
 
 interface GameFeedProps {
   game: GameData;
@@ -23,6 +25,7 @@ export default async function GameFeed({
   const { data: teamRosters } = await getGameTeamRosters(
     game.away_team_id,
     game.home_team_id,
+    game.division_id,
   );
 
   if (!teamRosters) return null;
@@ -78,6 +81,16 @@ export default async function GameFeed({
     }
   });
 
+  let running_away_team_score = 0;
+  let running_home_team_score = 0;
+
+  let game_end_highlight_class = css.tie_game;
+
+  if (game.home_team_score > game.away_team_score)
+    game_end_highlight_class = css.home_team_win;
+  if (game.home_team_score < game.away_team_score)
+    game_end_highlight_class = css.away_team_win;
+
   return (
     <section id="game-feed" className={css.game_feed}>
       <h3 className="push-ml type-scale-h4">Game Feed</h3>
@@ -98,12 +111,25 @@ export default async function GameFeed({
             return (
               <li key={p} className={css.game_feed_period}>
                 <h4 className={css.game_feed_period_heading}>
-                  <Icon icon="sports" label={`Period ${i + 1}`} labelFirst />
+                  <Icon
+                    icon="sports"
+                    label={`Period ${i + 1}`}
+                    gap="ml"
+                    labelFirst
+                  />
                 </h4>
-                {gameFeed[p].length > 1 ? (
+                {gameFeed[p].length >= 1 ? (
                   <ol className={css.game_feed_feed}>
                     {gameFeed[p].map((item: StatsData) => {
                       const isHome = game.home_team_id === item.team_id;
+
+                      if (item.type === "stats.goals") {
+                        if (item.team_id === game.home_team_id) {
+                          running_home_team_score++;
+                        } else {
+                          running_away_team_score++;
+                        }
+                      }
 
                       return (
                         <GameFeedItem
@@ -121,6 +147,17 @@ export default async function GameFeed({
                   </ol>
                 ) : (
                   <p>No events this period!</p>
+                )}
+                {i !== 2 && currentTime.period !== i + 1 && (
+                  <div className={css.game_feed_summary}>
+                    <h5>{addNumberOrdinals(i + 1)} Period Score</h5>
+                    <p>
+                      {game.away_team}{" "}
+                      <strong>{running_away_team_score}</strong> —{" "}
+                      <strong>{running_home_team_score}</strong>{" "}
+                      {game.home_team}
+                    </p>
+                  </div>
                 )}
               </li>
             );
@@ -158,8 +195,14 @@ export default async function GameFeed({
           </Grid>
         )}
         {game.status === "completed" && (
-          <div className={css.game_feed_completed}>
-            <h4 className={css.game_feed_completed_heading}>Final Score</h4>
+          <div
+            className={apply_classes([
+              css.game_feed_summary,
+              css.game_feed_completed,
+              game_end_highlight_class,
+            ])}
+          >
+            <h4 className={css.game_feed_summary_heading}>Final Score</h4>
             <p>
               <span
                 className={

@@ -44,9 +44,9 @@ export default function EditLeague({ league, backLink }: EditLeagueProps) {
         </Col>
         <Select
           label="Sport"
-          name="sport_id"
+          name="sport"
           choices={sports_options}
-          selected={league.sport_id}
+          selected={league.sport}
         />
         <Select
           label="status"

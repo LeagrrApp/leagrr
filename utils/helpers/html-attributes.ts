@@ -19,6 +19,18 @@ export function apply_classes(
   return combinedArray.join(" ");
 }
 
+export function apply_classes_conditional(
+  initialClass: string | string[],
+  additionalClass: string | string[],
+  condition: boolean | undefined,
+): string {
+  if (condition) {
+    return apply_classes(initialClass, additionalClass);
+  } else {
+    return apply_classes(initialClass);
+  }
+}
+
 export function paddingString(
   paddings: [SizeOptions, SizeOptions?, SizeOptions?, SizeOptions?],
 ): string {

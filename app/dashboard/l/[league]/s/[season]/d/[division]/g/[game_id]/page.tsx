@@ -1,14 +1,16 @@
 import { getGame } from "@/actions/games";
 import { canEditLeague } from "@/actions/leagues";
-import GameHeader from "@/components/dashboard/games/GameHeader/GameHeader";
+import GameControls from "@/components/dashboard/games/GameControls/GameControls";
+import GameFeed from "@/components/dashboard/games/GameFeed/GameFeed";
+import GamePreview from "@/components/dashboard/games/GamePreview/GamePreview";
 import GameTeamStats from "@/components/dashboard/games/GameTeamStats/GameTeamStats";
 import Icon from "@/components/ui/Icon/Icon";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound } from "next/navigation";
-import css from "./page.module.css";
-import GameFeed from "@/components/dashboard/games/GameFeed/GameFeed";
 import { CSSProperties } from "react";
-import GameControls from "@/components/dashboard/games/GameControls/GameControls";
+import css from "./page.module.css";
+import { apply_classes_conditional } from "@/utils/helpers/html-attributes";
+import BackButton from "@/components/ui/BackButton/BackButton";
 
 interface GameStyles extends CSSProperties {
   "--color-home": string;
@@ -30,8 +32,6 @@ export default async function Page({
   const { data: gameData } = await getGame(game_id);
 
   if (!gameData) notFound();
-
-  // console.log(gameData);
 
   const backLink = createDashboardUrl({ l: league, s: season, d: division });
   const gameLink = createDashboardUrl({
@@ -64,16 +64,18 @@ export default async function Page({
 
   return (
     <>
-      <Icon
-        className="push"
-        href={backLink}
-        icon="chevron_left"
-        label="Return to division"
-      />
+      <BackButton label="Back to division" href={backLink} />
 
-      <article style={styles} className={css.game}>
+      <article
+        style={styles}
+        className={apply_classes_conditional(
+          css.game,
+          css.game_can_edit,
+          canEdit,
+        )}
+      >
         {canEdit && <GameControls game={gameData} />}
-        <GameHeader game={gameData} canEdit={canEdit} />
+        <GamePreview game={gameData} />
         <GameTeamStats game={gameData} team={awayTeam} />
         <GameTeamStats game={gameData} team={homeTeam} isHome />
         <GameFeed game={gameData} canEdit={canEdit} backLink={gameLink} />

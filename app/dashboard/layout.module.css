@@ -12,7 +12,6 @@
 .dashboard main {
   overflow: hidden;
   container: main / inline-size;
-  padding-block-end: var(--spacer-l);
 
   @media only screen and (width >= 60rem) {
     position: relative;

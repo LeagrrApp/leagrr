@@ -3,19 +3,18 @@ import {
   getDivisionMetaInfo,
   getDivisionStatLeaders,
 } from "@/actions/divisions";
-import DivisionStandings from "@/components/dashboard/divisions/DivisionStandings/DivisionStandings";
-import { notFound } from "next/navigation";
-import css from "./page.module.css";
-import { apply_classes } from "@/utils/helpers/html-attributes";
-import Icon from "@/components/ui/Icon/Icon";
-import Card from "@/components/ui/Card/Card";
 import { canEditLeague } from "@/actions/leagues";
-import Button from "@/components/ui/Button/Button";
-import DivisionSchedule from "@/components/dashboard/divisions/DivisionSchedule/DivisionSchedule";
 import DashboardUnit from "@/components/dashboard/DashboardUnit/DashboardUnit";
 import DashboardUnitHeader from "@/components/dashboard/DashboardUnitHeader/DashboardUnitHeader";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import DivisionSchedule from "@/components/dashboard/divisions/DivisionSchedule/DivisionSchedule";
+import DivisionStandings from "@/components/dashboard/divisions/DivisionStandings/DivisionStandings";
 import DivisionStats from "@/components/dashboard/divisions/DivisionStats/DivisionStats";
+import Button from "@/components/ui/Button/Button";
+import Card from "@/components/ui/Card/Card";
+import Icon from "@/components/ui/Icon/Icon";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { notFound } from "next/navigation";
+import css from "./page.module.css";
 
 export async function generateMetadata({
   params,
@@ -80,15 +79,18 @@ export default async function Page({
         </DashboardUnit>
       )}
 
-      {teams && teams.length > 0 ? (
-        <DivisionStandings teams={teams} />
-      ) : (
-        <DashboardUnit gridArea="standings">
-          <DashboardUnitHeader>
-            <h3>
-              <Icon icon="trophy" label="Standings" labelFirst />
-            </h3>
-          </DashboardUnitHeader>
+      <DashboardUnit gridArea="standings">
+        <DashboardUnitHeader>
+          <h3>
+            <Icon icon="trophy" label="Standings" labelFirst />
+          </h3>
+        </DashboardUnitHeader>
+        {teams && teams.length > 0 ? (
+          <DivisionStandings
+            teams={teams}
+            division_id={divisionData.division_id}
+          />
+        ) : (
           <Card padding="base">
             <p className="push">There are no teams in this division yet!</p>
             {canEdit && (
@@ -102,8 +104,8 @@ export default async function Page({
               </Button>
             )}
           </Card>
-        </DashboardUnit>
-      )}
+        )}
+      </DashboardUnit>
 
       {statLeaders && <DivisionStats statLeaders={statLeaders} />}
     </div>

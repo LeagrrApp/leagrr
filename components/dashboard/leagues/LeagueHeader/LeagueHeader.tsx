@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import DHeader from "../../DHeader/DHeader";
 import SeasonSelector from "../../seasons/SeasonSelector/SeasonSelector";
 import css from "./leagueHeader.module.css";
+import IconSport from "@/components/ui/Icon/IconSport";
 
 interface LeagueHeaderProps {
   league: LeagueData;
@@ -28,7 +29,12 @@ export default function LeagueHeader({ league, canEdit }: LeagueHeaderProps) {
     >
       <div className={css.league_header_unit}>
         <h1 className={css.league_header_headline}>
-          {league.name}{" "}
+          <IconSport
+            sport={league.sport}
+            label={league.name}
+            labelFirst
+            gap="m"
+          />
           {league.status && league.status !== "public" && (
             <Badge text={league.status} type={badgeColor} fontSize="h4" />
           )}

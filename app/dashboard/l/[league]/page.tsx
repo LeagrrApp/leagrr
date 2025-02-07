@@ -8,15 +8,15 @@ export default async function Page({
 }: {
   params: Promise<{ league: string }>;
 }) {
-  const { league: slug } = await params;
+  const { league } = await params;
 
-  const { data: league } = await getLeagueData(slug);
+  const { data: leagueData } = await getLeagueData(league);
 
-  if (!league) notFound();
+  if (!leagueData) notFound();
 
-  if (league.seasons && league.seasons.length > 0) {
+  if (leagueData.seasons && leagueData.seasons.length > 0) {
     // redirect to first season that has a start_date before today and an end_date after today.
-    const currentSeasons = league.seasons.filter((s, i) => {
+    const currentSeasons = leagueData.seasons.filter((s, i) => {
       if (!s.start_date || !s.end_date) {
         return false;
       }
@@ -29,15 +29,15 @@ export default async function Page({
     });
 
     if (currentSeasons[0])
-      redirect(`/dashboard/l/${slug}/s/${currentSeasons[0].slug}`);
+      redirect(`/dashboard/l/${league}/s/${currentSeasons[0].slug}`);
 
-    redirect(`/dashboard/l/${slug}/s/${league.seasons[0].slug}`);
+    redirect(`/dashboard/l/${league}/s/${leagueData.seasons[0].slug}`);
   }
 
   return (
     <Container>
       <h2>It looks like this league doesn't have any seasons yet...</h2>
-      <Button href={`./${slug}/s/`}>Add Season</Button>
+      <Button href={`./${league}/s/`}>Add Season</Button>
     </Container>
   );
 }

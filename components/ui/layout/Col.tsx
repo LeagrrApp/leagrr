@@ -1,5 +1,6 @@
 import { CSSProperties, PropsWithChildren } from "react";
 import layout from "./layout.module.css";
+import { apply_classes } from "@/utils/helpers/html-attributes";
 
 interface ColProps {
   colSpan?: number;
@@ -8,6 +9,7 @@ interface ColProps {
   flexShrink?: string | number;
   flexBasis?: string;
   alignSelf?: string;
+  className?: string;
 }
 
 interface ColStyles extends CSSProperties {
@@ -26,6 +28,7 @@ export default function Col({
   flexShrink,
   flexBasis,
   alignSelf,
+  className,
 }: PropsWithChildren<ColProps>) {
   const styles: ColStyles = {};
 
@@ -41,7 +44,7 @@ export default function Col({
   if (alignSelf) styles["--align-self"] = alignSelf;
 
   return (
-    <div style={styles} className={layout.col}>
+    <div style={styles} className={apply_classes(layout.col, className)}>
       {children}
     </div>
   );

@@ -6,6 +6,10 @@ import { verifySession } from "@/lib/session";
 import { z } from "zod";
 import { canEditLeague } from "./leagues";
 import { redirect } from "next/navigation";
+import {
+  createDashboardUrl,
+  createMetaTitle,
+} from "@/utils/helpers/formatting";
 
 const DivisionFormSchema = z.object({
   division_id: z.number().min(1).optional(),
@@ -166,90 +170,7 @@ export async function getDivisionsBySeason(season_id: number) {
   return divisionResult;
 }
 
-export async function getDivision(
-  division_slug: string,
-  season_slug: string,
-  league_slug: string,
-): Promise<ResultProps<DivisionData>> {
-  // check user is logged in
-  await verifySession();
-
-  const divisionSql = `
-    SELECT
-      division_id,
-      name,
-      description,
-      slug,
-      gender,
-      tier,
-      join_code,
-      status,
-      (SELECT league_id FROM leagues WHERE slug = $3),
-      (
-        SELECT
-          season_id
-        FROM
-          league_management.seasons AS s
-        WHERE
-          s.slug = $2
-          AND
-          league_id = (
-            SELECT
-              league_id
-            FROM
-              league_management.leagues AS l
-            WHERE
-              l.slug = $3
-          )
-      ) AS season_id
-    FROM
-      divisions
-    WHERE
-        slug = $1
-        AND
-        season_id = (
-          SELECT
-            season_id
-          FROM
-            league_management.seasons AS s
-          WHERE
-            s.slug = $2
-            AND
-            league_id = (
-              SELECT
-                league_id
-              FROM
-                league_management.leagues AS l
-              WHERE
-                l.slug = $3
-            )
-        )
-  `;
-
-  const divisionResult: ResultProps<DivisionData> = await db
-    .query(divisionSql, [division_slug, season_slug, league_slug])
-    .then((res) => {
-      if (res.rowCount === 0) {
-        throw new Error("Division not found!");
-      }
-
-      return {
-        message: "Division data loaded",
-        status: 200,
-        data: res.rows[0],
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  if (!divisionResult.data) {
-    return divisionResult;
-  }
-
+export async function getDivisionStandings(division_id: number) {
   const divisionTeamsSql = `
     SELECT
       t.team_id,
@@ -362,7 +283,7 @@ export async function getDivision(
       (
         (
           SELECT
-            SUM(home_team_score)
+            COALESCE(SUM(home_team_score), 0)
           FROM
             league_management.games
           WHERE
@@ -373,7 +294,7 @@ export async function getDivision(
             status = 'completed'
         ) + (
           SELECT
-            SUM(away_team_score)
+            COALESCE(SUM(away_team_score), 0)
           FROM
             league_management.games
           WHERE
@@ -387,7 +308,7 @@ export async function getDivision(
       (
         (
           SELECT
-            SUM(away_team_score)
+            COALESCE(SUM(away_team_score), 0)
           FROM
             league_management.games
           WHERE
@@ -398,7 +319,7 @@ export async function getDivision(
             status = 'completed'
         ) + (
           SELECT
-            SUM(home_team_score)
+            COALESCE(SUM(home_team_score), 0)
           FROM
             league_management.games
           WHERE
@@ -417,12 +338,11 @@ export async function getDivision(
       t.team_id = dt.team_id
     WHERE
       dt.division_id = $1
-    ORDER BY points DESC
-
+    ORDER BY points DESC, games_played ASC, wins DESC, goals_for DESC, goals_against ASC
   `;
 
-  const divisionTeamsResult: ResultProps<TeamStandingsData[]> = await db
-    .query(divisionTeamsSql, [divisionResult.data.division_id])
+  const result: ResultProps<TeamStandingsData[]> = await db
+    .query(divisionTeamsSql, [division_id])
     .then((res) => {
       return {
         message: "Division teams loaded",
@@ -436,6 +356,97 @@ export async function getDivision(
         status: 400,
       };
     });
+
+  return result;
+}
+
+export async function getDivision(
+  division_slug: string,
+  season_slug: string,
+  league_slug: string,
+): Promise<ResultProps<DivisionData>> {
+  // check user is logged in
+  await verifySession();
+
+  const divisionSql = `
+    SELECT
+      division_id,
+      name,
+      description,
+      slug,
+      gender,
+      tier,
+      join_code,
+      status,
+      (SELECT league_id FROM leagues WHERE slug = $3),
+      (
+        SELECT
+          season_id
+        FROM
+          league_management.seasons AS s
+        WHERE
+          s.slug = $2
+          AND
+          league_id = (
+            SELECT
+              league_id
+            FROM
+              league_management.leagues AS l
+            WHERE
+              l.slug = $3
+          )
+      ) AS season_id
+    FROM
+      divisions
+    WHERE
+        slug = $1
+        AND
+        season_id = (
+          SELECT
+            season_id
+          FROM
+            league_management.seasons AS s
+          WHERE
+            s.slug = $2
+            AND
+            league_id = (
+              SELECT
+                league_id
+              FROM
+                league_management.leagues AS l
+              WHERE
+                l.slug = $3
+            )
+        )
+  `;
+
+  const divisionResult: ResultProps<DivisionData> = await db
+    .query(divisionSql, [division_slug, season_slug, league_slug])
+    .then((res) => {
+      if (res.rowCount === 0) {
+        throw new Error("Division not found!");
+      }
+
+      return {
+        message: "Division data loaded",
+        status: 200,
+        data: res.rows[0],
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (!divisionResult.data) {
+    return divisionResult;
+  }
+
+  const divisionStandingsResult = await getDivisionStandings(
+    divisionResult.data.division_id,
+  );
 
   const { canEdit } = await canEditLeague(league_slug);
 
@@ -464,7 +475,7 @@ export async function getDivision(
     divisionGamesSql = `
       ${divisionGamesSql}
       AND
-      status NOT IN ('draft', 'archived')
+      status IN ('completed', 'public', 'postponed', 'cancelled')
     `;
   }
 
@@ -500,8 +511,8 @@ export async function getDivision(
     },
   };
 
-  if (divisionTeamsResult.data) {
-    fullDivisionData.data.teams = divisionTeamsResult.data;
+  if (divisionStandingsResult.data) {
+    fullDivisionData.data.teams = divisionStandingsResult.data;
   }
 
   if (divisionGamesResult.data) {
@@ -607,7 +618,7 @@ export async function getDivisionMetaInfo(
   const { division_name, season_name, league_name, description } = result.data;
 
   const metaData = {
-    title: `${division_name} | ${season_name} | ${league_name} | Dashboard | Leagrr`,
+    title: createMetaTitle([division_name, season_name, league_name]),
     description,
   };
 
@@ -616,6 +627,63 @@ export async function getDivisionMetaInfo(
     status: result.status,
     data: metaData,
   };
+}
+
+export async function getDivisionUrlById(
+  division_id: number,
+): Promise<string | undefined> {
+  const sql = `
+    SELECT
+      d.slug AS division_slug,
+      s.slug AS season_slug,
+      l.slug AS league_slug
+    FROM
+      league_management.divisions AS d
+    JOIN
+      league_management.seasons AS s
+    ON
+      s.season_id = d.season_id
+    JOIN
+      league_management.leagues AS l
+    ON
+      s.league_id = l.league_id
+    WHERE
+      d.division_id = $1
+  `;
+
+  const result: ResultProps<{
+    division_slug: string;
+    season_slug: string;
+    league_slug: string;
+  }> = await db
+    .query(sql, [division_id])
+    .then((res) => {
+      if (res.rowCount === 0) {
+        throw new Error("Division not found!");
+      }
+
+      return {
+        data: res.rows[0],
+        message: "Division data found",
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (!result.data) {
+    return undefined;
+  }
+
+  return createDashboardUrl({
+    l: result.data.league_slug,
+    s: result.data.season_slug,
+    d: result.data.division_slug,
+  });
 }
 
 export async function editDivision(
@@ -682,7 +750,6 @@ export async function editDivision(
       divisionData.division_id,
     ])
     .then((res) => {
-      console.log(res);
       return {
         message: "Division teams loaded",
         status: 200,
@@ -695,6 +762,7 @@ export async function editDivision(
       };
     });
 
+  // TODO: get slug for redirect in case of slug change
   if (state?.link) redirect(state?.link);
 
   return { ...updateResult };
@@ -722,25 +790,31 @@ export async function getDivisionStatLeaders(
       u.last_name,
       u.username,
       (
-        (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = u.user_id AND g.game_id IN (SELECT game_id FROM league_management.games WHERE division_id = $1 AND status IN ('completed', 'archived'))) +
-        (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = u.user_id AND a.game_id IN (SELECT game_id FROM league_management.games WHERE division_id = $1 AND status IN ('completed', 'archived')))	
+        (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = u.user_id AND g.game_id IN (SELECT game_id FROM league_management.games WHERE division_id = $1 AND status = 'completed')) +
+        (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = u.user_id AND a.game_id IN (SELECT game_id FROM league_management.games WHERE division_id = $1 AND status = 'completed'))	
       )::int AS count
     FROM
-      admin.users AS u
+      league_management.division_teams AS dt
+    JOIN
+      league_management.division_rosters AS dr
+    ON
+      dr.division_team_id = dt.division_team_id
     JOIN
       league_management.team_memberships AS tm
+    ON
+      tm.team_membership_id = dr.team_membership_id
+    JOIN
+      admin.users AS u
     ON
       u.user_id = tm.user_id
     JOIN
       league_management.teams AS t
     ON
       t.team_id = tm.team_id
-    JOIN
-      league_management.division_teams AS dt
-    ON
-      t.team_id = dt.team_id
     WHERE
       dt.division_id = $1
+      AND
+      dr.roster_role != 1
     ORDER BY count DESC, u.last_name ASC, u.first_name ASC
     LIMIT $2
   `;
@@ -794,7 +868,7 @@ export async function getDivisionStatLeaders(
     WHERE
       ga.division_id = $1
       AND
-      ga.status IN ('completed', 'Archived')
+      ga.status = 'completed'
     GROUP BY team, u.username, u.first_name, u.last_name
     ORDER BY count DESC, u.last_name ASC, u.first_name ASC
     LIMIT $2
@@ -849,7 +923,7 @@ export async function getDivisionStatLeaders(
     WHERE
       ga.division_id = $1
       AND
-      ga.status IN ('completed', 'Archived')
+      ga.status = 'completed'
     GROUP BY team, u.username, u.first_name, u.last_name
     ORDER BY count DESC, u.last_name ASC, u.first_name ASC
     LIMIT $2
@@ -884,31 +958,43 @@ export async function getDivisionStatLeaders(
       u.username,
       count(*) AS count
     FROM
-      league_management.teams AS t
+      league_management.division_teams AS dt
     JOIN
-      league_management.games AS ga
+      league_management.division_rosters AS dr
     ON
-      t.team_id IN (ga.home_team_id, ga.away_team_id)
+      dr.division_team_id = dt.division_team_id
+    JOIN
+      league_management.teams AS t
+    ON
+      t.team_id = dt.team_id
     JOIN
       league_management.team_memberships AS tm
     ON
-      tm.team_id = t.team_id
+      dr.team_membership_id = tm.team_membership_id
     JOIN
       admin.users AS u
     ON
       u.user_id = tm.user_id
-    WHERE
+    JOIN
+      league_management.games AS ga
+    ON
+      t.team_id IN (ga.home_team_id, ga.away_team_id)
+    WHERE 
+      dt.division_id = $1
+      AND
+      dr.position = 'Goalie'
+      AND
+      dr.roster_role != 1
+      AND
       ga.division_id = $1
       AND
-      ga.status IN ('completed', 'Archived')
+      ga.status = 'completed'
       AND
       (
         ((t.team_id = ga.home_team_id) AND ga.away_team_score = 0)
         OR
         ((t.team_id = ga.away_team_id) AND ga.home_team_score = 0)
       )
-      AND
-      tm.position = 'Goalie'
     GROUP BY team, u.username, u.first_name, u.last_name
     ORDER BY count DESC, u.last_name ASC, u.first_name ASC
     LIMIT $2
@@ -959,7 +1045,6 @@ export async function deleteDivision(state: {
   const { canEdit: canDelete } = await canEditLeague(state.league_id);
 
   if (!canDelete) {
-    console.log("can't delete");
     // failed both user role check and league role check, shortcut out
     return {
       message: "You do not have permission to delete this division.",

@@ -1,25 +1,24 @@
 "use client";
 
+import { setGameScore } from "@/actions/games";
 import Button from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
-import Grid from "@/components/ui/layout/Grid";
-import { useActionState, useEffect, useRef, useState } from "react";
-import css from "./gameScoreInput.module.css";
-import { useParams, usePathname } from "next/navigation";
-import { setGameScore } from "@/actions/games";
 import Icon from "@/components/ui/Icon/Icon";
-import ButtonInvis from "@/components/ui/ButtonInvis/ButtonInvis";
 import Col from "@/components/ui/layout/Col";
+import Grid from "@/components/ui/layout/Grid";
+import { useParams, usePathname } from "next/navigation";
+import { useActionState, useRef, useState } from "react";
+import css from "./gameQuickScore.module.css";
 
-interface GameScoreInputProps {
+interface GameQuickScoreProps {
   game: GameData;
   buttonClassName?: string;
 }
 
-export default function GameScoreInput({
+export default function GameQuickScore({
   game,
   buttonClassName,
-}: GameScoreInputProps) {
+}: GameQuickScoreProps) {
   const pathname = usePathname();
   const { league } = useParams();
 

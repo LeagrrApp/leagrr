@@ -1,14 +1,14 @@
 "use client";
 
-import { ChangeEventHandler, useEffect, useState } from "react";
-import css from "./forms.module.css";
+import { ChangeEvent, useEffect, useState } from "react";
 import Alert from "../Alert/Alert";
+import css from "./forms.module.css";
 
 interface TextAreaProps extends Partial<HTMLTextAreaElement> {
   label: string;
   labelAfter?: boolean;
   labelAsPlaceholder?: boolean;
-  onChange?: ChangeEventHandler;
+  onChange?(e: ChangeEvent<HTMLTextAreaElement>): any;
   errors?: {
     errs?: string[];
     type?: string;

@@ -6,13 +6,17 @@ export function createDashboardUrl(
   dirs: {
     l?: string;
     s?: string;
-    d?: string;
+    d?: string | number;
     g?: string | number;
     t?: string;
   },
   additional?: string,
 ): string {
   let url = `/dashboard`;
+
+  if (dirs.t) {
+    url = `${url}/t/${dirs.t}`;
+  }
 
   if (dirs.l) {
     url = `${url}/l/${dirs.l}`;
@@ -28,10 +32,6 @@ export function createDashboardUrl(
 
   if (dirs.g) {
     url = `${url}/g/${dirs.g}`;
-  }
-
-  if (dirs.t) {
-    url = `${url}/t/${dirs.t}`;
   }
 
   if (additional) {
@@ -87,6 +87,7 @@ export function nameDisplay(
     | "initials"
     | "first_initial"
     | "last_initial",
+  last_name_first?: boolean,
 ): string {
   switch (style) {
     case "first_name":
@@ -94,12 +95,24 @@ export function nameDisplay(
     case "last_name":
       return last_name;
     case "initials":
+      if (last_name_first) {
+        return makeAcronym(`${last_name} ${first_name}`);
+      }
       return makeAcronym(`${first_name} ${last_name}`);
     case "first_initial":
+      if (last_name_first) {
+        return `${last_name}, ${first_name.substring(0, 1)}.`;
+      }
       return `${first_name.substring(0, 1)}. ${last_name}`;
     case "last_initial":
+      if (last_name_first) {
+        return `${last_name.substring(0, 1)}., ${first_name}`;
+      }
       return `${first_name} ${last_name.substring(0, 1)}.`;
     default:
+      if (last_name_first) {
+        return `${last_name}, ${first_name}`;
+      }
       return `${first_name} ${last_name}`;
   }
 }
@@ -176,6 +189,29 @@ export function createPeriodTimeString(
   const period_time = `00:${minutes < 10 ? `0${minutes}` : minutes}:${
     seconds < 10 ? `0${seconds}` : seconds
   }`;
-  console.log(period_time);
   return period_time;
+}
+
+export function createMetaTitle(titles: string[]): string {
+  return `${titles.join(" | ")} | Dashboard | Leagrr`;
+}
+
+export function applyAppropriateTextColor(color: string): string {
+  const lightColors = [
+    "aqua",
+    "cyan",
+    "grey",
+    "magenta",
+    "orange",
+    "pink",
+    "red",
+    "violet",
+    "white",
+    "yellow",
+  ];
+
+  if (lightColors.includes(color)) {
+    return "black";
+  }
+  return "white";
 }

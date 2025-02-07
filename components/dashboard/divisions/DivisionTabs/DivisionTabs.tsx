@@ -5,6 +5,7 @@ import css from "./divisionTabs.module.css";
 import { useParams, usePathname } from "next/navigation";
 import { apply_classes } from "@/utils/helpers/html-attributes";
 import Icon from "@/components/ui/Icon/Icon";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 
 type DivisionProps = {
   divisions: DivisionData[];
@@ -23,7 +24,12 @@ export default function DivisionTabs({ divisions, canAdd }: DivisionProps) {
     <nav className={apply_classes(classes)}>
       <ol className={css.division_tabs_list}>
         {divisions.map((div) => {
-          const url = `/dashboard/l/${params.league}/s/${params.season}/d/${div.slug}`;
+          const url = createDashboardUrl({
+            l: params.league as string,
+            s: params.season as string,
+            d: div.slug,
+          });
+          // `/dashboard/l/${params.league}/s/${params.season}/d/${div.slug}`;
 
           let icon: string | undefined;
 
@@ -36,7 +42,9 @@ export default function DivisionTabs({ divisions, canAdd }: DivisionProps) {
               <Link
                 className={css.division_tabs_item}
                 href={url}
-                aria-current={pathname.includes(url) ? "page" : undefined}
+                aria-current={
+                  `${pathname}/`.includes(`${url}/`) ? "page" : undefined
+                }
               >
                 <div className={css.division_tabs_item_inner}>
                   <span>{div.name}</span>

@@ -5,7 +5,7 @@
 -- Dumped from database version 17.2 (Debian 17.2-1.pgdg120+1)
 -- Dumped by pg_dump version 17.2
 
--- Started on 2025-01-29 16:33:14 EST
+-- Started on 2025-01-30 09:49:06 EST
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -267,6 +267,77 @@ $$;
 ALTER FUNCTION league_management.generate_season_slug() OWNER TO postgres;
 
 --
+-- TOC entry 292 (class 1255 OID 55896)
+-- Name: generate_team_slug(); Type: FUNCTION; Schema: league_management; Owner: postgres
+--
+
+CREATE FUNCTION league_management.generate_team_slug() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    base_slug TEXT;
+    temp_slug TEXT;
+    final_slug TEXT;
+    slug_rank INT;
+    exact_match INT;
+BEGIN
+	IF NEW.name <> OLD.name OR tg_op = 'INSERT' THEN
+	    -- Generate the initial slug by processing the name
+	    base_slug := lower(
+	                      regexp_replace(
+	                          regexp_replace(
+	                              regexp_replace(NEW.name, '\s+', '-', 'g'),
+	                              '[^a-zA-Z0-9\-]', '', 'g'
+	                          ),
+	                      '-+', '-', 'g')
+	                  );
+	
+	    -- Check if this slug already exists and if so, append a number to ensure uniqueness
+	
+		-- this SELECT checks if there are other EXACT slug matches
+	    SELECT COUNT(*) INTO exact_match
+	    FROM league_management.teams
+	    WHERE slug = base_slug;
+	
+	    IF exact_match = 0 THEN
+	        -- No duplicates found, assign base slug
+	        final_slug := base_slug;
+	    ELSE
+			-- this SELECT checks if there are teams with slugs starting with the base_slug
+		    SELECT COUNT(*) INTO slug_rank
+		    FROM league_management.teams
+		    WHERE slug LIKE base_slug || '%';
+			
+	        -- Duplicates found, append the count as a suffix
+	        temp_slug := base_slug || '-' || slug_rank;
+			
+			-- check if exact match of temp_slug found
+			SELECT COUNT(*) INTO exact_match
+		    FROM league_management.teams
+		    WHERE slug = temp_slug;
+	
+			IF exact_match = 1 THEN
+				-- increase slug_rank by 1 and create final slug
+				final_slug := base_slug || '-' || (slug_rank + 1);
+			ELSE
+				-- change temp slug to final slug
+				final_slug = temp_slug;
+			END IF;
+	    END IF;
+	
+	    -- Assign the final slug to the new record
+	    NEW.slug := final_slug;
+
+	END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION league_management.generate_team_slug() OWNER TO postgres;
+
+--
 -- TOC entry 291 (class 1255 OID 55115)
 -- Name: mark_game_as_published(); Type: FUNCTION; Schema: league_management; Owner: postgres
 --
@@ -299,10 +370,10 @@ BEGIN
 
 	UPDATE league_management.games AS g
 	SET
-		home_team_score = (SELECT COUNT(*) FROM stats.goals AS goals WHERE goals.team_id = g.home_team_id AND goals.game_id = NEW.game_id),
-		away_team_score = (SELECT COUNT(*) FROM stats.goals AS goals WHERE goals.team_id = g.away_team_id AND goals.game_id = NEW.game_id)
+		home_team_score = (SELECT COUNT(*) FROM stats.goals AS goals WHERE goals.team_id = g.home_team_id AND goals.game_id IN (NEW.game_id, OLD.game_id)),
+		away_team_score = (SELECT COUNT(*) FROM stats.goals AS goals WHERE goals.team_id = g.away_team_id AND goals.game_id IN (NEW.game_id, OLD.game_id))
 	WHERE
-		g.game_id = NEW.game_id;
+		g.game_id IN (NEW.game_id, OLD.game_id);
 	
 	RETURN NEW;
 END;
@@ -347,7 +418,7 @@ CREATE SEQUENCE admin.genders_gender_id_seq
 ALTER SEQUENCE admin.genders_gender_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3775 (class 0 OID 0)
+-- TOC entry 3780 (class 0 OID 0)
 -- Dependencies: 232
 -- Name: genders_gender_id_seq; Type: SEQUENCE OWNED BY; Schema: admin; Owner: postgres
 --
@@ -387,7 +458,7 @@ CREATE SEQUENCE admin.league_roles_league_role_id_seq
 ALTER SEQUENCE admin.league_roles_league_role_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3776 (class 0 OID 0)
+-- TOC entry 3781 (class 0 OID 0)
 -- Dependencies: 222
 -- Name: league_roles_league_role_id_seq; Type: SEQUENCE OWNED BY; Schema: admin; Owner: postgres
 --
@@ -427,7 +498,7 @@ CREATE SEQUENCE admin.playoff_structures_playoff_structure_id_seq
 ALTER SEQUENCE admin.playoff_structures_playoff_structure_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3777 (class 0 OID 0)
+-- TOC entry 3782 (class 0 OID 0)
 -- Dependencies: 226
 -- Name: playoff_structures_playoff_structure_id_seq; Type: SEQUENCE OWNED BY; Schema: admin; Owner: postgres
 --
@@ -467,7 +538,7 @@ CREATE SEQUENCE admin.season_roles_season_role_id_seq
 ALTER SEQUENCE admin.season_roles_season_role_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3778 (class 0 OID 0)
+-- TOC entry 3783 (class 0 OID 0)
 -- Dependencies: 224
 -- Name: season_roles_season_role_id_seq; Type: SEQUENCE OWNED BY; Schema: admin; Owner: postgres
 --
@@ -510,7 +581,7 @@ CREATE SEQUENCE admin.sports_sport_id_seq
 ALTER SEQUENCE admin.sports_sport_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3779 (class 0 OID 0)
+-- TOC entry 3784 (class 0 OID 0)
 -- Dependencies: 230
 -- Name: sports_sport_id_seq; Type: SEQUENCE OWNED BY; Schema: admin; Owner: postgres
 --
@@ -550,7 +621,7 @@ CREATE SEQUENCE admin.team_roles_team_role_id_seq
 ALTER SEQUENCE admin.team_roles_team_role_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3780 (class 0 OID 0)
+-- TOC entry 3785 (class 0 OID 0)
 -- Dependencies: 228
 -- Name: team_roles_team_role_id_seq; Type: SEQUENCE OWNED BY; Schema: admin; Owner: postgres
 --
@@ -590,7 +661,7 @@ CREATE SEQUENCE admin.user_roles_user_role_id_seq
 ALTER SEQUENCE admin.user_roles_user_role_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3781 (class 0 OID 0)
+-- TOC entry 3786 (class 0 OID 0)
 -- Dependencies: 220
 -- Name: user_roles_user_role_id_seq; Type: SEQUENCE OWNED BY; Schema: admin; Owner: postgres
 --
@@ -638,7 +709,7 @@ CREATE SEQUENCE admin.users_user_id_seq
 ALTER SEQUENCE admin.users_user_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3782 (class 0 OID 0)
+-- TOC entry 3787 (class 0 OID 0)
 -- Dependencies: 234
 -- Name: users_user_id_seq; Type: SEQUENCE OWNED BY; Schema: admin; Owner: postgres
 --
@@ -680,7 +751,7 @@ CREATE SEQUENCE league_management.arenas_arena_id_seq
 ALTER SEQUENCE league_management.arenas_arena_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3783 (class 0 OID 0)
+-- TOC entry 3788 (class 0 OID 0)
 -- Dependencies: 258
 -- Name: arenas_arena_id_seq; Type: SEQUENCE OWNED BY; Schema: league_management; Owner: postgres
 --
@@ -720,7 +791,7 @@ CREATE SEQUENCE league_management.division_rosters_division_roster_id_seq
 ALTER SEQUENCE league_management.division_rosters_division_roster_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3784 (class 0 OID 0)
+-- TOC entry 3789 (class 0 OID 0)
 -- Dependencies: 252
 -- Name: division_rosters_division_roster_id_seq; Type: SEQUENCE OWNED BY; Schema: league_management; Owner: postgres
 --
@@ -760,7 +831,7 @@ CREATE SEQUENCE league_management.division_teams_division_team_id_seq
 ALTER SEQUENCE league_management.division_teams_division_team_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3785 (class 0 OID 0)
+-- TOC entry 3790 (class 0 OID 0)
 -- Dependencies: 250
 -- Name: division_teams_division_team_id_seq; Type: SEQUENCE OWNED BY; Schema: league_management; Owner: postgres
 --
@@ -808,7 +879,7 @@ CREATE SEQUENCE league_management.divisions_division_id_seq
 ALTER SEQUENCE league_management.divisions_division_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3786 (class 0 OID 0)
+-- TOC entry 3791 (class 0 OID 0)
 -- Dependencies: 248
 -- Name: divisions_division_id_seq; Type: SEQUENCE OWNED BY; Schema: league_management; Owner: postgres
 --
@@ -857,7 +928,7 @@ CREATE SEQUENCE league_management.games_game_id_seq
 ALTER SEQUENCE league_management.games_game_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3787 (class 0 OID 0)
+-- TOC entry 3792 (class 0 OID 0)
 -- Dependencies: 262
 -- Name: games_game_id_seq; Type: SEQUENCE OWNED BY; Schema: league_management; Owner: postgres
 --
@@ -898,7 +969,7 @@ CREATE SEQUENCE league_management.league_admins_league_admin_id_seq
 ALTER SEQUENCE league_management.league_admins_league_admin_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3788 (class 0 OID 0)
+-- TOC entry 3793 (class 0 OID 0)
 -- Dependencies: 242
 -- Name: league_admins_league_admin_id_seq; Type: SEQUENCE OWNED BY; Schema: league_management; Owner: postgres
 --
@@ -938,7 +1009,7 @@ CREATE SEQUENCE league_management.league_venues_league_venue_id_seq
 ALTER SEQUENCE league_management.league_venues_league_venue_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3789 (class 0 OID 0)
+-- TOC entry 3794 (class 0 OID 0)
 -- Dependencies: 260
 -- Name: league_venues_league_venue_id_seq; Type: SEQUENCE OWNED BY; Schema: league_management; Owner: postgres
 --
@@ -983,7 +1054,7 @@ CREATE SEQUENCE league_management.leagues_league_id_seq
 ALTER SEQUENCE league_management.leagues_league_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3790 (class 0 OID 0)
+-- TOC entry 3795 (class 0 OID 0)
 -- Dependencies: 240
 -- Name: leagues_league_id_seq; Type: SEQUENCE OWNED BY; Schema: league_management; Owner: postgres
 --
@@ -1027,7 +1098,7 @@ CREATE SEQUENCE league_management.playoffs_playoff_id_seq
 ALTER SEQUENCE league_management.playoffs_playoff_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3791 (class 0 OID 0)
+-- TOC entry 3796 (class 0 OID 0)
 -- Dependencies: 254
 -- Name: playoffs_playoff_id_seq; Type: SEQUENCE OWNED BY; Schema: league_management; Owner: postgres
 --
@@ -1068,7 +1139,7 @@ CREATE SEQUENCE league_management.season_admins_season_admin_id_seq
 ALTER SEQUENCE league_management.season_admins_season_admin_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3792 (class 0 OID 0)
+-- TOC entry 3797 (class 0 OID 0)
 -- Dependencies: 246
 -- Name: season_admins_season_admin_id_seq; Type: SEQUENCE OWNED BY; Schema: league_management; Owner: postgres
 --
@@ -1114,7 +1185,7 @@ CREATE SEQUENCE league_management.seasons_season_id_seq
 ALTER SEQUENCE league_management.seasons_season_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3793 (class 0 OID 0)
+-- TOC entry 3798 (class 0 OID 0)
 -- Dependencies: 244
 -- Name: seasons_season_id_seq; Type: SEQUENCE OWNED BY; Schema: league_management; Owner: postgres
 --
@@ -1157,7 +1228,7 @@ CREATE SEQUENCE league_management.team_memberships_team_membership_id_seq
 ALTER SEQUENCE league_management.team_memberships_team_membership_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3794 (class 0 OID 0)
+-- TOC entry 3799 (class 0 OID 0)
 -- Dependencies: 238
 -- Name: team_memberships_team_membership_id_seq; Type: SEQUENCE OWNED BY; Schema: league_management; Owner: postgres
 --
@@ -1202,7 +1273,7 @@ CREATE SEQUENCE league_management.teams_team_id_seq
 ALTER SEQUENCE league_management.teams_team_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3795 (class 0 OID 0)
+-- TOC entry 3800 (class 0 OID 0)
 -- Dependencies: 236
 -- Name: teams_team_id_seq; Type: SEQUENCE OWNED BY; Schema: league_management; Owner: postgres
 --
@@ -1244,7 +1315,7 @@ CREATE SEQUENCE league_management.venues_venue_id_seq
 ALTER SEQUENCE league_management.venues_venue_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3796 (class 0 OID 0)
+-- TOC entry 3801 (class 0 OID 0)
 -- Dependencies: 256
 -- Name: venues_venue_id_seq; Type: SEQUENCE OWNED BY; Schema: league_management; Owner: postgres
 --
@@ -1287,7 +1358,7 @@ CREATE SEQUENCE stats.assists_assist_id_seq
 ALTER SEQUENCE stats.assists_assist_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3797 (class 0 OID 0)
+-- TOC entry 3802 (class 0 OID 0)
 -- Dependencies: 266
 -- Name: assists_assist_id_seq; Type: SEQUENCE OWNED BY; Schema: stats; Owner: postgres
 --
@@ -1333,7 +1404,7 @@ CREATE SEQUENCE stats.goals_goal_id_seq
 ALTER SEQUENCE stats.goals_goal_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3798 (class 0 OID 0)
+-- TOC entry 3803 (class 0 OID 0)
 -- Dependencies: 264
 -- Name: goals_goal_id_seq; Type: SEQUENCE OWNED BY; Schema: stats; Owner: postgres
 --
@@ -1378,7 +1449,7 @@ CREATE SEQUENCE stats.penalties_penalty_id_seq
 ALTER SEQUENCE stats.penalties_penalty_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3799 (class 0 OID 0)
+-- TOC entry 3804 (class 0 OID 0)
 -- Dependencies: 268
 -- Name: penalties_penalty_id_seq; Type: SEQUENCE OWNED BY; Schema: stats; Owner: postgres
 --
@@ -1424,7 +1495,7 @@ CREATE SEQUENCE stats.saves_save_id_seq
 ALTER SEQUENCE stats.saves_save_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3800 (class 0 OID 0)
+-- TOC entry 3805 (class 0 OID 0)
 -- Dependencies: 272
 -- Name: saves_save_id_seq; Type: SEQUENCE OWNED BY; Schema: stats; Owner: postgres
 --
@@ -1470,7 +1541,7 @@ CREATE SEQUENCE stats.shots_shot_id_seq
 ALTER SEQUENCE stats.shots_shot_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3801 (class 0 OID 0)
+-- TOC entry 3806 (class 0 OID 0)
 -- Dependencies: 270
 -- Name: shots_shot_id_seq; Type: SEQUENCE OWNED BY; Schema: stats; Owner: postgres
 --
@@ -1511,7 +1582,7 @@ CREATE SEQUENCE stats.shutouts_shutout_id_seq
 ALTER SEQUENCE stats.shutouts_shutout_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3802 (class 0 OID 0)
+-- TOC entry 3807 (class 0 OID 0)
 -- Dependencies: 274
 -- Name: shutouts_shutout_id_seq; Type: SEQUENCE OWNED BY; Schema: stats; Owner: postgres
 --
@@ -1520,7 +1591,7 @@ ALTER SEQUENCE stats.shutouts_shutout_id_seq OWNED BY stats.shutouts.shutout_id;
 
 
 --
--- TOC entry 3366 (class 2604 OID 54803)
+-- TOC entry 3367 (class 2604 OID 55314)
 -- Name: genders gender_id; Type: DEFAULT; Schema: admin; Owner: postgres
 --
 
@@ -1528,7 +1599,7 @@ ALTER TABLE ONLY admin.genders ALTER COLUMN gender_id SET DEFAULT nextval('admin
 
 
 --
--- TOC entry 3355 (class 2604 OID 54749)
+-- TOC entry 3356 (class 2604 OID 55315)
 -- Name: league_roles league_role_id; Type: DEFAULT; Schema: admin; Owner: postgres
 --
 
@@ -1536,7 +1607,7 @@ ALTER TABLE ONLY admin.league_roles ALTER COLUMN league_role_id SET DEFAULT next
 
 
 --
--- TOC entry 3359 (class 2604 OID 54769)
+-- TOC entry 3360 (class 2604 OID 55316)
 -- Name: playoff_structures playoff_structure_id; Type: DEFAULT; Schema: admin; Owner: postgres
 --
 
@@ -1544,7 +1615,7 @@ ALTER TABLE ONLY admin.playoff_structures ALTER COLUMN playoff_structure_id SET 
 
 
 --
--- TOC entry 3357 (class 2604 OID 54759)
+-- TOC entry 3358 (class 2604 OID 55317)
 -- Name: season_roles season_role_id; Type: DEFAULT; Schema: admin; Owner: postgres
 --
 
@@ -1552,7 +1623,7 @@ ALTER TABLE ONLY admin.season_roles ALTER COLUMN season_role_id SET DEFAULT next
 
 
 --
--- TOC entry 3363 (class 2604 OID 54789)
+-- TOC entry 3364 (class 2604 OID 55318)
 -- Name: sports sport_id; Type: DEFAULT; Schema: admin; Owner: postgres
 --
 
@@ -1560,7 +1631,7 @@ ALTER TABLE ONLY admin.sports ALTER COLUMN sport_id SET DEFAULT nextval('admin.s
 
 
 --
--- TOC entry 3361 (class 2604 OID 54779)
+-- TOC entry 3362 (class 2604 OID 55319)
 -- Name: team_roles team_role_id; Type: DEFAULT; Schema: admin; Owner: postgres
 --
 
@@ -1568,7 +1639,7 @@ ALTER TABLE ONLY admin.team_roles ALTER COLUMN team_role_id SET DEFAULT nextval(
 
 
 --
--- TOC entry 3353 (class 2604 OID 54739)
+-- TOC entry 3354 (class 2604 OID 55320)
 -- Name: user_roles user_role_id; Type: DEFAULT; Schema: admin; Owner: postgres
 --
 
@@ -1576,7 +1647,7 @@ ALTER TABLE ONLY admin.user_roles ALTER COLUMN user_role_id SET DEFAULT nextval(
 
 
 --
--- TOC entry 3368 (class 2604 OID 54813)
+-- TOC entry 3369 (class 2604 OID 55321)
 -- Name: users user_id; Type: DEFAULT; Schema: admin; Owner: postgres
 --
 
@@ -1584,7 +1655,7 @@ ALTER TABLE ONLY admin.users ALTER COLUMN user_id SET DEFAULT nextval('admin.use
 
 
 --
--- TOC entry 3403 (class 2604 OID 55058)
+-- TOC entry 3404 (class 2604 OID 55322)
 -- Name: arenas arena_id; Type: DEFAULT; Schema: league_management; Owner: postgres
 --
 
@@ -1592,7 +1663,7 @@ ALTER TABLE ONLY league_management.arenas ALTER COLUMN arena_id SET DEFAULT next
 
 
 --
--- TOC entry 3396 (class 2604 OID 55006)
+-- TOC entry 3397 (class 2604 OID 55323)
 -- Name: division_rosters division_roster_id; Type: DEFAULT; Schema: league_management; Owner: postgres
 --
 
@@ -1600,7 +1671,7 @@ ALTER TABLE ONLY league_management.division_rosters ALTER COLUMN division_roster
 
 
 --
--- TOC entry 3394 (class 2604 OID 54988)
+-- TOC entry 3395 (class 2604 OID 55324)
 -- Name: division_teams division_team_id; Type: DEFAULT; Schema: league_management; Owner: postgres
 --
 
@@ -1608,7 +1679,7 @@ ALTER TABLE ONLY league_management.division_teams ALTER COLUMN division_team_id 
 
 
 --
--- TOC entry 3389 (class 2604 OID 54965)
+-- TOC entry 3390 (class 2604 OID 55325)
 -- Name: divisions division_id; Type: DEFAULT; Schema: league_management; Owner: postgres
 --
 
@@ -1616,7 +1687,7 @@ ALTER TABLE ONLY league_management.divisions ALTER COLUMN division_id SET DEFAUL
 
 
 --
--- TOC entry 3407 (class 2604 OID 55091)
+-- TOC entry 3408 (class 2604 OID 55326)
 -- Name: games game_id; Type: DEFAULT; Schema: league_management; Owner: postgres
 --
 
@@ -1624,7 +1695,7 @@ ALTER TABLE ONLY league_management.games ALTER COLUMN game_id SET DEFAULT nextva
 
 
 --
--- TOC entry 3382 (class 2604 OID 54899)
+-- TOC entry 3383 (class 2604 OID 55327)
 -- Name: league_admins league_admin_id; Type: DEFAULT; Schema: league_management; Owner: postgres
 --
 
@@ -1632,7 +1703,7 @@ ALTER TABLE ONLY league_management.league_admins ALTER COLUMN league_admin_id SE
 
 
 --
--- TOC entry 3405 (class 2604 OID 55073)
+-- TOC entry 3406 (class 2604 OID 55328)
 -- Name: league_venues league_venue_id; Type: DEFAULT; Schema: league_management; Owner: postgres
 --
 
@@ -1640,7 +1711,7 @@ ALTER TABLE ONLY league_management.league_venues ALTER COLUMN league_venue_id SE
 
 
 --
--- TOC entry 3379 (class 2604 OID 54877)
+-- TOC entry 3380 (class 2604 OID 55329)
 -- Name: leagues league_id; Type: DEFAULT; Schema: league_management; Owner: postgres
 --
 
@@ -1648,7 +1719,7 @@ ALTER TABLE ONLY league_management.leagues ALTER COLUMN league_id SET DEFAULT ne
 
 
 --
--- TOC entry 3398 (class 2604 OID 55024)
+-- TOC entry 3399 (class 2604 OID 55330)
 -- Name: playoffs playoff_id; Type: DEFAULT; Schema: league_management; Owner: postgres
 --
 
@@ -1656,7 +1727,7 @@ ALTER TABLE ONLY league_management.playoffs ALTER COLUMN playoff_id SET DEFAULT 
 
 
 --
--- TOC entry 3387 (class 2604 OID 54942)
+-- TOC entry 3388 (class 2604 OID 55331)
 -- Name: season_admins season_admin_id; Type: DEFAULT; Schema: league_management; Owner: postgres
 --
 
@@ -1664,7 +1735,7 @@ ALTER TABLE ONLY league_management.season_admins ALTER COLUMN season_admin_id SE
 
 
 --
--- TOC entry 3384 (class 2604 OID 54922)
+-- TOC entry 3385 (class 2604 OID 55332)
 -- Name: seasons season_id; Type: DEFAULT; Schema: league_management; Owner: postgres
 --
 
@@ -1672,7 +1743,7 @@ ALTER TABLE ONLY league_management.seasons ALTER COLUMN season_id SET DEFAULT ne
 
 
 --
--- TOC entry 3376 (class 2604 OID 54853)
+-- TOC entry 3377 (class 2604 OID 55333)
 -- Name: team_memberships team_membership_id; Type: DEFAULT; Schema: league_management; Owner: postgres
 --
 
@@ -1680,7 +1751,7 @@ ALTER TABLE ONLY league_management.team_memberships ALTER COLUMN team_membership
 
 
 --
--- TOC entry 3372 (class 2604 OID 54838)
+-- TOC entry 3373 (class 2604 OID 55334)
 -- Name: teams team_id; Type: DEFAULT; Schema: league_management; Owner: postgres
 --
 
@@ -1688,7 +1759,7 @@ ALTER TABLE ONLY league_management.teams ALTER COLUMN team_id SET DEFAULT nextva
 
 
 --
--- TOC entry 3401 (class 2604 OID 55046)
+-- TOC entry 3402 (class 2604 OID 55335)
 -- Name: venues venue_id; Type: DEFAULT; Schema: league_management; Owner: postgres
 --
 
@@ -1696,7 +1767,7 @@ ALTER TABLE ONLY league_management.venues ALTER COLUMN venue_id SET DEFAULT next
 
 
 --
--- TOC entry 3418 (class 2604 OID 55148)
+-- TOC entry 3419 (class 2604 OID 55336)
 -- Name: assists assist_id; Type: DEFAULT; Schema: stats; Owner: postgres
 --
 
@@ -1704,7 +1775,7 @@ ALTER TABLE ONLY stats.assists ALTER COLUMN assist_id SET DEFAULT nextval('stats
 
 
 --
--- TOC entry 3413 (class 2604 OID 55122)
+-- TOC entry 3414 (class 2604 OID 55337)
 -- Name: goals goal_id; Type: DEFAULT; Schema: stats; Owner: postgres
 --
 
@@ -1712,7 +1783,7 @@ ALTER TABLE ONLY stats.goals ALTER COLUMN goal_id SET DEFAULT nextval('stats.goa
 
 
 --
--- TOC entry 3421 (class 2604 OID 55177)
+-- TOC entry 3422 (class 2604 OID 55338)
 -- Name: penalties penalty_id; Type: DEFAULT; Schema: stats; Owner: postgres
 --
 
@@ -1720,7 +1791,7 @@ ALTER TABLE ONLY stats.penalties ALTER COLUMN penalty_id SET DEFAULT nextval('st
 
 
 --
--- TOC entry 3428 (class 2604 OID 55231)
+-- TOC entry 3429 (class 2604 OID 55339)
 -- Name: saves save_id; Type: DEFAULT; Schema: stats; Owner: postgres
 --
 
@@ -1728,7 +1799,7 @@ ALTER TABLE ONLY stats.saves ALTER COLUMN save_id SET DEFAULT nextval('stats.sav
 
 
 --
--- TOC entry 3424 (class 2604 OID 55201)
+-- TOC entry 3425 (class 2604 OID 55340)
 -- Name: shots shot_id; Type: DEFAULT; Schema: stats; Owner: postgres
 --
 
@@ -1736,7 +1807,7 @@ ALTER TABLE ONLY stats.shots ALTER COLUMN shot_id SET DEFAULT nextval('stats.sho
 
 
 --
--- TOC entry 3432 (class 2604 OID 55261)
+-- TOC entry 3433 (class 2604 OID 55341)
 -- Name: shutouts shutout_id; Type: DEFAULT; Schema: stats; Owner: postgres
 --
 
@@ -1744,7 +1815,7 @@ ALTER TABLE ONLY stats.shutouts ALTER COLUMN shutout_id SET DEFAULT nextval('sta
 
 
 --
--- TOC entry 3727 (class 0 OID 54800)
+-- TOC entry 3732 (class 0 OID 54800)
 -- Dependencies: 233
 -- Data for Name: genders; Type: TABLE DATA; Schema: admin; Owner: postgres
 --
@@ -1756,7 +1827,7 @@ INSERT INTO admin.genders (gender_id, slug, name, created_on) VALUES (4, 'two-sp
 
 
 --
--- TOC entry 3717 (class 0 OID 54746)
+-- TOC entry 3722 (class 0 OID 54746)
 -- Dependencies: 223
 -- Data for Name: league_roles; Type: TABLE DATA; Schema: admin; Owner: postgres
 --
@@ -1766,7 +1837,7 @@ INSERT INTO admin.league_roles (league_role_id, name, description, created_on) V
 
 
 --
--- TOC entry 3721 (class 0 OID 54766)
+-- TOC entry 3726 (class 0 OID 54766)
 -- Dependencies: 227
 -- Data for Name: playoff_structures; Type: TABLE DATA; Schema: admin; Owner: postgres
 --
@@ -1776,7 +1847,7 @@ INSERT INTO admin.playoff_structures (playoff_structure_id, name, description, c
 
 
 --
--- TOC entry 3719 (class 0 OID 54756)
+-- TOC entry 3724 (class 0 OID 54756)
 -- Dependencies: 225
 -- Data for Name: season_roles; Type: TABLE DATA; Schema: admin; Owner: postgres
 --
@@ -1787,7 +1858,7 @@ INSERT INTO admin.season_roles (season_role_id, name, description, created_on) V
 
 
 --
--- TOC entry 3725 (class 0 OID 54786)
+-- TOC entry 3730 (class 0 OID 54786)
 -- Dependencies: 231
 -- Data for Name: sports; Type: TABLE DATA; Schema: admin; Owner: postgres
 --
@@ -1800,7 +1871,7 @@ INSERT INTO admin.sports (sport_id, slug, name, description, status, created_on)
 
 
 --
--- TOC entry 3723 (class 0 OID 54776)
+-- TOC entry 3728 (class 0 OID 54776)
 -- Dependencies: 229
 -- Data for Name: team_roles; Type: TABLE DATA; Schema: admin; Owner: postgres
 --
@@ -1814,7 +1885,7 @@ INSERT INTO admin.team_roles (team_role_id, name, description, created_on) VALUE
 
 
 --
--- TOC entry 3715 (class 0 OID 54736)
+-- TOC entry 3720 (class 0 OID 54736)
 -- Dependencies: 221
 -- Data for Name: user_roles; Type: TABLE DATA; Schema: admin; Owner: postgres
 --
@@ -1825,7 +1896,7 @@ INSERT INTO admin.user_roles (user_role_id, name, description, created_on) VALUE
 
 
 --
--- TOC entry 3729 (class 0 OID 54810)
+-- TOC entry 3734 (class 0 OID 54810)
 -- Dependencies: 235
 -- Data for Name: users; Type: TABLE DATA; Schema: admin; Owner: postgres
 --
@@ -1948,7 +2019,7 @@ INSERT INTO admin.users (user_id, username, email, first_name, last_name, gender
 
 
 --
--- TOC entry 3753 (class 0 OID 55055)
+-- TOC entry 3758 (class 0 OID 55055)
 -- Dependencies: 259
 -- Data for Name: arenas; Type: TABLE DATA; Schema: league_management; Owner: postgres
 --
@@ -1973,7 +2044,7 @@ INSERT INTO league_management.arenas (arena_id, slug, name, description, venue_i
 
 
 --
--- TOC entry 3747 (class 0 OID 55003)
+-- TOC entry 3752 (class 0 OID 55003)
 -- Dependencies: 253
 -- Data for Name: division_rosters; Type: TABLE DATA; Schema: league_management; Owner: postgres
 --
@@ -1981,7 +2052,7 @@ INSERT INTO league_management.arenas (arena_id, slug, name, description, venue_i
 
 
 --
--- TOC entry 3745 (class 0 OID 54985)
+-- TOC entry 3750 (class 0 OID 54985)
 -- Dependencies: 251
 -- Data for Name: division_teams; Type: TABLE DATA; Schema: league_management; Owner: postgres
 --
@@ -2003,7 +2074,7 @@ INSERT INTO league_management.division_teams (division_team_id, division_id, tea
 
 
 --
--- TOC entry 3743 (class 0 OID 54962)
+-- TOC entry 3748 (class 0 OID 54962)
 -- Dependencies: 249
 -- Data for Name: divisions; Type: TABLE DATA; Schema: league_management; Owner: postgres
 --
@@ -2033,7 +2104,7 @@ INSERT INTO league_management.divisions (division_id, slug, name, description, t
 
 
 --
--- TOC entry 3757 (class 0 OID 55088)
+-- TOC entry 3762 (class 0 OID 55088)
 -- Dependencies: 263
 -- Data for Name: games; Type: TABLE DATA; Schema: league_management; Owner: postgres
 --
@@ -2076,15 +2147,16 @@ INSERT INTO league_management.games (game_id, home_team_id, home_team_score, awa
 INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (40, 3, 0, 4, 0, 1, NULL, '2025-02-23 20:00:00', 9, 'public', true, '2025-01-28 15:35:00.023976');
 INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (41, 1, 0, 4, 0, 1, NULL, '2025-03-03 18:30:00', 10, 'draft', false, '2025-01-28 15:35:00.023976');
 INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (42, 2, 0, 3, 0, 1, NULL, '2025-03-03 19:30:00', 10, 'draft', false, '2025-01-28 15:35:00.023976');
-INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (35, 1, 1, 4, 1, 1, NULL, '2025-02-05 22:00:00', 9, 'public', true, '2025-01-28 15:35:00.023976');
 INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (34, 4, 3, 2, 3, 1, NULL, '2025-01-26 22:45:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (35, 1, 0, 4, 0, 1, NULL, '2025-02-05 22:00:00', 9, 'public', true, '2025-01-28 15:35:00.023976');
+INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (45, 1, 0, 3, 0, 1, NULL, '2025-02-07 07:56:00', 9, 'draft', false, '2025-01-30 12:56:07.188201');
 INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (43, 5, 2, 6, 1, 4, NULL, '2025-01-28 21:30:00', 17, 'public', false, '2025-01-29 18:20:39.803043');
 INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (33, 3, 3, 1, 6, 1, NULL, '2025-01-26 21:45:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
 INSERT INTO league_management.games (game_id, home_team_id, home_team_score, away_team_id, away_team_score, division_id, playoff_id, date_time, arena_id, status, has_been_published, created_on) VALUES (28, 2, 7, 3, 2, 1, NULL, '2025-01-02 21:30:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
 
 
 --
--- TOC entry 3737 (class 0 OID 54896)
+-- TOC entry 3742 (class 0 OID 54896)
 -- Dependencies: 243
 -- Data for Name: league_admins; Type: TABLE DATA; Schema: league_management; Owner: postgres
 --
@@ -2098,7 +2170,7 @@ INSERT INTO league_management.league_admins (league_admin_id, league_role_id, le
 
 
 --
--- TOC entry 3755 (class 0 OID 55070)
+-- TOC entry 3760 (class 0 OID 55070)
 -- Dependencies: 261
 -- Data for Name: league_venues; Type: TABLE DATA; Schema: league_management; Owner: postgres
 --
@@ -2110,7 +2182,7 @@ INSERT INTO league_management.league_venues (league_venue_id, venue_id, league_i
 
 
 --
--- TOC entry 3735 (class 0 OID 54874)
+-- TOC entry 3740 (class 0 OID 54874)
 -- Dependencies: 241
 -- Data for Name: leagues; Type: TABLE DATA; Schema: league_management; Owner: postgres
 --
@@ -2121,7 +2193,7 @@ INSERT INTO league_management.leagues (league_id, slug, name, description, sport
 
 
 --
--- TOC entry 3749 (class 0 OID 55021)
+-- TOC entry 3754 (class 0 OID 55021)
 -- Dependencies: 255
 -- Data for Name: playoffs; Type: TABLE DATA; Schema: league_management; Owner: postgres
 --
@@ -2129,7 +2201,7 @@ INSERT INTO league_management.leagues (league_id, slug, name, description, sport
 
 
 --
--- TOC entry 3741 (class 0 OID 54939)
+-- TOC entry 3746 (class 0 OID 54939)
 -- Dependencies: 247
 -- Data for Name: season_admins; Type: TABLE DATA; Schema: league_management; Owner: postgres
 --
@@ -2139,7 +2211,7 @@ INSERT INTO league_management.season_admins (season_admin_id, season_role_id, se
 
 
 --
--- TOC entry 3739 (class 0 OID 54919)
+-- TOC entry 3744 (class 0 OID 54919)
 -- Dependencies: 245
 -- Data for Name: seasons; Type: TABLE DATA; Schema: league_management; Owner: postgres
 --
@@ -2152,7 +2224,7 @@ INSERT INTO league_management.seasons (season_id, slug, name, description, leagu
 
 
 --
--- TOC entry 3733 (class 0 OID 54850)
+-- TOC entry 3738 (class 0 OID 54850)
 -- Dependencies: 239
 -- Data for Name: team_memberships; Type: TABLE DATA; Schema: league_management; Owner: postgres
 --
@@ -2271,7 +2343,7 @@ INSERT INTO league_management.team_memberships (team_membership_id, user_id, tea
 
 
 --
--- TOC entry 3731 (class 0 OID 54835)
+-- TOC entry 3736 (class 0 OID 54835)
 -- Dependencies: 237
 -- Data for Name: teams; Type: TABLE DATA; Schema: league_management; Owner: postgres
 --
@@ -2293,7 +2365,7 @@ INSERT INTO league_management.teams (team_id, slug, name, description, color, jo
 
 
 --
--- TOC entry 3751 (class 0 OID 55043)
+-- TOC entry 3756 (class 0 OID 55043)
 -- Dependencies: 257
 -- Data for Name: venues; Type: TABLE DATA; Schema: league_management; Owner: postgres
 --
@@ -2311,7 +2383,7 @@ INSERT INTO league_management.venues (venue_id, slug, name, description, address
 
 
 --
--- TOC entry 3761 (class 0 OID 55145)
+-- TOC entry 3766 (class 0 OID 55145)
 -- Dependencies: 267
 -- Data for Name: assists; Type: TABLE DATA; Schema: stats; Owner: postgres
 --
@@ -2329,7 +2401,6 @@ INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primar
 INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (31, 35, 33, 8, 3, true, '2025-01-28 22:27:36.519458');
 INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (32, 36, 33, 50, 3, true, '2025-01-28 22:28:05.577852');
 INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (33, 37, 33, 25, 1, true, '2025-01-28 22:28:27.851364');
-INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (34, 38, 35, 56, 4, true, '2025-01-28 22:31:13.724807');
 INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (38, 47, 34, 56, 4, true, '2025-01-29 17:32:07.123656');
 INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (39, 47, 34, 61, 4, false, '2025-01-29 17:32:07.126029');
 INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primary_assist, created_on) VALUES (42, 49, 34, 29, 2, true, '2025-01-29 17:33:31.862262');
@@ -2349,7 +2420,7 @@ INSERT INTO stats.assists (assist_id, goal_id, game_id, user_id, team_id, primar
 
 
 --
--- TOC entry 3759 (class 0 OID 55119)
+-- TOC entry 3764 (class 0 OID 55119)
 -- Dependencies: 265
 -- Data for Name: goals; Type: TABLE DATA; Schema: stats; Owner: postgres
 --
@@ -2367,8 +2438,6 @@ INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time
 INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (35, 33, 47, 3, 3, '00:17:17', false, false, false, '2025-01-28 22:27:36.514161');
 INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (36, 33, 8, 3, 3, '00:18:18', false, false, false, '2025-01-28 22:28:05.572276');
 INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (37, 33, 6, 1, 3, '00:19:28', false, false, true, '2025-01-28 22:28:27.845173');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (38, 35, 51, 4, 1, '00:00:00', false, false, false, '2025-01-28 22:31:13.719248');
-INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (39, 35, 17, 1, 1, '00:05:06', false, false, false, '2025-01-28 22:31:33.688694');
 INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (44, 34, 32, 2, 1, '00:11:17', false, false, false, '2025-01-29 17:30:13.747468');
 INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (46, 34, 32, 2, 1, '00:17:48', false, false, false, '2025-01-29 17:31:48.23607');
 INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net, created_on) VALUES (47, 34, 51, 4, 2, '00:03:49', false, false, false, '2025-01-29 17:32:07.117662');
@@ -2391,7 +2460,7 @@ INSERT INTO stats.goals (goal_id, game_id, user_id, team_id, period, period_time
 
 
 --
--- TOC entry 3763 (class 0 OID 55174)
+-- TOC entry 3768 (class 0 OID 55174)
 -- Dependencies: 269
 -- Data for Name: penalties; Type: TABLE DATA; Schema: stats; Owner: postgres
 --
@@ -2408,7 +2477,7 @@ INSERT INTO stats.penalties (penalty_id, game_id, user_id, team_id, period, peri
 
 
 --
--- TOC entry 3767 (class 0 OID 55228)
+-- TOC entry 3772 (class 0 OID 55228)
 -- Dependencies: 273
 -- Data for Name: saves; Type: TABLE DATA; Schema: stats; Owner: postgres
 --
@@ -2431,7 +2500,7 @@ INSERT INTO stats.saves (save_id, game_id, user_id, team_id, shot_id, period, pe
 
 
 --
--- TOC entry 3765 (class 0 OID 55198)
+-- TOC entry 3770 (class 0 OID 55198)
 -- Dependencies: 271
 -- Data for Name: shots; Type: TABLE DATA; Schema: stats; Owner: postgres
 --
@@ -2462,8 +2531,6 @@ INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time
 INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (67, 33, 47, 3, 3, '00:17:17', 35, false, false, '2025-01-28 22:27:36.521274');
 INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (68, 33, 8, 3, 3, '00:18:18', 36, false, false, '2025-01-28 22:28:05.580273');
 INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (69, 33, 6, 1, 3, '00:19:28', 37, false, false, '2025-01-28 22:28:27.853387');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (70, 35, 51, 4, 1, '00:00:00', 38, false, false, '2025-01-28 22:31:13.726873');
-INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (71, 35, 17, 1, 1, '00:05:06', 39, false, false, '2025-01-28 22:31:33.693965');
 INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (80, 34, 32, 2, 1, '00:11:17', 44, false, false, '2025-01-29 17:30:13.753762');
 INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (81, 34, 51, 4, 1, '00:15:18', NULL, false, false, '2025-01-29 17:30:20.970281');
 INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play, created_on) VALUES (83, 34, 32, 2, 1, '00:17:19', NULL, false, false, '2025-01-29 17:31:39.514099');
@@ -2488,7 +2555,7 @@ INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time
 
 
 --
--- TOC entry 3769 (class 0 OID 55258)
+-- TOC entry 3774 (class 0 OID 55258)
 -- Dependencies: 275
 -- Data for Name: shutouts; Type: TABLE DATA; Schema: stats; Owner: postgres
 --
@@ -2496,7 +2563,7 @@ INSERT INTO stats.shots (shot_id, game_id, user_id, team_id, period, period_time
 
 
 --
--- TOC entry 3803 (class 0 OID 0)
+-- TOC entry 3808 (class 0 OID 0)
 -- Dependencies: 232
 -- Name: genders_gender_id_seq; Type: SEQUENCE SET; Schema: admin; Owner: postgres
 --
@@ -2505,7 +2572,7 @@ SELECT pg_catalog.setval('admin.genders_gender_id_seq', 4, true);
 
 
 --
--- TOC entry 3804 (class 0 OID 0)
+-- TOC entry 3809 (class 0 OID 0)
 -- Dependencies: 222
 -- Name: league_roles_league_role_id_seq; Type: SEQUENCE SET; Schema: admin; Owner: postgres
 --
@@ -2514,7 +2581,7 @@ SELECT pg_catalog.setval('admin.league_roles_league_role_id_seq', 2, true);
 
 
 --
--- TOC entry 3805 (class 0 OID 0)
+-- TOC entry 3810 (class 0 OID 0)
 -- Dependencies: 226
 -- Name: playoff_structures_playoff_structure_id_seq; Type: SEQUENCE SET; Schema: admin; Owner: postgres
 --
@@ -2523,7 +2590,7 @@ SELECT pg_catalog.setval('admin.playoff_structures_playoff_structure_id_seq', 2,
 
 
 --
--- TOC entry 3806 (class 0 OID 0)
+-- TOC entry 3811 (class 0 OID 0)
 -- Dependencies: 224
 -- Name: season_roles_season_role_id_seq; Type: SEQUENCE SET; Schema: admin; Owner: postgres
 --
@@ -2532,7 +2599,7 @@ SELECT pg_catalog.setval('admin.season_roles_season_role_id_seq', 3, true);
 
 
 --
--- TOC entry 3807 (class 0 OID 0)
+-- TOC entry 3812 (class 0 OID 0)
 -- Dependencies: 230
 -- Name: sports_sport_id_seq; Type: SEQUENCE SET; Schema: admin; Owner: postgres
 --
@@ -2541,7 +2608,7 @@ SELECT pg_catalog.setval('admin.sports_sport_id_seq', 5, true);
 
 
 --
--- TOC entry 3808 (class 0 OID 0)
+-- TOC entry 3813 (class 0 OID 0)
 -- Dependencies: 228
 -- Name: team_roles_team_role_id_seq; Type: SEQUENCE SET; Schema: admin; Owner: postgres
 --
@@ -2550,7 +2617,7 @@ SELECT pg_catalog.setval('admin.team_roles_team_role_id_seq', 6, true);
 
 
 --
--- TOC entry 3809 (class 0 OID 0)
+-- TOC entry 3814 (class 0 OID 0)
 -- Dependencies: 220
 -- Name: user_roles_user_role_id_seq; Type: SEQUENCE SET; Schema: admin; Owner: postgres
 --
@@ -2559,7 +2626,7 @@ SELECT pg_catalog.setval('admin.user_roles_user_role_id_seq', 3, true);
 
 
 --
--- TOC entry 3810 (class 0 OID 0)
+-- TOC entry 3815 (class 0 OID 0)
 -- Dependencies: 234
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: admin; Owner: postgres
 --
@@ -2568,7 +2635,7 @@ SELECT pg_catalog.setval('admin.users_user_id_seq', 115, true);
 
 
 --
--- TOC entry 3811 (class 0 OID 0)
+-- TOC entry 3816 (class 0 OID 0)
 -- Dependencies: 258
 -- Name: arenas_arena_id_seq; Type: SEQUENCE SET; Schema: league_management; Owner: postgres
 --
@@ -2577,7 +2644,7 @@ SELECT pg_catalog.setval('league_management.arenas_arena_id_seq', 1, false);
 
 
 --
--- TOC entry 3812 (class 0 OID 0)
+-- TOC entry 3817 (class 0 OID 0)
 -- Dependencies: 252
 -- Name: division_rosters_division_roster_id_seq; Type: SEQUENCE SET; Schema: league_management; Owner: postgres
 --
@@ -2586,7 +2653,7 @@ SELECT pg_catalog.setval('league_management.division_rosters_division_roster_id_
 
 
 --
--- TOC entry 3813 (class 0 OID 0)
+-- TOC entry 3818 (class 0 OID 0)
 -- Dependencies: 250
 -- Name: division_teams_division_team_id_seq; Type: SEQUENCE SET; Schema: league_management; Owner: postgres
 --
@@ -2595,7 +2662,7 @@ SELECT pg_catalog.setval('league_management.division_teams_division_team_id_seq'
 
 
 --
--- TOC entry 3814 (class 0 OID 0)
+-- TOC entry 3819 (class 0 OID 0)
 -- Dependencies: 248
 -- Name: divisions_division_id_seq; Type: SEQUENCE SET; Schema: league_management; Owner: postgres
 --
@@ -2604,16 +2671,16 @@ SELECT pg_catalog.setval('league_management.divisions_division_id_seq', 22, true
 
 
 --
--- TOC entry 3815 (class 0 OID 0)
+-- TOC entry 3820 (class 0 OID 0)
 -- Dependencies: 262
 -- Name: games_game_id_seq; Type: SEQUENCE SET; Schema: league_management; Owner: postgres
 --
 
-SELECT pg_catalog.setval('league_management.games_game_id_seq', 43, true);
+SELECT pg_catalog.setval('league_management.games_game_id_seq', 45, true);
 
 
 --
--- TOC entry 3816 (class 0 OID 0)
+-- TOC entry 3821 (class 0 OID 0)
 -- Dependencies: 242
 -- Name: league_admins_league_admin_id_seq; Type: SEQUENCE SET; Schema: league_management; Owner: postgres
 --
@@ -2622,7 +2689,7 @@ SELECT pg_catalog.setval('league_management.league_admins_league_admin_id_seq', 
 
 
 --
--- TOC entry 3817 (class 0 OID 0)
+-- TOC entry 3822 (class 0 OID 0)
 -- Dependencies: 260
 -- Name: league_venues_league_venue_id_seq; Type: SEQUENCE SET; Schema: league_management; Owner: postgres
 --
@@ -2631,7 +2698,7 @@ SELECT pg_catalog.setval('league_management.league_venues_league_venue_id_seq', 
 
 
 --
--- TOC entry 3818 (class 0 OID 0)
+-- TOC entry 3823 (class 0 OID 0)
 -- Dependencies: 240
 -- Name: leagues_league_id_seq; Type: SEQUENCE SET; Schema: league_management; Owner: postgres
 --
@@ -2640,7 +2707,7 @@ SELECT pg_catalog.setval('league_management.leagues_league_id_seq', 3, true);
 
 
 --
--- TOC entry 3819 (class 0 OID 0)
+-- TOC entry 3824 (class 0 OID 0)
 -- Dependencies: 254
 -- Name: playoffs_playoff_id_seq; Type: SEQUENCE SET; Schema: league_management; Owner: postgres
 --
@@ -2649,7 +2716,7 @@ SELECT pg_catalog.setval('league_management.playoffs_playoff_id_seq', 1, false);
 
 
 --
--- TOC entry 3820 (class 0 OID 0)
+-- TOC entry 3825 (class 0 OID 0)
 -- Dependencies: 246
 -- Name: season_admins_season_admin_id_seq; Type: SEQUENCE SET; Schema: league_management; Owner: postgres
 --
@@ -2658,7 +2725,7 @@ SELECT pg_catalog.setval('league_management.season_admins_season_admin_id_seq', 
 
 
 --
--- TOC entry 3821 (class 0 OID 0)
+-- TOC entry 3826 (class 0 OID 0)
 -- Dependencies: 244
 -- Name: seasons_season_id_seq; Type: SEQUENCE SET; Schema: league_management; Owner: postgres
 --
@@ -2667,7 +2734,7 @@ SELECT pg_catalog.setval('league_management.seasons_season_id_seq', 5, true);
 
 
 --
--- TOC entry 3822 (class 0 OID 0)
+-- TOC entry 3827 (class 0 OID 0)
 -- Dependencies: 238
 -- Name: team_memberships_team_membership_id_seq; Type: SEQUENCE SET; Schema: league_management; Owner: postgres
 --
@@ -2676,16 +2743,16 @@ SELECT pg_catalog.setval('league_management.team_memberships_team_membership_id_
 
 
 --
--- TOC entry 3823 (class 0 OID 0)
+-- TOC entry 3828 (class 0 OID 0)
 -- Dependencies: 236
 -- Name: teams_team_id_seq; Type: SEQUENCE SET; Schema: league_management; Owner: postgres
 --
 
-SELECT pg_catalog.setval('league_management.teams_team_id_seq', 1, false);
+SELECT pg_catalog.setval('league_management.teams_team_id_seq', 1, true);
 
 
 --
--- TOC entry 3824 (class 0 OID 0)
+-- TOC entry 3829 (class 0 OID 0)
 -- Dependencies: 256
 -- Name: venues_venue_id_seq; Type: SEQUENCE SET; Schema: league_management; Owner: postgres
 --
@@ -2694,7 +2761,7 @@ SELECT pg_catalog.setval('league_management.venues_venue_id_seq', 1, false);
 
 
 --
--- TOC entry 3825 (class 0 OID 0)
+-- TOC entry 3830 (class 0 OID 0)
 -- Dependencies: 266
 -- Name: assists_assist_id_seq; Type: SEQUENCE SET; Schema: stats; Owner: postgres
 --
@@ -2703,16 +2770,16 @@ SELECT pg_catalog.setval('stats.assists_assist_id_seq', 56, true);
 
 
 --
--- TOC entry 3826 (class 0 OID 0)
+-- TOC entry 3831 (class 0 OID 0)
 -- Dependencies: 264
 -- Name: goals_goal_id_seq; Type: SEQUENCE SET; Schema: stats; Owner: postgres
 --
 
-SELECT pg_catalog.setval('stats.goals_goal_id_seq', 65, true);
+SELECT pg_catalog.setval('stats.goals_goal_id_seq', 75, true);
 
 
 --
--- TOC entry 3827 (class 0 OID 0)
+-- TOC entry 3832 (class 0 OID 0)
 -- Dependencies: 268
 -- Name: penalties_penalty_id_seq; Type: SEQUENCE SET; Schema: stats; Owner: postgres
 --
@@ -2721,7 +2788,7 @@ SELECT pg_catalog.setval('stats.penalties_penalty_id_seq', 13, true);
 
 
 --
--- TOC entry 3828 (class 0 OID 0)
+-- TOC entry 3833 (class 0 OID 0)
 -- Dependencies: 272
 -- Name: saves_save_id_seq; Type: SEQUENCE SET; Schema: stats; Owner: postgres
 --
@@ -2730,16 +2797,16 @@ SELECT pg_catalog.setval('stats.saves_save_id_seq', 35, true);
 
 
 --
--- TOC entry 3829 (class 0 OID 0)
+-- TOC entry 3834 (class 0 OID 0)
 -- Dependencies: 270
 -- Name: shots_shot_id_seq; Type: SEQUENCE SET; Schema: stats; Owner: postgres
 --
 
-SELECT pg_catalog.setval('stats.shots_shot_id_seq', 103, true);
+SELECT pg_catalog.setval('stats.shots_shot_id_seq', 105, true);
 
 
 --
--- TOC entry 3830 (class 0 OID 0)
+-- TOC entry 3835 (class 0 OID 0)
 -- Dependencies: 274
 -- Name: shutouts_shutout_id_seq; Type: SEQUENCE SET; Schema: stats; Owner: postgres
 --
@@ -2748,7 +2815,7 @@ SELECT pg_catalog.setval('stats.shutouts_shutout_id_seq', 1, false);
 
 
 --
--- TOC entry 3458 (class 2606 OID 54806)
+-- TOC entry 3459 (class 2606 OID 54806)
 -- Name: genders genders_pkey; Type: CONSTRAINT; Schema: admin; Owner: postgres
 --
 
@@ -2757,7 +2824,7 @@ ALTER TABLE ONLY admin.genders
 
 
 --
--- TOC entry 3460 (class 2606 OID 54808)
+-- TOC entry 3461 (class 2606 OID 54808)
 -- Name: genders genders_slug_key; Type: CONSTRAINT; Schema: admin; Owner: postgres
 --
 
@@ -2766,7 +2833,7 @@ ALTER TABLE ONLY admin.genders
 
 
 --
--- TOC entry 3446 (class 2606 OID 54754)
+-- TOC entry 3447 (class 2606 OID 54754)
 -- Name: league_roles league_roles_pkey; Type: CONSTRAINT; Schema: admin; Owner: postgres
 --
 
@@ -2775,7 +2842,7 @@ ALTER TABLE ONLY admin.league_roles
 
 
 --
--- TOC entry 3450 (class 2606 OID 54774)
+-- TOC entry 3451 (class 2606 OID 54774)
 -- Name: playoff_structures playoff_structures_pkey; Type: CONSTRAINT; Schema: admin; Owner: postgres
 --
 
@@ -2784,7 +2851,7 @@ ALTER TABLE ONLY admin.playoff_structures
 
 
 --
--- TOC entry 3448 (class 2606 OID 54764)
+-- TOC entry 3449 (class 2606 OID 54764)
 -- Name: season_roles season_roles_pkey; Type: CONSTRAINT; Schema: admin; Owner: postgres
 --
 
@@ -2793,7 +2860,7 @@ ALTER TABLE ONLY admin.season_roles
 
 
 --
--- TOC entry 3454 (class 2606 OID 54795)
+-- TOC entry 3455 (class 2606 OID 54795)
 -- Name: sports sports_pkey; Type: CONSTRAINT; Schema: admin; Owner: postgres
 --
 
@@ -2802,7 +2869,7 @@ ALTER TABLE ONLY admin.sports
 
 
 --
--- TOC entry 3456 (class 2606 OID 54797)
+-- TOC entry 3457 (class 2606 OID 54797)
 -- Name: sports sports_slug_key; Type: CONSTRAINT; Schema: admin; Owner: postgres
 --
 
@@ -2811,7 +2878,7 @@ ALTER TABLE ONLY admin.sports
 
 
 --
--- TOC entry 3452 (class 2606 OID 54784)
+-- TOC entry 3453 (class 2606 OID 54784)
 -- Name: team_roles team_roles_pkey; Type: CONSTRAINT; Schema: admin; Owner: postgres
 --
 
@@ -2820,7 +2887,7 @@ ALTER TABLE ONLY admin.team_roles
 
 
 --
--- TOC entry 3444 (class 2606 OID 54744)
+-- TOC entry 3445 (class 2606 OID 54744)
 -- Name: user_roles user_roles_pkey; Type: CONSTRAINT; Schema: admin; Owner: postgres
 --
 
@@ -2829,7 +2896,7 @@ ALTER TABLE ONLY admin.user_roles
 
 
 --
--- TOC entry 3462 (class 2606 OID 54822)
+-- TOC entry 3463 (class 2606 OID 54822)
 -- Name: users users_email_key; Type: CONSTRAINT; Schema: admin; Owner: postgres
 --
 
@@ -2838,7 +2905,7 @@ ALTER TABLE ONLY admin.users
 
 
 --
--- TOC entry 3464 (class 2606 OID 54818)
+-- TOC entry 3465 (class 2606 OID 54818)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: admin; Owner: postgres
 --
 
@@ -2847,7 +2914,7 @@ ALTER TABLE ONLY admin.users
 
 
 --
--- TOC entry 3466 (class 2606 OID 54820)
+-- TOC entry 3467 (class 2606 OID 54820)
 -- Name: users users_username_key; Type: CONSTRAINT; Schema: admin; Owner: postgres
 --
 
@@ -2856,7 +2923,7 @@ ALTER TABLE ONLY admin.users
 
 
 --
--- TOC entry 3496 (class 2606 OID 55063)
+-- TOC entry 3499 (class 2606 OID 55063)
 -- Name: arenas arenas_pkey; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -2865,7 +2932,7 @@ ALTER TABLE ONLY league_management.arenas
 
 
 --
--- TOC entry 3488 (class 2606 OID 55009)
+-- TOC entry 3491 (class 2606 OID 55009)
 -- Name: division_rosters division_rosters_pkey; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -2874,7 +2941,7 @@ ALTER TABLE ONLY league_management.division_rosters
 
 
 --
--- TOC entry 3486 (class 2606 OID 54991)
+-- TOC entry 3489 (class 2606 OID 54991)
 -- Name: division_teams division_teams_pkey; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -2883,7 +2950,7 @@ ALTER TABLE ONLY league_management.division_teams
 
 
 --
--- TOC entry 3484 (class 2606 OID 54973)
+-- TOC entry 3487 (class 2606 OID 54973)
 -- Name: divisions divisions_pkey; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -2892,7 +2959,7 @@ ALTER TABLE ONLY league_management.divisions
 
 
 --
--- TOC entry 3500 (class 2606 OID 55098)
+-- TOC entry 3503 (class 2606 OID 55098)
 -- Name: games games_pkey; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -2901,7 +2968,7 @@ ALTER TABLE ONLY league_management.games
 
 
 --
--- TOC entry 3478 (class 2606 OID 54902)
+-- TOC entry 3481 (class 2606 OID 54902)
 -- Name: league_admins league_admins_pkey; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -2910,7 +2977,7 @@ ALTER TABLE ONLY league_management.league_admins
 
 
 --
--- TOC entry 3498 (class 2606 OID 55076)
+-- TOC entry 3501 (class 2606 OID 55076)
 -- Name: league_venues league_venues_pkey; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -2919,7 +2986,7 @@ ALTER TABLE ONLY league_management.league_venues
 
 
 --
--- TOC entry 3474 (class 2606 OID 54883)
+-- TOC entry 3477 (class 2606 OID 54883)
 -- Name: leagues leagues_pkey; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -2928,7 +2995,7 @@ ALTER TABLE ONLY league_management.leagues
 
 
 --
--- TOC entry 3476 (class 2606 OID 54885)
+-- TOC entry 3479 (class 2606 OID 54885)
 -- Name: leagues leagues_slug_key; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -2937,7 +3004,7 @@ ALTER TABLE ONLY league_management.leagues
 
 
 --
--- TOC entry 3490 (class 2606 OID 55030)
+-- TOC entry 3493 (class 2606 OID 55030)
 -- Name: playoffs playoffs_pkey; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -2946,7 +3013,7 @@ ALTER TABLE ONLY league_management.playoffs
 
 
 --
--- TOC entry 3482 (class 2606 OID 54945)
+-- TOC entry 3485 (class 2606 OID 54945)
 -- Name: season_admins season_admins_pkey; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -2955,7 +3022,7 @@ ALTER TABLE ONLY league_management.season_admins
 
 
 --
--- TOC entry 3480 (class 2606 OID 54928)
+-- TOC entry 3483 (class 2606 OID 54928)
 -- Name: seasons seasons_pkey; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -2964,7 +3031,7 @@ ALTER TABLE ONLY league_management.seasons
 
 
 --
--- TOC entry 3472 (class 2606 OID 54857)
+-- TOC entry 3475 (class 2606 OID 54857)
 -- Name: team_memberships team_memberships_pkey; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -2973,7 +3040,16 @@ ALTER TABLE ONLY league_management.team_memberships
 
 
 --
--- TOC entry 3468 (class 2606 OID 54845)
+-- TOC entry 3469 (class 2606 OID 55895)
+-- Name: teams teams_join_code; Type: CONSTRAINT; Schema: league_management; Owner: postgres
+--
+
+ALTER TABLE ONLY league_management.teams
+    ADD CONSTRAINT teams_join_code UNIQUE (join_code);
+
+
+--
+-- TOC entry 3471 (class 2606 OID 54845)
 -- Name: teams teams_pkey; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -2982,7 +3058,7 @@ ALTER TABLE ONLY league_management.teams
 
 
 --
--- TOC entry 3470 (class 2606 OID 54847)
+-- TOC entry 3473 (class 2606 OID 54847)
 -- Name: teams teams_slug_key; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -2991,7 +3067,7 @@ ALTER TABLE ONLY league_management.teams
 
 
 --
--- TOC entry 3492 (class 2606 OID 55051)
+-- TOC entry 3495 (class 2606 OID 55051)
 -- Name: venues venues_pkey; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3000,7 +3076,7 @@ ALTER TABLE ONLY league_management.venues
 
 
 --
--- TOC entry 3494 (class 2606 OID 55053)
+-- TOC entry 3497 (class 2606 OID 55053)
 -- Name: venues venues_slug_key; Type: CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3009,7 +3085,7 @@ ALTER TABLE ONLY league_management.venues
 
 
 --
--- TOC entry 3504 (class 2606 OID 55152)
+-- TOC entry 3507 (class 2606 OID 55152)
 -- Name: assists assists_pkey; Type: CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3018,7 +3094,7 @@ ALTER TABLE ONLY stats.assists
 
 
 --
--- TOC entry 3502 (class 2606 OID 55128)
+-- TOC entry 3505 (class 2606 OID 55128)
 -- Name: goals goals_pkey; Type: CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3027,7 +3103,7 @@ ALTER TABLE ONLY stats.goals
 
 
 --
--- TOC entry 3506 (class 2606 OID 55181)
+-- TOC entry 3509 (class 2606 OID 55181)
 -- Name: penalties penalties_pkey; Type: CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3036,7 +3112,7 @@ ALTER TABLE ONLY stats.penalties
 
 
 --
--- TOC entry 3510 (class 2606 OID 55236)
+-- TOC entry 3513 (class 2606 OID 55236)
 -- Name: saves saves_pkey; Type: CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3045,7 +3121,7 @@ ALTER TABLE ONLY stats.saves
 
 
 --
--- TOC entry 3508 (class 2606 OID 55206)
+-- TOC entry 3511 (class 2606 OID 55206)
 -- Name: shots shots_pkey; Type: CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3054,7 +3130,7 @@ ALTER TABLE ONLY stats.shots
 
 
 --
--- TOC entry 3512 (class 2606 OID 55264)
+-- TOC entry 3515 (class 2606 OID 55264)
 -- Name: shutouts shutouts_pkey; Type: CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3063,7 +3139,7 @@ ALTER TABLE ONLY stats.shutouts
 
 
 --
--- TOC entry 3566 (class 2620 OID 55116)
+-- TOC entry 3571 (class 2620 OID 55116)
 -- Name: games insert_game_status_check; Type: TRIGGER; Schema: league_management; Owner: postgres
 --
 
@@ -3071,7 +3147,7 @@ CREATE TRIGGER insert_game_status_check BEFORE INSERT ON league_management.games
 
 
 --
--- TOC entry 3564 (class 2620 OID 54982)
+-- TOC entry 3569 (class 2620 OID 54982)
 -- Name: divisions set_divisions_slug; Type: TRIGGER; Schema: league_management; Owner: postgres
 --
 
@@ -3079,7 +3155,7 @@ CREATE TRIGGER set_divisions_slug BEFORE INSERT ON league_management.divisions F
 
 
 --
--- TOC entry 3560 (class 2620 OID 54893)
+-- TOC entry 3565 (class 2620 OID 54893)
 -- Name: leagues set_leagues_slug; Type: TRIGGER; Schema: league_management; Owner: postgres
 --
 
@@ -3087,7 +3163,7 @@ CREATE TRIGGER set_leagues_slug BEFORE INSERT ON league_management.leagues FOR E
 
 
 --
--- TOC entry 3562 (class 2620 OID 54936)
+-- TOC entry 3567 (class 2620 OID 54936)
 -- Name: seasons set_seasons_slug; Type: TRIGGER; Schema: league_management; Owner: postgres
 --
 
@@ -3095,7 +3171,15 @@ CREATE TRIGGER set_seasons_slug BEFORE INSERT ON league_management.seasons FOR E
 
 
 --
--- TOC entry 3565 (class 2620 OID 54983)
+-- TOC entry 3563 (class 2620 OID 55897)
+-- Name: teams set_teams_slug; Type: TRIGGER; Schema: league_management; Owner: postgres
+--
+
+CREATE TRIGGER set_teams_slug BEFORE INSERT ON league_management.teams FOR EACH ROW EXECUTE FUNCTION league_management.generate_league_slug();
+
+
+--
+-- TOC entry 3570 (class 2620 OID 54983)
 -- Name: divisions update_divisions_slug; Type: TRIGGER; Schema: league_management; Owner: postgres
 --
 
@@ -3103,7 +3187,7 @@ CREATE TRIGGER update_divisions_slug BEFORE UPDATE OF name ON league_management.
 
 
 --
--- TOC entry 3567 (class 2620 OID 55117)
+-- TOC entry 3572 (class 2620 OID 55117)
 -- Name: games update_game_status_check; Type: TRIGGER; Schema: league_management; Owner: postgres
 --
 
@@ -3111,7 +3195,7 @@ CREATE TRIGGER update_game_status_check BEFORE UPDATE OF status ON league_manage
 
 
 --
--- TOC entry 3561 (class 2620 OID 54894)
+-- TOC entry 3566 (class 2620 OID 54894)
 -- Name: leagues update_leagues_slug; Type: TRIGGER; Schema: league_management; Owner: postgres
 --
 
@@ -3119,7 +3203,7 @@ CREATE TRIGGER update_leagues_slug BEFORE UPDATE OF name ON league_management.le
 
 
 --
--- TOC entry 3563 (class 2620 OID 54937)
+-- TOC entry 3568 (class 2620 OID 54937)
 -- Name: seasons update_seasons_slug; Type: TRIGGER; Schema: league_management; Owner: postgres
 --
 
@@ -3127,7 +3211,15 @@ CREATE TRIGGER update_seasons_slug BEFORE UPDATE OF name ON league_management.se
 
 
 --
--- TOC entry 3568 (class 2620 OID 55283)
+-- TOC entry 3564 (class 2620 OID 55898)
+-- Name: teams update_teams_slug; Type: TRIGGER; Schema: league_management; Owner: postgres
+--
+
+CREATE TRIGGER update_teams_slug BEFORE UPDATE OF name ON league_management.teams FOR EACH ROW EXECUTE FUNCTION league_management.generate_league_slug();
+
+
+--
+-- TOC entry 3573 (class 2620 OID 55283)
 -- Name: goals goal_update_game_score; Type: TRIGGER; Schema: stats; Owner: postgres
 --
 
@@ -3135,7 +3227,7 @@ CREATE TRIGGER goal_update_game_score AFTER INSERT OR DELETE ON stats.goals FOR 
 
 
 --
--- TOC entry 3513 (class 2606 OID 54828)
+-- TOC entry 3516 (class 2606 OID 54828)
 -- Name: users fk_users_gender_id; Type: FK CONSTRAINT; Schema: admin; Owner: postgres
 --
 
@@ -3144,7 +3236,7 @@ ALTER TABLE ONLY admin.users
 
 
 --
--- TOC entry 3514 (class 2606 OID 54823)
+-- TOC entry 3517 (class 2606 OID 54823)
 -- Name: users fk_users_user_role; Type: FK CONSTRAINT; Schema: admin; Owner: postgres
 --
 
@@ -3153,7 +3245,7 @@ ALTER TABLE ONLY admin.users
 
 
 --
--- TOC entry 3533 (class 2606 OID 55064)
+-- TOC entry 3536 (class 2606 OID 55064)
 -- Name: arenas fk_arena_venue_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3162,7 +3254,7 @@ ALTER TABLE ONLY league_management.arenas
 
 
 --
--- TOC entry 3529 (class 2606 OID 55010)
+-- TOC entry 3532 (class 2606 OID 55010)
 -- Name: division_rosters fk_division_rosters_division_team_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3171,7 +3263,7 @@ ALTER TABLE ONLY league_management.division_rosters
 
 
 --
--- TOC entry 3530 (class 2606 OID 55015)
+-- TOC entry 3533 (class 2606 OID 55015)
 -- Name: division_rosters fk_division_rosters_user_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3180,7 +3272,7 @@ ALTER TABLE ONLY league_management.division_rosters
 
 
 --
--- TOC entry 3527 (class 2606 OID 54992)
+-- TOC entry 3530 (class 2606 OID 54992)
 -- Name: division_teams fk_division_teams_division_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3189,7 +3281,7 @@ ALTER TABLE ONLY league_management.division_teams
 
 
 --
--- TOC entry 3528 (class 2606 OID 54997)
+-- TOC entry 3531 (class 2606 OID 54997)
 -- Name: division_teams fk_division_teams_team_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3198,7 +3290,7 @@ ALTER TABLE ONLY league_management.division_teams
 
 
 --
--- TOC entry 3526 (class 2606 OID 54974)
+-- TOC entry 3529 (class 2606 OID 54974)
 -- Name: divisions fk_divisions_season_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3207,7 +3299,7 @@ ALTER TABLE ONLY league_management.divisions
 
 
 --
--- TOC entry 3536 (class 2606 OID 55109)
+-- TOC entry 3539 (class 2606 OID 55109)
 -- Name: games fk_game_arena_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3216,7 +3308,7 @@ ALTER TABLE ONLY league_management.games
 
 
 --
--- TOC entry 3537 (class 2606 OID 55099)
+-- TOC entry 3540 (class 2606 OID 55099)
 -- Name: games fk_game_division_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3225,7 +3317,7 @@ ALTER TABLE ONLY league_management.games
 
 
 --
--- TOC entry 3538 (class 2606 OID 55104)
+-- TOC entry 3541 (class 2606 OID 55104)
 -- Name: games fk_game_playoff_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3234,7 +3326,7 @@ ALTER TABLE ONLY league_management.games
 
 
 --
--- TOC entry 3519 (class 2606 OID 54908)
+-- TOC entry 3522 (class 2606 OID 54908)
 -- Name: league_admins fk_league_admins_league_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3243,7 +3335,7 @@ ALTER TABLE ONLY league_management.league_admins
 
 
 --
--- TOC entry 3520 (class 2606 OID 54903)
+-- TOC entry 3523 (class 2606 OID 54903)
 -- Name: league_admins fk_league_admins_league_role_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3252,7 +3344,7 @@ ALTER TABLE ONLY league_management.league_admins
 
 
 --
--- TOC entry 3521 (class 2606 OID 54913)
+-- TOC entry 3524 (class 2606 OID 54913)
 -- Name: league_admins fk_league_admins_user_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3261,7 +3353,7 @@ ALTER TABLE ONLY league_management.league_admins
 
 
 --
--- TOC entry 3534 (class 2606 OID 55082)
+-- TOC entry 3537 (class 2606 OID 55082)
 -- Name: league_venues fk_league_venue_league_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3270,7 +3362,7 @@ ALTER TABLE ONLY league_management.league_venues
 
 
 --
--- TOC entry 3535 (class 2606 OID 55077)
+-- TOC entry 3538 (class 2606 OID 55077)
 -- Name: league_venues fk_league_venue_venue_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3279,7 +3371,7 @@ ALTER TABLE ONLY league_management.league_venues
 
 
 --
--- TOC entry 3518 (class 2606 OID 54887)
+-- TOC entry 3521 (class 2606 OID 54887)
 -- Name: leagues fk_leagues_sport_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3288,7 +3380,7 @@ ALTER TABLE ONLY league_management.leagues
 
 
 --
--- TOC entry 3531 (class 2606 OID 55031)
+-- TOC entry 3534 (class 2606 OID 55031)
 -- Name: playoffs fk_playoffs_playoff_structure_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3297,7 +3389,7 @@ ALTER TABLE ONLY league_management.playoffs
 
 
 --
--- TOC entry 3532 (class 2606 OID 55036)
+-- TOC entry 3535 (class 2606 OID 55036)
 -- Name: playoffs fk_playoffs_season_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3306,7 +3398,7 @@ ALTER TABLE ONLY league_management.playoffs
 
 
 --
--- TOC entry 3523 (class 2606 OID 54951)
+-- TOC entry 3526 (class 2606 OID 54951)
 -- Name: season_admins fk_season_admins_season_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3315,7 +3407,7 @@ ALTER TABLE ONLY league_management.season_admins
 
 
 --
--- TOC entry 3524 (class 2606 OID 54946)
+-- TOC entry 3527 (class 2606 OID 54946)
 -- Name: season_admins fk_season_admins_season_role_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3324,7 +3416,7 @@ ALTER TABLE ONLY league_management.season_admins
 
 
 --
--- TOC entry 3525 (class 2606 OID 54956)
+-- TOC entry 3528 (class 2606 OID 54956)
 -- Name: season_admins fk_season_admins_user_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3333,7 +3425,7 @@ ALTER TABLE ONLY league_management.season_admins
 
 
 --
--- TOC entry 3522 (class 2606 OID 54929)
+-- TOC entry 3525 (class 2606 OID 54929)
 -- Name: seasons fk_seasons_league_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3342,7 +3434,7 @@ ALTER TABLE ONLY league_management.seasons
 
 
 --
--- TOC entry 3515 (class 2606 OID 54863)
+-- TOC entry 3518 (class 2606 OID 54863)
 -- Name: team_memberships fk_team_memberships_team_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3351,7 +3443,7 @@ ALTER TABLE ONLY league_management.team_memberships
 
 
 --
--- TOC entry 3516 (class 2606 OID 54868)
+-- TOC entry 3519 (class 2606 OID 54868)
 -- Name: team_memberships fk_team_memberships_team_role_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3360,7 +3452,7 @@ ALTER TABLE ONLY league_management.team_memberships
 
 
 --
--- TOC entry 3517 (class 2606 OID 54858)
+-- TOC entry 3520 (class 2606 OID 54858)
 -- Name: team_memberships fk_team_memberships_user_id; Type: FK CONSTRAINT; Schema: league_management; Owner: postgres
 --
 
@@ -3369,7 +3461,7 @@ ALTER TABLE ONLY league_management.team_memberships
 
 
 --
--- TOC entry 3542 (class 2606 OID 55158)
+-- TOC entry 3545 (class 2606 OID 55158)
 -- Name: assists fk_assists_game_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3378,7 +3470,7 @@ ALTER TABLE ONLY stats.assists
 
 
 --
--- TOC entry 3543 (class 2606 OID 55153)
+-- TOC entry 3546 (class 2606 OID 55153)
 -- Name: assists fk_assists_goal_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3387,7 +3479,7 @@ ALTER TABLE ONLY stats.assists
 
 
 --
--- TOC entry 3544 (class 2606 OID 55168)
+-- TOC entry 3547 (class 2606 OID 55168)
 -- Name: assists fk_assists_team_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3396,7 +3488,7 @@ ALTER TABLE ONLY stats.assists
 
 
 --
--- TOC entry 3545 (class 2606 OID 55163)
+-- TOC entry 3548 (class 2606 OID 55163)
 -- Name: assists fk_assists_user_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3405,7 +3497,7 @@ ALTER TABLE ONLY stats.assists
 
 
 --
--- TOC entry 3539 (class 2606 OID 55129)
+-- TOC entry 3542 (class 2606 OID 55129)
 -- Name: goals fk_goals_game_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3414,7 +3506,7 @@ ALTER TABLE ONLY stats.goals
 
 
 --
--- TOC entry 3540 (class 2606 OID 55139)
+-- TOC entry 3543 (class 2606 OID 55139)
 -- Name: goals fk_goals_team_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3423,7 +3515,7 @@ ALTER TABLE ONLY stats.goals
 
 
 --
--- TOC entry 3541 (class 2606 OID 55134)
+-- TOC entry 3544 (class 2606 OID 55134)
 -- Name: goals fk_goals_user_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3432,7 +3524,7 @@ ALTER TABLE ONLY stats.goals
 
 
 --
--- TOC entry 3546 (class 2606 OID 55182)
+-- TOC entry 3549 (class 2606 OID 55182)
 -- Name: penalties fk_penalties_game_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3441,7 +3533,7 @@ ALTER TABLE ONLY stats.penalties
 
 
 --
--- TOC entry 3547 (class 2606 OID 55192)
+-- TOC entry 3550 (class 2606 OID 55192)
 -- Name: penalties fk_penalties_team_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3450,7 +3542,7 @@ ALTER TABLE ONLY stats.penalties
 
 
 --
--- TOC entry 3548 (class 2606 OID 55187)
+-- TOC entry 3551 (class 2606 OID 55187)
 -- Name: penalties fk_penalties_user_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3459,7 +3551,7 @@ ALTER TABLE ONLY stats.penalties
 
 
 --
--- TOC entry 3553 (class 2606 OID 55237)
+-- TOC entry 3556 (class 2606 OID 55237)
 -- Name: saves fk_saves_game_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3468,7 +3560,7 @@ ALTER TABLE ONLY stats.saves
 
 
 --
--- TOC entry 3554 (class 2606 OID 55252)
+-- TOC entry 3557 (class 2606 OID 55252)
 -- Name: saves fk_saves_shot_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3477,7 +3569,7 @@ ALTER TABLE ONLY stats.saves
 
 
 --
--- TOC entry 3555 (class 2606 OID 55247)
+-- TOC entry 3558 (class 2606 OID 55247)
 -- Name: saves fk_saves_team_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3486,7 +3578,7 @@ ALTER TABLE ONLY stats.saves
 
 
 --
--- TOC entry 3556 (class 2606 OID 55242)
+-- TOC entry 3559 (class 2606 OID 55242)
 -- Name: saves fk_saves_user_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3495,7 +3587,7 @@ ALTER TABLE ONLY stats.saves
 
 
 --
--- TOC entry 3549 (class 2606 OID 55207)
+-- TOC entry 3552 (class 2606 OID 55207)
 -- Name: shots fk_shots_game_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3504,7 +3596,7 @@ ALTER TABLE ONLY stats.shots
 
 
 --
--- TOC entry 3550 (class 2606 OID 55222)
+-- TOC entry 3553 (class 2606 OID 55222)
 -- Name: shots fk_shots_goal_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3513,7 +3605,7 @@ ALTER TABLE ONLY stats.shots
 
 
 --
--- TOC entry 3551 (class 2606 OID 55217)
+-- TOC entry 3554 (class 2606 OID 55217)
 -- Name: shots fk_shots_team_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3522,7 +3614,7 @@ ALTER TABLE ONLY stats.shots
 
 
 --
--- TOC entry 3552 (class 2606 OID 55212)
+-- TOC entry 3555 (class 2606 OID 55212)
 -- Name: shots fk_shots_user_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3531,7 +3623,7 @@ ALTER TABLE ONLY stats.shots
 
 
 --
--- TOC entry 3557 (class 2606 OID 55265)
+-- TOC entry 3560 (class 2606 OID 55265)
 -- Name: shutouts fk_shutouts_game_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3540,7 +3632,7 @@ ALTER TABLE ONLY stats.shutouts
 
 
 --
--- TOC entry 3558 (class 2606 OID 55275)
+-- TOC entry 3561 (class 2606 OID 55275)
 -- Name: shutouts fk_shutouts_team_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3549,7 +3641,7 @@ ALTER TABLE ONLY stats.shutouts
 
 
 --
--- TOC entry 3559 (class 2606 OID 55270)
+-- TOC entry 3562 (class 2606 OID 55270)
 -- Name: shutouts fk_shutouts_user_id; Type: FK CONSTRAINT; Schema: stats; Owner: postgres
 --
 
@@ -3557,7 +3649,7 @@ ALTER TABLE ONLY stats.shutouts
     ADD CONSTRAINT fk_shutouts_user_id FOREIGN KEY (user_id) REFERENCES admin.users(user_id) ON DELETE CASCADE;
 
 
--- Completed on 2025-01-29 16:33:14 EST
+-- Completed on 2025-01-30 09:49:06 EST
 
 --
 -- PostgreSQL database dump complete

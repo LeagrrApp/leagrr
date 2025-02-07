@@ -20,13 +20,11 @@ export default function Page() {
         <form action={action}>
           <Grid gap="base" cols={{ xs: 1, m: 2 }}>
             <Col fullSpan>
-              <Flex gap="m" direction="column">
-                <h1 className="type-scale-xxl">Sign Up</h1>
-                <p>
-                  Sign up to join <strong>Leagrr</strong> and get your season
-                  started!
-                </p>
-              </Flex>
+              <h1 className="type-scale-xxl push">Sign Up</h1>
+              <p>
+                Sign up to join <strong>Leagrr</strong> and get your season
+                started!
+              </p>
             </Col>
             <Input
               name="username"

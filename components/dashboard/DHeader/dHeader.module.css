@@ -1,3 +1,8 @@
 .dashboard_header {
-  padding-block-start: var(--spacer-l);
+  padding-block: var(--spacer-l) var(--spacer-base);
+  background: linear-gradient(
+    225deg,
+    hsla(from var(--dbh-bg-color, var(--color-white)) h s l / 0.5),
+    transparent 40%
+  );
 }
