@@ -667,7 +667,11 @@ export async function getTeamGameStats(
     ON
       dt.division_team_id = dr.division_team_id
     WHERE
-      dt.team_id = $2 AND dt.division_id = $3
+      dt.team_id = $2
+      AND
+      dt.division_id = $3
+      AND
+      dr.roster_role IN (2, 3, 4)
     ORDER BY points DESC, goals DESC, assists DESC, shots DESC, last_name ASC, first_name ASC
   `;
 

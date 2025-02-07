@@ -60,7 +60,7 @@ export default function ActiveRoster({
     }
   }
 
-  const colHeaders = [
+  const playerColHeaders = [
     { title: "Name", highlightCol: true },
     { title: "Pronouns" },
     { title: "Gender" },
@@ -70,20 +70,96 @@ export default function ActiveRoster({
     { title: "Remove" },
   ];
 
-  const hColWidth = 20;
-  const colWidth = `${(100 - hColWidth) / colHeaders.length - 1}%`;
+  const playerHColWidth = 20;
+  const playerColWidth = `${(100 - playerHColWidth) / playerColHeaders.length - 1}%`;
+
+  const players = teamMembers.filter(
+    (p) => p.roster_role !== 1 && p.roster_role !== 5,
+  );
+
+  const spares = teamMembers.filter((p) => p.roster_role === 5);
+
+  const coachColHeaders = [
+    { title: "Name", highlightCol: true },
+    { title: "Pronouns" },
+    { title: "Gender" },
+    { title: "Edit" },
+    { title: "Remove" },
+  ];
+
+  const coachHColWidth = 42;
+  const coachColWidth = `${(100 - coachHColWidth) / coachColHeaders.length - 1}%`;
+
+  const coaches = teamMembers.filter((p) => p.roster_role === 1);
 
   return (
     <>
-      <h3>Active Roster</h3>
-      <p className="push-m">
-        These players are currently active as part of the current division.
-      </p>
-      {teamMembers && teamMembers.length > 1 && (
-        <Table hColWidth={`${hColWidth}%`} colWidth={colWidth}>
+      <h3 className="push">Active Roster</h3>
+      <h4 className="push-m">Coaches</h4>
+      {coaches && coaches.length >= 1 && (
+        <Table
+          className="push-l"
+          hColWidth={`${coachHColWidth}%`}
+          colWidth={coachColWidth}
+        >
           <thead>
             <tr>
-              {colHeaders.map((th) => (
+              {coachColHeaders.map((th) => (
+                <th
+                  key={th.title}
+                  scope="col"
+                  data-highlight-col={th.highlightCol ? true : undefined}
+                >
+                  {th.title}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {coaches.map((p) => {
+              return (
+                <tr key={p.username}>
+                  <th scope="row">
+                    <Link href={`/dashboard/u/${p.username}`}>
+                      {nameDisplay(p.first_name, p.last_name, "full")}
+                    </Link>{" "}
+                  </th>
+                  <td>{p.pronouns}</td>
+                  <td>{p.gender}</td>
+                  <td>
+                    <Button
+                      style={{ position: "relative" }}
+                      variant="grey"
+                      onClick={() => handleClick(p.user_id)}
+                    >
+                      <Icon icon="edit_square" label="Edit" hideLabel />
+                    </Button>
+                  </td>
+                  <td>
+                    <Button
+                      style={{ position: "relative" }}
+                      variant="danger"
+                      onClick={() => handleClick(p.user_id, true)}
+                    >
+                      <Icon icon="person_remove" label="Remove" hideLabel />
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </Table>
+      )}
+      <h4 className="push-m">Players</h4>
+      {players && players.length >= 1 && (
+        <Table
+          className="push-l"
+          hColWidth={`${playerHColWidth}%`}
+          colWidth={playerColWidth}
+        >
+          <thead>
+            <tr>
+              {playerColHeaders.map((th) => (
                 <th
                   key={th.title}
                   scope="col"
@@ -100,13 +176,85 @@ export default function ActiveRoster({
             </tr>
           </thead>
           <tbody>
-            {teamMembers.map((p) => {
+            {players.map((p) => {
+              const isCaptain = p.roster_role === 2;
+              const isAlternateCaptain = p.roster_role === 3;
+
               return (
                 <tr key={p.username}>
                   <th scope="row">
                     <Link href={`/dashboard/u/${p.username}`}>
                       {nameDisplay(p.first_name, p.last_name, "full")}
-                    </Link>
+                    </Link>{" "}
+                    {isCaptain && <strong title="Captain">(C)</strong>}
+                    {isAlternateCaptain && (
+                      <strong title="Alternate Captain">(A)</strong>
+                    )}
+                  </th>
+                  <td>{p.pronouns}</td>
+                  <td>{p.gender}</td>
+                  <td title={p.position}>{makeAcronym(p.position || "")}</td>
+                  <td>{p.number}</td>
+                  <td>
+                    <Button
+                      style={{ position: "relative" }}
+                      variant="grey"
+                      onClick={() => handleClick(p.user_id)}
+                    >
+                      <Icon icon="edit_square" label="Edit" hideLabel />
+                    </Button>
+                  </td>
+                  <td>
+                    <Button
+                      style={{ position: "relative" }}
+                      variant="danger"
+                      onClick={() => handleClick(p.user_id, true)}
+                    >
+                      <Icon icon="person_remove" label="Remove" hideLabel />
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </Table>
+      )}
+      <h4 className="push-m">Spares</h4>
+      {spares && spares.length >= 1 && (
+        <Table hColWidth={`${playerHColWidth}%`} colWidth={playerColWidth}>
+          <thead>
+            <tr>
+              {playerColHeaders.map((th) => (
+                <th
+                  key={th.title}
+                  scope="col"
+                  title={th.shorthand ? th.title : undefined}
+                  data-highlight-col={th.highlightCol ? true : undefined}
+                >
+                  {th.shorthand ? (
+                    <span aria-hidden="true">{th.shorthand}</span>
+                  ) : (
+                    <>{th.title}</>
+                  )}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {spares.map((p) => {
+              const isCaptain = p.roster_role === 2;
+              const isAlternateCaptain = p.roster_role === 3;
+
+              return (
+                <tr key={p.username}>
+                  <th scope="row">
+                    <Link href={`/dashboard/u/${p.username}`}>
+                      {nameDisplay(p.first_name, p.last_name, "full")}
+                    </Link>{" "}
+                    {isCaptain && <strong title="Captain">(C)</strong>}
+                    {isAlternateCaptain && (
+                      <strong title="Alternate Captain">(A)</strong>
+                    )}
                   </th>
                   <td>{p.pronouns}</td>
                   <td>{p.gender}</td>

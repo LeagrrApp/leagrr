@@ -49,6 +49,8 @@ export default async function Page({
 
   const { data: teamMembers } = await getAllTeamMembers(team_id);
 
+  console.log(teamMembers);
+
   // Check if user has edit permissions
   const { canEdit } = await canEditTeam(team);
 

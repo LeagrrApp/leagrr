@@ -76,7 +76,7 @@ export default function TeamMembers({
 
   return (
     <>
-      {teamMembers && teamMembers.length > 1 && (
+      {teamMembers && teamMembers.length >= 1 && (
         // <Table hColWidth={`${hColWidth}%`} colWidth={colWidth}>
         <Table hColWidth={`${hColWidth}%`} colWidth={colWidth}>
           <thead>

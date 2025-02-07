@@ -16,7 +16,7 @@
     inset: auto auto var(--spacer-l) var(--spacer-l);
     font-size: calc(var(--type-scale-xxxl) * 1.5);
     font-weight: bold;
-    color: var(--color-team);
+    color: var(--color-team, var(--color-primary));
     opacity: 0.125;
     width: max(25rem, 50%);
     line-height: 0.875;

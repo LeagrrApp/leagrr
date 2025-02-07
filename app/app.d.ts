@@ -71,6 +71,7 @@ type TeamUserData = Required<
 > & {
   number?: number;
   position?: string;
+  roster_role?: number;
   team_membership_id?: number;
   division_team_id?: number;
   division_roster_id?: number;

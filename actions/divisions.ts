@@ -813,6 +813,8 @@ export async function getDivisionStatLeaders(
       t.team_id = tm.team_id
     WHERE
       dt.division_id = $1
+      AND
+      dr.roster_role != 1
     ORDER BY count DESC, u.last_name ASC, u.first_name ASC
     LIMIT $2
   `;
@@ -981,6 +983,8 @@ export async function getDivisionStatLeaders(
       dt.division_id = $1
       AND
       dr.position = 'Goalie'
+      AND
+      dr.roster_role != 1
       AND
       ga.division_id = $1
       AND

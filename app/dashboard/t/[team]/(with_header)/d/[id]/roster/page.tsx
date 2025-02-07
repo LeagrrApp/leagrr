@@ -91,6 +91,7 @@ export default async function Page({ params }: PageParams) {
         <div className={css.active}>
           <ActiveRoster team_id={team_id} teamMembers={divisionRoster} />
         </div>
+        <hr style={{ gridColumn: `1 / -1`, width: "100%" }} />
         <div className={css.inactive}>
           <InactiveRoster
             team_id={team_id}

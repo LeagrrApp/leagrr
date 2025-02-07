@@ -388,6 +388,7 @@ export async function getTeamDivisionRoster(
       u.gender,
       dr.number,
       dr.position,
+      dr.roster_role,
       tm.team_membership_id,
       dt.division_team_id,
       dr.division_roster_id
@@ -624,7 +625,11 @@ export async function getTeamDivisionRosterStats(
     ON
       dt.division_team_id = dr.division_team_id
     WHERE
-      dt.team_id = $1 AND dt.division_id = $2
+      dt.team_id = $1
+      AND
+      dt.division_id = $2
+      AND
+      dr.roster_role IN (2, 3, 4)
     ORDER BY points DESC, goals DESC, assists DESC, shots DESC, last_name ASC, first_name ASC
   `;
 
