@@ -12,10 +12,15 @@ import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import Table from "@/components/ui/Table/Table";
-import { makeAcronym, nameDisplay } from "@/utils/helpers/formatting";
+import { roster_roles } from "@/lib/definitions";
+import {
+  convert_roles_to_select_choices,
+  makeAcronym,
+  nameDisplay,
+} from "@/utils/helpers/formatting";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 interface ActiveRosterProps {
   team_id: number;
@@ -33,6 +38,9 @@ export default function ActiveRoster({
   const [teamMemberToEdit, setTeamMemberToEdit] = useState<TeamUserData>(
     teamMembers[0],
   );
+  const [rosterRoleValue, setRosterRoleValue] = useState<number | undefined>(
+    teamMemberToEdit.roster_role,
+  );
   const [editState, editAction, editPending] = useActionState(
     editPlayerOnDivisionTeam,
     {
@@ -45,6 +53,10 @@ export default function ActiveRoster({
       link: pathname,
     },
   );
+
+  useEffect(() => {
+    setRosterRoleValue(teamMemberToEdit.roster_role);
+  }, [teamMemberToEdit]);
 
   function handleClick(user_id: number, remove?: boolean) {
     const teamMember = teamMembers.find((tm) => tm.user_id === user_id);
@@ -92,63 +104,67 @@ export default function ActiveRoster({
 
   const coaches = teamMembers.filter((p) => p.roster_role === 1);
 
+  const rosterRoleOptions = convert_roles_to_select_choices(roster_roles);
+
   return (
     <>
       <h3 className="push">Active Roster</h3>
-      <h4 className="push-m">Coaches</h4>
       {coaches && coaches.length >= 1 && (
-        <Table
-          className="push-l"
-          hColWidth={`${coachHColWidth}%`}
-          colWidth={coachColWidth}
-        >
-          <thead>
-            <tr>
-              {coachColHeaders.map((th) => (
-                <th
-                  key={th.title}
-                  scope="col"
-                  data-highlight-col={th.highlightCol ? true : undefined}
-                >
-                  {th.title}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {coaches.map((p) => {
-              return (
-                <tr key={p.username}>
-                  <th scope="row">
-                    <Link href={`/dashboard/u/${p.username}`}>
-                      {nameDisplay(p.first_name, p.last_name, "full")}
-                    </Link>{" "}
+        <>
+          <h4 className="push-m">Coaches</h4>
+          <Table
+            className="push-l"
+            hColWidth={`${coachHColWidth}%`}
+            colWidth={coachColWidth}
+          >
+            <thead>
+              <tr>
+                {coachColHeaders.map((th) => (
+                  <th
+                    key={th.title}
+                    scope="col"
+                    data-highlight-col={th.highlightCol ? true : undefined}
+                  >
+                    {th.title}
                   </th>
-                  <td>{p.pronouns}</td>
-                  <td>{p.gender}</td>
-                  <td>
-                    <Button
-                      style={{ position: "relative" }}
-                      variant="grey"
-                      onClick={() => handleClick(p.user_id)}
-                    >
-                      <Icon icon="edit_square" label="Edit" hideLabel />
-                    </Button>
-                  </td>
-                  <td>
-                    <Button
-                      style={{ position: "relative" }}
-                      variant="danger"
-                      onClick={() => handleClick(p.user_id, true)}
-                    >
-                      <Icon icon="person_remove" label="Remove" hideLabel />
-                    </Button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </Table>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {coaches.map((p) => {
+                return (
+                  <tr key={p.username}>
+                    <th scope="row">
+                      <Link href={`/dashboard/u/${p.username}`}>
+                        {nameDisplay(p.first_name, p.last_name, "full")}
+                      </Link>{" "}
+                    </th>
+                    <td>{p.pronouns}</td>
+                    <td>{p.gender}</td>
+                    <td>
+                      <Button
+                        style={{ position: "relative" }}
+                        variant="grey"
+                        onClick={() => handleClick(p.user_id)}
+                      >
+                        <Icon icon="edit_square" label="Edit" hideLabel />
+                      </Button>
+                    </td>
+                    <td>
+                      <Button
+                        style={{ position: "relative" }}
+                        variant="danger"
+                        onClick={() => handleClick(p.user_id, true)}
+                      >
+                        <Icon icon="person_remove" label="Remove" hideLabel />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        </>
       )}
       <h4 className="push-m">Players</h4>
       {players && players.length >= 1 && (
@@ -219,70 +235,72 @@ export default function ActiveRoster({
           </tbody>
         </Table>
       )}
-      <h4 className="push-m">Spares</h4>
       {spares && spares.length >= 1 && (
-        <Table hColWidth={`${playerHColWidth}%`} colWidth={playerColWidth}>
-          <thead>
-            <tr>
-              {playerColHeaders.map((th) => (
-                <th
-                  key={th.title}
-                  scope="col"
-                  title={th.shorthand ? th.title : undefined}
-                  data-highlight-col={th.highlightCol ? true : undefined}
-                >
-                  {th.shorthand ? (
-                    <span aria-hidden="true">{th.shorthand}</span>
-                  ) : (
-                    <>{th.title}</>
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {spares.map((p) => {
-              const isCaptain = p.roster_role === 2;
-              const isAlternateCaptain = p.roster_role === 3;
-
-              return (
-                <tr key={p.username}>
-                  <th scope="row">
-                    <Link href={`/dashboard/u/${p.username}`}>
-                      {nameDisplay(p.first_name, p.last_name, "full")}
-                    </Link>{" "}
-                    {isCaptain && <strong title="Captain">(C)</strong>}
-                    {isAlternateCaptain && (
-                      <strong title="Alternate Captain">(A)</strong>
+        <>
+          <h4 className="push-m">Spares</h4>
+          <Table hColWidth={`${playerHColWidth}%`} colWidth={playerColWidth}>
+            <thead>
+              <tr>
+                {playerColHeaders.map((th) => (
+                  <th
+                    key={th.title}
+                    scope="col"
+                    title={th.shorthand ? th.title : undefined}
+                    data-highlight-col={th.highlightCol ? true : undefined}
+                  >
+                    {th.shorthand ? (
+                      <span aria-hidden="true">{th.shorthand}</span>
+                    ) : (
+                      <>{th.title}</>
                     )}
                   </th>
-                  <td>{p.pronouns}</td>
-                  <td>{p.gender}</td>
-                  <td title={p.position}>{makeAcronym(p.position || "")}</td>
-                  <td>{p.number}</td>
-                  <td>
-                    <Button
-                      style={{ position: "relative" }}
-                      variant="grey"
-                      onClick={() => handleClick(p.user_id)}
-                    >
-                      <Icon icon="edit_square" label="Edit" hideLabel />
-                    </Button>
-                  </td>
-                  <td>
-                    <Button
-                      style={{ position: "relative" }}
-                      variant="danger"
-                      onClick={() => handleClick(p.user_id, true)}
-                    >
-                      <Icon icon="person_remove" label="Remove" hideLabel />
-                    </Button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </Table>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {spares.map((p) => {
+                const isCaptain = p.roster_role === 2;
+                const isAlternateCaptain = p.roster_role === 3;
+
+                return (
+                  <tr key={p.username}>
+                    <th scope="row">
+                      <Link href={`/dashboard/u/${p.username}`}>
+                        {nameDisplay(p.first_name, p.last_name, "full")}
+                      </Link>{" "}
+                      {isCaptain && <strong title="Captain">(C)</strong>}
+                      {isAlternateCaptain && (
+                        <strong title="Alternate Captain">(A)</strong>
+                      )}
+                    </th>
+                    <td>{p.pronouns}</td>
+                    <td>{p.gender}</td>
+                    <td title={p.position}>{makeAcronym(p.position || "")}</td>
+                    <td>{p.number}</td>
+                    <td>
+                      <Button
+                        style={{ position: "relative" }}
+                        variant="grey"
+                        onClick={() => handleClick(p.user_id)}
+                      >
+                        <Icon icon="edit_square" label="Edit" hideLabel />
+                      </Button>
+                    </td>
+                    <td>
+                      <Button
+                        style={{ position: "relative" }}
+                        variant="danger"
+                        onClick={() => handleClick(p.user_id, true)}
+                      >
+                        <Icon icon="person_remove" label="Remove" hideLabel />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        </>
       )}
       <Dialog ref={editDialogRef}>
         <form action={editAction}>
@@ -296,28 +314,45 @@ export default function ActiveRoster({
               name="division_roster_id"
               value={teamMemberToEdit.division_roster_id}
             />
-            <Input
-              name="number"
-              label="Number"
-              type="number"
-              min="1"
-              max="98"
-              defaultValue={teamMemberToEdit?.number?.toString()}
-              errors={{ errs: editState?.errors?.number, type: "danger" }}
-            />
-            <Select
-              name="position"
-              label="Position"
-              choices={[
-                "Center",
-                "Right Wing",
-                "Left Wing",
-                "Defense",
-                "Goalie",
-              ]}
-              errors={{ errs: editState?.errors?.position, type: "danger" }}
-              selected={teamMemberToEdit.position}
-            />
+            <Col fullSpan>
+              <Select
+                name="roster_role"
+                label="Roster Role"
+                choices={rosterRoleOptions}
+                errors={{
+                  errs: editState?.errors?.roster_role,
+                  type: "danger",
+                }}
+                selected={rosterRoleValue}
+                onChange={(e) => setRosterRoleValue(parseInt(e.target.value))}
+              />
+            </Col>
+            {rosterRoleValue !== 1 && (
+              <>
+                <Input
+                  name="number"
+                  label="Number"
+                  type="number"
+                  min="1"
+                  max="98"
+                  defaultValue={teamMemberToEdit?.number?.toString()}
+                  errors={{ errs: editState?.errors?.number, type: "danger" }}
+                />
+                <Select
+                  name="position"
+                  label="Position"
+                  choices={[
+                    "Center",
+                    "Right Wing",
+                    "Left Wing",
+                    "Defense",
+                    "Goalie",
+                  ]}
+                  errors={{ errs: editState?.errors?.position, type: "danger" }}
+                  selected={teamMemberToEdit.position}
+                />
+              </>
+            )}
             <Button type="submit" disabled={editPending}>
               <Icon icon="save" label="Save" />
             </Button>

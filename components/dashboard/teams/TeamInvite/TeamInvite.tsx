@@ -61,7 +61,8 @@ export default function TeamInvite({ team, division_id }: TeamInviteProps) {
           <h3 className="push-m">Team Invite</h3>
           <p className="push">
             Invite players to join <strong>{name}</strong>! This code allows
-            players to easily join <strong>{name}</strong> without needing a
+            players to easily join <strong>{name}</strong>{" "}
+            {division_id && "on the roster for this division "}without needing a
             team administrator to approve a join request.
           </p>
           <dl className={css.join_code_info}>
@@ -104,7 +105,8 @@ export default function TeamInvite({ team, division_id }: TeamInviteProps) {
           <strong>Note:</strong> The code needs to be unique, minimum of 6
           characters and url safe, meaning no spaces or special characters. The
           code will automatically be made url safe in the database, so make sure
-          to copy the correct update code provided.
+          to copy the correctly updated code provided after you click the update
+          button.
         </small>
         <form action={action}>
           <Grid cols={2} gap="base">

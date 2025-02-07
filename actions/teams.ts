@@ -840,8 +840,6 @@ export async function setTeamJoinCode(
       };
     });
 
-  console.log(result);
-
   return {
     data: result.data,
     message: result.message,
@@ -1189,8 +1187,6 @@ export async function editTeamMembership(
       };
     });
 
-  console.log(result);
-
   if (result.status === 200) {
     state?.link && redirect(state.link);
   }
@@ -1279,8 +1275,9 @@ export async function removeTeamMembership(
 const AddPlayerToDivisionTeamSchema = z.object({
   division_team_id: z.number().min(1),
   team_membership_id: z.number().min(1),
-  number: z.number().min(1).max(98),
-  position: z.string(),
+  number: z.number().min(1).max(98).optional(),
+  position: z.string().optional(),
+  roster_role: z.number().min(1).max(5),
 });
 
 type AddPlayerToDivisionTeamErrorProps = {
@@ -1289,6 +1286,7 @@ type AddPlayerToDivisionTeamErrorProps = {
   team_membership_id?: string[] | undefined;
   number?: string[] | undefined;
   position?: string[] | undefined;
+  roster_role?: string[] | undefined;
 };
 
 type AddPlayerToDivisionTeamFormState =
@@ -1303,6 +1301,7 @@ type AddPlayerToDivisionTeamFormState =
         team_membership_id?: number;
         number?: number;
         position?: string;
+        roster_role?: number;
       };
     }
   | undefined;
@@ -1310,13 +1309,18 @@ type AddPlayerToDivisionTeamFormState =
 export async function addPlayerToDivisionTeam(
   state: AddPlayerToDivisionTeamFormState,
   formData: FormData,
-) {
+): Promise<AddPlayerToDivisionTeamFormState> {
   const submittedData = {
     team_id: parseInt(formData.get("team_id") as string),
     division_team_id: parseInt(formData.get("division_team_id") as string),
     team_membership_id: parseInt(formData.get("team_membership_id") as string),
-    number: parseInt(formData.get("number") as string),
-    position: formData.get("position"),
+    number: formData.get("number")
+      ? parseInt(formData.get("number") as string)
+      : undefined,
+    position: (formData.get("position") as string) || undefined,
+    roster_role: formData.get("roster_role")
+      ? parseInt(formData.get("roster_role") as string)
+      : undefined,
   };
 
   // Validate data
@@ -1326,7 +1330,7 @@ export async function addPlayerToDivisionTeam(
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
     return {
-      state,
+      data: submittedData,
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
@@ -1344,9 +1348,9 @@ export async function addPlayerToDivisionTeam(
 
   const sql = `
     INSERT INTO league_management.division_rosters
-      (division_team_id, team_membership_id, number, position)
+      (division_team_id, team_membership_id, number, position, roster_role)
     VALUES
-      ($1, $2, $3, $4)
+      ($1, $2, $3, $4, $5)
   `;
 
   const result = await db
@@ -1355,6 +1359,7 @@ export async function addPlayerToDivisionTeam(
       submittedData.team_membership_id,
       submittedData.number,
       submittedData.position,
+      submittedData.roster_role,
     ])
     .then((res) => {
       return {
@@ -1377,9 +1382,10 @@ export async function addPlayerToDivisionTeam(
 }
 
 const EditPlayerOnDivisionTeamSchema = z.object({
-  number: z.number().min(1).max(98),
   division_roster_id: z.number().min(1),
-  position: z.string(),
+  number: z.number().min(1).max(98).optional(),
+  position: z.string().optional(),
+  roster_role: z.number().min(1).max(5),
 });
 
 export async function editPlayerOnDivisionTeam(
@@ -1389,8 +1395,13 @@ export async function editPlayerOnDivisionTeam(
   const submittedData = {
     team_id: parseInt(formData.get("team_id") as string),
     division_roster_id: parseInt(formData.get("division_roster_id") as string),
-    number: parseInt(formData.get("number") as string),
-    position: formData.get("position"),
+    number: formData.get("number")
+      ? parseInt(formData.get("number") as string)
+      : undefined,
+    position: (formData.get("position") as string) || undefined,
+    roster_role: formData.get("roster_role")
+      ? parseInt(formData.get("roster_role") as string)
+      : undefined,
   };
 
   // Validate data
@@ -1420,15 +1431,17 @@ export async function editPlayerOnDivisionTeam(
     UPDATE league_management.division_rosters
     SET 
       number = $1,
-      position = $2
+      position = $2,
+      roster_role = $3
     WHERE
-      division_roster_id = $3
+      division_roster_id = $4
   `;
 
   const result = await db
     .query(sql, [
       submittedData.number,
       submittedData.position,
+      submittedData.roster_role,
       submittedData.division_roster_id,
     ])
     .then((res) => {
