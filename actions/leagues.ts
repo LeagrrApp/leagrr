@@ -10,6 +10,7 @@ import { verifySession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { verifyUserRole } from "./users";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 
 const LeagueFormSchema = z.object({
   name: z
@@ -129,23 +130,21 @@ export async function createLeague(
   }
 
   // Success route, redirect to the new league page
-  redirect(`/dashboard/l/${slug}`);
+  redirect(createDashboardUrl({ l: slug }));
 }
 
-export async function getLeagueAdminRole(
-  league: number | string,
-): Promise<number> {
+export async function getLeagueAdminRole(league: number): Promise<number> {
   // Verify user session
   const { user_id } = await verifySession();
 
   // build sql select statement
   const adminsSql = `
     SELECT
-      league_role_id
+      league_role
     FROM
       league_management.league_admins
     WHERE
-      ${typeof league === "number" ? `league_id` : `slug`} = $1 AND user_id = $2
+      league_id = $1 AND user_id = $2
   `;
 
   // query database for any matching both league and user
@@ -156,7 +155,7 @@ export async function getLeagueAdminRole(
         return {
           message: "User has league admin role",
           data: {
-            league_role_id: res.rows[0].league_role_id,
+            league_role: res.rows[0].league_role,
           },
           status: 200,
         };
@@ -165,7 +164,7 @@ export async function getLeagueAdminRole(
       return {
         message: "User doest not have league admin role",
         data: {
-          league_role_id: undefined,
+          league_role: undefined,
         },
         status: 200,
       };
@@ -175,13 +174,12 @@ export async function getLeagueAdminRole(
         message: `There was a problem verifying the user's admin status: ${err.message}`,
         status: 400,
         data: {
-          league_role_id: undefined,
+          league_role: undefined,
         },
       };
     });
 
-  if (adminsResult.data?.league_role_id)
-    return adminsResult.data?.league_role_id;
+  if (adminsResult.data?.league_role) return adminsResult.data?.league_role;
 
   return 0;
 }
@@ -190,13 +188,13 @@ export async function verifyLeagueAdminRole(
   league_id: number,
   roleType: number,
 ): Promise<boolean> {
-  const league_role_id = await getLeagueAdminRole(league_id);
+  const league_role = await getLeagueAdminRole(league_id);
 
-  return league_role_id === roleType;
+  return league_role === roleType;
 }
 
 export async function canEditLeague(
-  league: number | string,
+  league: number,
   commissionerOnly?: boolean,
 ): Promise<{ canEdit: boolean; role: RoleData | undefined }> {
   // check if they are a site wide admin
@@ -405,7 +403,7 @@ export async function editLeague(
     });
 
   if (updatedResult?.data?.slug)
-    redirect(`/dashboard/l/${updatedResult?.data?.slug}`);
+    redirect(createDashboardUrl({ l: updatedResult?.data?.slug }));
 
   return updatedResult;
 }

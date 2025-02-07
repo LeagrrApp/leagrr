@@ -12,6 +12,7 @@ import Table from "@/components/ui/Table/Table";
 import { roster_roles } from "@/lib/definitions";
 import {
   convert_roles_to_select_choices,
+  createDashboardUrl,
   nameDisplay,
 } from "@/utils/helpers/formatting";
 import Link from "next/link";
@@ -92,7 +93,7 @@ export default function InactiveRoster({
                 return (
                   <tr key={p.username}>
                     <th scope="row">
-                      <Link href={`/dashboard/u/${p.username}`}>
+                      <Link href={createDashboardUrl({ u: p.username })}>
                         {nameDisplay(p.first_name, p.last_name, "full")}
                       </Link>
                     </th>

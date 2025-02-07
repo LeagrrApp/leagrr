@@ -3,6 +3,7 @@ import EditLeague from "@/components/dashboard/leagues/EditLeague";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
 import Container from "@/components/ui/Container/Container";
 import { verifySession } from "@/lib/session";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
 
 export default async function Page({
@@ -20,11 +21,13 @@ export default async function Page({
   // if league data not found, redirect
   if (!leagueData) notFound();
 
-  const { canEdit, role: league_role } = await canEditLeague(league);
+  // Get users role to check league permissions
+  const { canEdit, role } = await canEditLeague(leagueData.league_id);
 
-  const canDelete = league_role === "admin" || league_role === "commissioner";
+  const canDelete = role?.role === 1;
 
-  const backLink = `/dashboard/l/${league}`;
+  //
+  const backLink = createDashboardUrl({ l: league });
 
   if (canEdit)
     return (

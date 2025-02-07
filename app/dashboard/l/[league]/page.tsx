@@ -1,6 +1,7 @@
 import { getLeagueData } from "@/actions/leagues";
 import Button from "@/components/ui/Button/Button";
 import Container from "@/components/ui/Container/Container";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
 
 export default async function Page({
@@ -29,9 +30,19 @@ export default async function Page({
     });
 
     if (currentSeasons[0])
-      redirect(`/dashboard/l/${league}/s/${currentSeasons[0].slug}`);
+      redirect(
+        createDashboardUrl({
+          l: league,
+          s: currentSeasons[0].slug,
+        }),
+      );
 
-    redirect(`/dashboard/l/${league}/s/${leagueData.seasons[0].slug}`);
+    redirect(
+      createDashboardUrl({
+        l: league,
+        s: leagueData.seasons[0].slug,
+      }),
+    );
   }
 
   return (

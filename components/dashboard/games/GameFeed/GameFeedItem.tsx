@@ -2,6 +2,7 @@ import Icon from "@/components/ui/Icon/Icon";
 import InitialsCircle from "@/components/ui/InitialsCircle/InitialsCircle";
 import {
   addNumberOrdinals,
+  createDashboardUrl,
   formatTimePeriod,
 } from "@/utils/helpers/formatting";
 import { apply_classes } from "@/utils/helpers/html-attributes";
@@ -106,14 +107,18 @@ export default function GameFeedItem({
       <p className={css.game_feed_item_player_info}>
         {item.type === "stats.shots" && (
           <>
-            <Link href={`/dashboard/u/${username}`}>{user_last_name}</Link> shot
-            on goal
+            <Link href={createDashboardUrl({ u: username })}>
+              {user_last_name}
+            </Link>{" "}
+            shot on goal
           </>
         )}
         {item.type === "stats.goals" && (
           <>
             {preText ? preText : "Goal"} by{" "}
-            <Link href={`/dashboard/u/${username}`}>{user_last_name}</Link>{" "}
+            <Link href={createDashboardUrl({ u: username })}>
+              {user_last_name}
+            </Link>{" "}
             <span style={{ fontStyle: "italic" }}>
               {assists && assists.length > 0 ? (
                 <>
@@ -131,13 +136,17 @@ export default function GameFeedItem({
         {item.type === "stats.saves" && (
           <>
             Save by{" "}
-            <Link href={`/dashboard/u/${username}`}>{user_last_name}</Link>
+            <Link href={createDashboardUrl({ u: username })}>
+              {user_last_name}
+            </Link>
             {!rebound && ", no rebound"}
           </>
         )}
         {item.type === "stats.penalties" && (
           <>
-            <Link href={`/dashboard/u/${username}`}>{user_last_name}</Link>{" "}
+            <Link href={createDashboardUrl({ u: username })}>
+              {user_last_name}
+            </Link>{" "}
             penalty, {minutes} minutes for <strong>{infraction}</strong>
           </>
         )}

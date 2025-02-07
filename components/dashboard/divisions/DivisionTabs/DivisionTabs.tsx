@@ -16,6 +16,10 @@ export default function DivisionTabs({ divisions, canAdd }: DivisionProps) {
   const params = useParams();
   const pathname = usePathname();
 
+  const { league, season } = params;
+
+  if (typeof league !== "string" || typeof season !== "string") return null;
+
   const classes = [css.division_tabs];
 
   if (canAdd) classes.push(css.division_tabs_can_add);
@@ -25,11 +29,10 @@ export default function DivisionTabs({ divisions, canAdd }: DivisionProps) {
       <ol className={css.division_tabs_list}>
         {divisions.map((div) => {
           const url = createDashboardUrl({
-            l: params.league as string,
-            s: params.season as string,
+            l: league,
+            s: season,
             d: div.slug,
           });
-          // `/dashboard/l/${params.league}/s/${params.season}/d/${div.slug}`;
 
           let icon: string | undefined;
 
@@ -56,16 +59,9 @@ export default function DivisionTabs({ divisions, canAdd }: DivisionProps) {
         })}
       </ol>
       {canAdd && (
-        // <Link
-        //   className={css.division_tabs_add}
-        //   href={`/dashboard/l/${params.league}/s/${params.season}/d/`}
-        // >
-        //   <i className="material-symbols-outlined">add_circle</i>
-        //   <span className="srt">Add Division</span>
-        // </Link>
         <Icon
           className={css.division_tabs_add}
-          href={`/dashboard/l/${params.league}/s/${params.season}/d/`}
+          href={createDashboardUrl({ l: league, s: season }, "d")}
           icon="add_circle"
           label="Add division"
           hideLabel

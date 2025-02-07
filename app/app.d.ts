@@ -262,7 +262,7 @@ type RoleData = {
 //   Partial<PenaltyStatData>;
 
 type AdminRole = {
-  league_role_id: number | undefined;
+  league_role: number | undefined;
 };
 
 type MenuItemData = {

@@ -2,6 +2,7 @@ import { deleteDivision, getDivision } from "@/actions/divisions";
 import { canEditLeague } from "@/actions/leagues";
 import EditDivisionInfo from "@/components/dashboard/divisions/EditDivisionInfo";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
 
 export default async function Page({
@@ -15,7 +16,7 @@ export default async function Page({
 
   if (!divisionData) notFound();
 
-  const backLink = `/dashboard/l/${league}/s/${season}/d/${division}`;
+  const backLink = createDashboardUrl({ l: league, s: season, d: division });
 
   // check to see if user can edit this league
   const { canEdit } = await canEditLeague(divisionData.league_id);
@@ -30,7 +31,7 @@ export default async function Page({
         defaultState={{
           division_id: divisionData.division_id,
           league_id: divisionData.league_id,
-          backLink: `/dashboard/l/${league}/s/${season}`,
+          backLink: createDashboardUrl({ l: league, s: season }),
         }}
         actionFunction={deleteDivision}
         confirmationHeading={`Are you sure you want to delete ${divisionData.name}?`}

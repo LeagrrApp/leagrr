@@ -3,7 +3,11 @@ import css from "./divisionRoster.module.css";
 import Table from "@/components/ui/Table/Table";
 import { verifySession } from "@/lib/session";
 import Link from "next/link";
-import { makeAcronym, nameDisplay } from "@/utils/helpers/formatting";
+import {
+  createDashboardUrl,
+  makeAcronym,
+  nameDisplay,
+} from "@/utils/helpers/formatting";
 
 interface DivisionRosterProps {
   divisionRoster: PlayerStats[];
@@ -80,7 +84,7 @@ export default async function DivisionRoster({
                   >
                     <td>{p.number}</td>
                     <th scope="row" data-highlight-col>
-                      <Link href={`/dashboard/u/${p.username}`}>
+                      <Link href={createDashboardUrl({ u: p.username })}>
                         {nameDisplay(p.first_name, p.last_name, "full")}
                       </Link>
                     </th>
@@ -123,7 +127,7 @@ export default async function DivisionRoster({
                   <tr key={p.user_id}>
                     <td>{p.number}</td>
                     <th scope="row">
-                      <Link href={`/dashboard/u/${p.username}`}>
+                      <Link href={createDashboardUrl({ u: p.username })}>
                         {p.first_name} {p.last_name}
                       </Link>
                     </th>

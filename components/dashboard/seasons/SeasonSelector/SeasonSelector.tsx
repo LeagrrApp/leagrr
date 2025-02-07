@@ -8,6 +8,7 @@ import { useRef } from "react";
 import css from "./seasonSelector.module.css";
 import Badge from "@/components/ui/Badge/Badge";
 import { apply_classes } from "@/utils/helpers/html-attributes";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 
 interface SeasonSelectorProps {
   seasons: SeasonData[];
@@ -25,11 +26,18 @@ export default function SeasonSelector({
   const currentSeason = seasons.filter((s) => s.slug === params.season)[0];
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  if (!currentSeason) return null;
+  const { league, season } = params;
+
+  if (
+    !currentSeason ||
+    typeof league !== "string" ||
+    typeof season !== "string"
+  )
+    return null;
 
   const classes = className ? [css.season_info, className] : css.season_info;
 
-  const editLink = `/dashboard/l/${params.league}/s/${params.season}/edit`;
+  const editLink = createDashboardUrl({ l: league, s: season }, "edit");
 
   return (
     <>
@@ -63,7 +71,7 @@ export default function SeasonSelector({
           {seasons?.map((season) => (
             <li key={season.slug}>
               <Link
-                href={`/dashboard/l/${params.league}/s/${season.slug}`}
+                href={createDashboardUrl({ l: league, s: season.slug })}
                 onClick={() => dialogRef?.current?.close()}
               >
                 {season.name}
@@ -74,7 +82,9 @@ export default function SeasonSelector({
         {hasAdminRole && (
           <>
             <p>or</p>
-            <Link href="./">Add New Season</Link>
+            <Link href={createDashboardUrl({ l: league }, "s")}>
+              Add New Season
+            </Link>
           </>
         )}
       </Dialog>

@@ -10,6 +10,7 @@ import { verifySession } from "@/lib/session";
 import { isObjectEmpty } from "@/utils/helpers/objects";
 import { redirect } from "next/navigation";
 import { canEditLeague, verifyLeagueAdminRole } from "./leagues";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 
 export async function createSeason(
   state: SeasonFormState,
@@ -96,7 +97,10 @@ export async function createSeason(
 
   if (seasonInsertResult?.data)
     redirect(
-      `/dashboard/l/${seasonInsertResult?.data.league_slug}/s/${seasonInsertResult?.data.slug}`,
+      createDashboardUrl({
+        l: seasonInsertResult?.data.league_slug,
+        s: seasonInsertResult?.data.slug,
+      }),
     );
 
   return seasonInsertResult;
@@ -296,7 +300,10 @@ export async function editSeason(
 
   if (seasonUpdateResult?.data)
     redirect(
-      `/dashboard/l/${seasonUpdateResult?.data.league_slug}/s/${seasonUpdateResult?.data.slug}`,
+      createDashboardUrl({
+        l: seasonUpdateResult?.data.league_slug,
+        s: seasonUpdateResult?.data.slug,
+      }),
     );
 
   return seasonUpdateResult;

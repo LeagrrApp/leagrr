@@ -124,7 +124,11 @@ export async function createDivision(
 
   if (insertResult?.data)
     redirect(
-      `/dashboard/l/${insertResult?.data.league_slug}/s/${insertResult?.data.season_slug}/d/${insertResult?.data.slug}`,
+      createDashboardUrl({
+        l: insertResult?.data.league_slug,
+        s: insertResult?.data.season_slug,
+        d: insertResult?.data.slug,
+      }),
     );
 
   return insertResult;

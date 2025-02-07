@@ -11,6 +11,7 @@ import Toggle from "@/components/ui/Toggle/Toggle";
 import { logOut } from "@/actions/auth";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
 import { usePathname } from "next/navigation";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 
 interface MenuProps {
   userData: UserData;
@@ -36,8 +37,10 @@ export default function Menu({ userData, menuData }: MenuProps) {
 
       <Link
         className={css.menu_item}
-        href={`/dashboard/u/${userData?.username}`}
-        aria-current={pathname.includes(`/dashboard/u/${userData?.username}`)}
+        href={createDashboardUrl({ u: userData.username })}
+        aria-current={pathname.includes(
+          createDashboardUrl({ u: userData.username }),
+        )}
       >
         {imgUrl ? (
           <Image
@@ -76,8 +79,10 @@ export default function Menu({ userData, menuData }: MenuProps) {
             <li key={team.slug}>
               <Link
                 className={css.menu_item}
-                href={`/dashboard/t/${team.slug}`}
-                aria-current={pathname.includes(`/dashboard/t/${team.slug}`)}
+                href={createDashboardUrl({ t: team.slug })}
+                aria-current={pathname.includes(
+                  createDashboardUrl({ t: team.slug }),
+                )}
               >
                 {team.img ? (
                   <Image
@@ -115,9 +120,9 @@ export default function Menu({ userData, menuData }: MenuProps) {
                 <li key={league.slug}>
                   <Link
                     className={css.menu_item}
-                    href={`/dashboard/l/${league.slug}`}
+                    href={createDashboardUrl({ l: league.slug })}
                     aria-current={pathname.includes(
-                      `/dashboard/l/${league.slug}`,
+                      createDashboardUrl({ l: league.slug }),
                     )}
                   >
                     {league.img ? (

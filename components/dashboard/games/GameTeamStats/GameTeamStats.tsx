@@ -4,7 +4,11 @@ import css from "./gameTeamStats.module.css";
 import { apply_classes } from "@/utils/helpers/html-attributes";
 import { getTeamGameStats } from "@/actions/games";
 import Link from "next/link";
-import { makeAcronym, nameDisplay } from "@/utils/helpers/formatting";
+import {
+  createDashboardUrl,
+  makeAcronym,
+  nameDisplay,
+} from "@/utils/helpers/formatting";
 import { verifySession } from "@/lib/session";
 
 interface GameTeamStatsProps {
@@ -110,7 +114,7 @@ export default async function GameTeamStats({
                     >
                       <td>{p.number}</td>
                       <th scope="row" data-highlight-col>
-                        <Link href={`/dashboard/u/${p.username}`}>
+                        <Link href={createDashboardUrl({ u: p.username })}>
                           {nameDisplay(
                             p.first_name,
                             p.last_name,
@@ -161,7 +165,7 @@ export default async function GameTeamStats({
                     <tr key={p.user_id}>
                       <td>{p.number}</td>
                       <th scope="row">
-                        <Link href={`/dashboard/u/${p.username}`}>
+                        <Link href={createDashboardUrl({ u: p.username })}>
                           {nameDisplay(
                             p.first_name,
                             p.last_name,

@@ -5,6 +5,7 @@ import EditSeason from "@/components/dashboard/seasons/EditSeason";
 import BackButton from "@/components/ui/BackButton/BackButton";
 import Container from "@/components/ui/Container/Container";
 import Icon from "@/components/ui/Icon/Icon";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
 
 export default async function Page({
@@ -18,7 +19,7 @@ export default async function Page({
 
   if (!seasonData) notFound();
 
-  const backLink = `/dashboard/l/${league}/s/${season}`;
+  const backLink = createDashboardUrl({ l: league, s: season });
 
   // check to see if user can edit this league
   const { canEdit } = await canEditLeague(seasonData.league_id);
@@ -36,7 +37,7 @@ export default async function Page({
         defaultState={{
           season_id: seasonData.season_id,
           league_id: seasonData.league_id,
-          backLink: `/dashboard/l/${league}/`,
+          backLink: createDashboardUrl({ l: league }),
         }}
         actionFunction={deleteSeason}
         confirmationHeading={`Are you sure you want to delete ${seasonData.name}?`}
