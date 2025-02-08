@@ -7,6 +7,7 @@ import DHeader from "../../DHeader/DHeader";
 import SeasonSelector from "../../seasons/SeasonSelector/SeasonSelector";
 import css from "./leagueHeader.module.css";
 import IconSport from "@/components/ui/Icon/IconSport";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 
 interface LeagueHeaderProps {
   league: LeagueData;
@@ -19,7 +20,7 @@ export default function LeagueHeader({ league, canEdit }: LeagueHeaderProps) {
   let badgeColor: ColorOptions =
     league.status === "archived" ? "danger" : "warning";
 
-  const editLink = `/dashboard/l/${league.slug}/edit`;
+  const editLink = createDashboardUrl({ l: league.slug }, "edit");
 
   return (
     <DHeader

@@ -23,7 +23,7 @@ export default async function Layout({
   if (!leagueData) notFound();
 
   // Check whether user has permission to edit league
-  const { canEdit } = await canEditLeague(league);
+  const { canEdit } = await canEditLeague(leagueData.league_id);
 
   return (
     <>

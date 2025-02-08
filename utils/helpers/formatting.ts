@@ -9,6 +9,7 @@ export function createDashboardUrl(
     d?: string | number;
     g?: string | number;
     t?: string;
+    u?: string;
   },
   additional?: string,
 ): string {
@@ -32,6 +33,10 @@ export function createDashboardUrl(
 
   if (dirs.g) {
     url = `${url}/g/${dirs.g}`;
+  }
+
+  if (dirs.u) {
+    url = `${url}/u/${dirs.u}`;
   }
 
   if (additional) {

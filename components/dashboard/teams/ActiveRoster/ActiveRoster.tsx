@@ -15,6 +15,7 @@ import Table from "@/components/ui/Table/Table";
 import { roster_roles } from "@/lib/definitions";
 import {
   convert_roles_to_select_choices,
+  createDashboardUrl,
   makeAcronym,
   nameDisplay,
 } from "@/utils/helpers/formatting";
@@ -135,7 +136,7 @@ export default function ActiveRoster({
                 return (
                   <tr key={p.username}>
                     <th scope="row">
-                      <Link href={`/dashboard/u/${p.username}`}>
+                      <Link href={createDashboardUrl({ u: p.username })}>
                         {nameDisplay(p.first_name, p.last_name, "full")}
                       </Link>{" "}
                     </th>
@@ -199,7 +200,7 @@ export default function ActiveRoster({
               return (
                 <tr key={p.username}>
                   <th scope="row">
-                    <Link href={`/dashboard/u/${p.username}`}>
+                    <Link href={createDashboardUrl({ u: p.username })}>
                       {nameDisplay(p.first_name, p.last_name, "full")}
                     </Link>{" "}
                     {isCaptain && <strong title="Captain">(C)</strong>}
@@ -265,7 +266,7 @@ export default function ActiveRoster({
                 return (
                   <tr key={p.username}>
                     <th scope="row">
-                      <Link href={`/dashboard/u/${p.username}`}>
+                      <Link href={createDashboardUrl({ u: p.username })}>
                         {nameDisplay(p.first_name, p.last_name, "full")}
                       </Link>{" "}
                       {isCaptain && <strong title="Captain">(C)</strong>}

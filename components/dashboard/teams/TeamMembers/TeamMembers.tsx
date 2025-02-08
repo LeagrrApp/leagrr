@@ -9,7 +9,7 @@ import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import Table from "@/components/ui/Table/Table";
 import { team_roles } from "@/lib/definitions";
-import { nameDisplay } from "@/utils/helpers/formatting";
+import { createDashboardUrl, nameDisplay } from "@/utils/helpers/formatting";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useActionState, useRef, useState } from "react";
@@ -107,7 +107,7 @@ export default function TeamMembers({
               return (
                 <tr key={p.username}>
                   <th scope="row">
-                    <Link href={`/dashboard/u/${p.username}`}>
+                    <Link href={createDashboardUrl({ u: p.username })}>
                       {nameDisplay(p.first_name, p.last_name, "full")}
                     </Link>
                   </th>
