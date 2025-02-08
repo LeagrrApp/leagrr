@@ -133,9 +133,46 @@ export async function createLeague(
   redirect(createDashboardUrl({ l: slug }));
 }
 
-export async function getLeagueAdminRole(league: number): Promise<number> {
+export async function getLeagueAdminRole(
+  league: number | string,
+): Promise<number | undefined> {
   // Verify user session
   const { user_id } = await verifySession();
+
+  let league_id = league;
+
+  // league slug was provided, but need league_id to check role
+  if (typeof league === "string") {
+    // get league_id
+    const leagueIdSql = `
+      SELECT
+        league_id
+      FROM
+        league_management.leagues
+      WHERE
+        slug = $1
+    `;
+
+    const leagueIdResult: ResultProps<{ league_id: number }> = await db
+      .query(leagueIdSql, [league])
+      .then((res) => {
+        return {
+          message: "League ID retrieved",
+          status: 200,
+          data: res.rows[0],
+        };
+      });
+
+    // no matching league was found or there was an error
+    if (!leagueIdResult.data) {
+      // return no role
+      return undefined;
+    }
+
+    league_id = leagueIdResult.data.league_id;
+  }
+
+  if (typeof league_id === "string") return undefined;
 
   // build sql select statement
   const adminsSql = `
@@ -149,7 +186,7 @@ export async function getLeagueAdminRole(league: number): Promise<number> {
 
   // query database for any matching both league and user
   const adminsResult: ResultProps<AdminRole> = await db
-    .query(adminsSql, [league, user_id])
+    .query(adminsSql, [league_id, user_id])
     .then((res) => {
       if (res.rowCount) {
         return {
@@ -181,20 +218,20 @@ export async function getLeagueAdminRole(league: number): Promise<number> {
 
   if (adminsResult.data?.league_role) return adminsResult.data?.league_role;
 
-  return 0;
+  return undefined;
 }
 
 export async function verifyLeagueAdminRole(
-  league_id: number,
+  league: number | string,
   roleType: number,
 ): Promise<boolean> {
-  const league_role = await getLeagueAdminRole(league_id);
+  const league_role = await getLeagueAdminRole(league);
 
   return league_role === roleType;
 }
 
 export async function canEditLeague(
-  league: number,
+  league: number | string,
   commissionerOnly?: boolean,
 ): Promise<{ canEdit: boolean; role: RoleData | undefined }> {
   // check if they are a site wide admin
@@ -214,10 +251,11 @@ export async function canEditLeague(
   // skip additional database query if we already know user has permission
   if (!canEdit) {
     // check for league admin privileges
-    const leagueAdminResult: number = await getLeagueAdminRole(league);
+    const leagueAdminResult: number | undefined =
+      await getLeagueAdminRole(league);
 
     // verify which role the user has
-    if (leagueAdminResult !== 0) {
+    if (leagueAdminResult) {
       // set canEdit based on whether it is a commissionerOnly check or not
       canEdit = commissionerOnly
         ? leagueAdminResult === 1

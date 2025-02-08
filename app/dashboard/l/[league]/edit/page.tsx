@@ -23,36 +23,35 @@ export default async function Page({
 
   // Get users role to check league permissions
   const { canEdit, role } = await canEditLeague(leagueData.league_id);
-
-  const canDelete = role?.role === 1;
-
-  //
   const backLink = createDashboardUrl({ l: league });
 
-  if (canEdit)
-    return (
-      <Container>
-        <EditLeague league={leagueData} backLink={backLink} />
-        {canDelete && (
-          <ModalConfirmAction
-            defaultState={{
-              league_id: leagueData.league_id,
-            }}
-            actionFunction={deleteLeague}
-            confirmationHeading={`Are you sure you want to delete ${leagueData.name}?`}
-            confirmationByline={`This action is permanent cannot be undone. Consider setting the league's status to "Archived" instead.`}
-            trigger={{
-              icon: "delete",
-              label: "Delete league",
-              buttonStyles: {
-                variant: "danger",
-                fullWidth: true,
-              },
-            }}
-          />
-        )}
-      </Container>
-    );
+  // If not a league admin, redirect back to league
+  if (!canEdit) redirect(backLink);
 
-  redirect(backLink);
+  // Check if user has authority to delete
+  const canDelete = role?.role === 1;
+
+  return (
+    <Container>
+      <EditLeague league={leagueData} backLink={backLink} />
+      {canDelete && (
+        <ModalConfirmAction
+          defaultState={{
+            league_id: leagueData.league_id,
+          }}
+          actionFunction={deleteLeague}
+          confirmationHeading={`Are you sure you want to delete ${leagueData.name}?`}
+          confirmationByline={`This action is permanent cannot be undone. Consider setting the league's status to "Archived" instead.`}
+          trigger={{
+            icon: "delete",
+            label: "Delete league",
+            buttonStyles: {
+              variant: "danger",
+              fullWidth: true,
+            },
+          }}
+        />
+      )}
+    </Container>
+  );
 }

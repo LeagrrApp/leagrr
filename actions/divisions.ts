@@ -452,7 +452,7 @@ export async function getDivision(
     divisionResult.data.division_id,
   );
 
-  const { canEdit } = await canEditLeague(league_slug);
+  const { canEdit } = await canEditLeague(divisionResult.data.league_id);
 
   let divisionGamesSql = `
     SELECT

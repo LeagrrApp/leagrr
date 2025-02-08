@@ -43,7 +43,7 @@ export default async function Page({
 
   if (!divisionData) notFound();
 
-  const { canEdit } = await canEditLeague(league);
+  const { canEdit } = await canEditLeague(divisionData.league_id);
 
   const { teams, games } = divisionData;
 
