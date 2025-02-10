@@ -29,13 +29,13 @@ export default async function GameTeamStats({
   const classes = [css.team_stats];
   if (isHome) classes.push(css.team_stats_home);
 
-  const { data: teamGameStates } = await getTeamGameStats(
+  const { data: teamGameStats } = await getTeamGameStats(
     game.game_id,
     team.team_id,
     game.division_id,
   );
 
-  if (!teamGameStates)
+  if (!teamGameStats)
     return (
       <div className={apply_classes(classes)}>
         <Card className="push" padding="ml">
@@ -44,8 +44,21 @@ export default async function GameTeamStats({
       </div>
     );
 
-  const players = teamGameStates.filter((p) => p.position !== "Goalie");
-  const goalies = teamGameStates.filter((p) => p.position === "Goalie");
+  if (teamGameStats.length === 0) {
+    return (
+      <div className={apply_classes(classes)}>
+        <div className={css.team_stats_block}>
+          <h3 className={css.team_stats_heading}>{team.name}</h3>
+          <Card className="push" padding="ml">
+            <p>This team does not have any player data.</p>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  const players = teamGameStats.filter((p) => p.position !== "Goalie");
+  const goalies = teamGameStats.filter((p) => p.position === "Goalie");
 
   // player table settings
   const playerHeadings = [
