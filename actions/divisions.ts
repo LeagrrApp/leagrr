@@ -10,6 +10,7 @@ import {
   createDashboardUrl,
   createMetaTitle,
 } from "@/utils/helpers/formatting";
+import { canEditTeam } from "./teams";
 
 const DivisionFormSchema = z.object({
   division_id: z.number().min(1).optional(),
@@ -172,6 +173,45 @@ export async function getDivisionsBySeason(season_id: number) {
     });
 
   return divisionResult;
+}
+
+export async function getDivisionTeams(division_id: number) {
+  const divisionTeamsSql = `
+    SELECT
+      t.team_id,
+      t.name,
+      t.slug,
+      t.status,
+      t.color,
+      dt.division_team_id
+    FROM
+      division_teams as dt
+    JOIN
+      teams as t
+    ON
+      t.team_id = dt.team_id
+    WHERE
+      dt.division_id = $1
+    ORDER BY t.name ASC
+  `;
+
+  const result: ResultProps<DivisionTeamData[]> = await db
+    .query(divisionTeamsSql, [division_id])
+    .then((res) => {
+      return {
+        message: "Division teams loaded",
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  return result;
 }
 
 export async function getDivisionStandings(division_id: number) {
@@ -690,88 +730,6 @@ export async function getDivisionUrlById(
   });
 }
 
-export async function editDivision(
-  state: DivisionFormState,
-  formData: FormData,
-): Promise<DivisionFormState> {
-  // check user is logged in
-  await verifySession();
-
-  const divisionData = {
-    name: formData.get("name"),
-    description: formData.get("description"),
-    division_id: parseInt(formData.get("division_id") as string),
-    league_id: parseInt(formData.get("league_id") as string),
-    tier: parseInt(formData.get("tier") as string),
-    gender: formData.get("gender"),
-    join_code: formData.get("join_code"),
-    status: formData.get("status"),
-  };
-
-  // Check to see if the user is allowed to create a season for this league
-  const { canEdit } = await canEditLeague(divisionData.league_id);
-
-  if (!canEdit) {
-    return {
-      message:
-        "You do not have permission to create a division for this season",
-      status: 400,
-    };
-  }
-
-  // Validate form fields
-  const validatedFields = DivisionFormSchema.safeParse(divisionData);
-
-  // If any form fields are invalid, return early
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
-  const updateSql = `
-    UPDATE
-      league_management.divisions AS d
-    SET
-      name = $1,
-      description = $2,
-      tier = $3,
-      gender = $4,
-      join_code = $5,
-      status = $6
-    WHERE
-      division_id = $7
-  `;
-
-  const updateResult: { message: string; status: number } = await db
-    .query(updateSql, [
-      divisionData.name,
-      divisionData.description,
-      divisionData.tier,
-      divisionData.gender,
-      divisionData.join_code,
-      divisionData.status,
-      divisionData.division_id,
-    ])
-    .then((res) => {
-      return {
-        message: "Division teams loaded",
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  // TODO: get slug for redirect in case of slug change
-  if (state?.link) redirect(state?.link);
-
-  return { ...updateResult };
-}
-
 export async function getDivisionStatLeaders(
   division_id: number,
   limit?: number,
@@ -1034,6 +992,561 @@ export async function getDivisionStatLeaders(
       assists: assistsResult.data,
       shutouts: shutoutsResult.data,
     },
+  };
+}
+
+export async function getLeagueTeamsNotInDivision(
+  division_id: number,
+  league_id: number,
+) {
+  const sql = `
+    SELECT
+      t.team_id,
+      t.name,
+      t.slug,
+      t.color
+    FROM
+      league_management.teams AS t
+    JOIN
+      league_management.division_teams AS dt
+    ON
+      t.team_id = dt.team_id
+    WHERE
+      dt.division_id IN (
+        SELECT
+          division_id
+        FROM
+          league_management.divisions AS d
+        WHERE
+          d.season_id IN (
+            SELECT
+              s.season_id
+            FROM
+              league_management.seasons AS s
+            WHERE
+              s.league_id = $2
+          )
+          AND
+          division_id != $1
+      )
+      AND
+      t.team_id NOT IN (
+        SELECT
+          team_id
+        FROM
+          league_management.division_teams
+        WHERE
+          division_id = $1
+      )
+      AND
+      t.status = 'active'
+    GROUP BY t.team_id
+    ORDER BY t.name ASC;
+  `;
+
+  const result: ResultProps<TeamData[]> = await db
+    .query(sql, [division_id, league_id])
+    .then((res) => {
+      return {
+        message: "League teams loaded.",
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  return result;
+}
+
+export async function editDivision(
+  state: DivisionFormState,
+  formData: FormData,
+): Promise<DivisionFormState> {
+  // check user is logged in
+  await verifySession();
+
+  const divisionData = {
+    name: formData.get("name"),
+    description: formData.get("description"),
+    division_id: parseInt(formData.get("division_id") as string),
+    league_id: parseInt(formData.get("league_id") as string),
+    tier: parseInt(formData.get("tier") as string),
+    gender: formData.get("gender"),
+    join_code: formData.get("join_code"),
+    status: formData.get("status"),
+  };
+
+  // Check to see if the user is allowed to create a season for this league
+  const { canEdit } = await canEditLeague(divisionData.league_id);
+
+  if (!canEdit) {
+    return {
+      message:
+        "You do not have permission to create a division for this season",
+      status: 400,
+    };
+  }
+
+  // Validate form fields
+  const validatedFields = DivisionFormSchema.safeParse(divisionData);
+
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const updateSql = `
+    UPDATE
+      league_management.divisions AS d
+    SET
+      name = $1,
+      description = $2,
+      tier = $3,
+      gender = $4,
+      join_code = $5,
+      status = $6
+    WHERE
+      division_id = $7
+  `;
+
+  const updateResult: { message: string; status: number } = await db
+    .query(updateSql, [
+      divisionData.name,
+      divisionData.description,
+      divisionData.tier,
+      divisionData.gender,
+      divisionData.join_code,
+      divisionData.status,
+      divisionData.division_id,
+    ])
+    .then((res) => {
+      return {
+        message: "Division teams loaded",
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  // TODO: get slug for redirect in case of slug change
+  if (state?.link) redirect(state?.link);
+
+  return { ...updateResult };
+}
+
+const DivisionJoinCodeSchema = z.object({
+  join_code: z
+    .string()
+    .min(6, { message: "Join code must be at least 6 characters long" }),
+  division_id: z.number().min(1),
+  league_id: z.number().min(1),
+});
+
+type DivisionJoinCodeErrorProps = {
+  join_code?: string[] | undefined;
+  division_id?: string[] | undefined;
+  league_id?: string[] | undefined;
+};
+
+type DivisionJoinCodeFormState =
+  | {
+      errors?: DivisionJoinCodeErrorProps;
+      message?: string;
+      status?: number;
+      link?: string;
+      data?: {
+        join_code?: string;
+        division_id?: number;
+        league_id?: number;
+      };
+    }
+  | undefined;
+
+export async function setDivisionJoinCode(
+  state: DivisionJoinCodeFormState,
+  formData: FormData,
+): Promise<DivisionJoinCodeFormState> {
+  const submittedData = {
+    join_code: formData.get("join_code") as string,
+    division_id: parseInt(formData.get("division_id") as string),
+    league_id: parseInt(formData.get("league_id") as string),
+  };
+
+  const { canEdit } = await canEditLeague(submittedData.league_id);
+
+  if (!canEdit) {
+    return {
+      message: "You do not have permission to add teams to this division.",
+      status: 401,
+    };
+  }
+
+  // Validate form fields
+  const validatedFields = DivisionTeamSchema.safeParse(submittedData);
+
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const sql = `
+    UPDATE league_management.divisions
+    SET
+      join_code = $1
+    WHERE
+      division_id = $2
+    RETURNING
+      join_code
+  `;
+
+  const result: ResultProps<{ join_code: string }> = await db
+    .query(sql, [submittedData.join_code, submittedData.division_id])
+    .then((res) => {
+      console.log(res);
+      return {
+        message: "Join code updated!",
+        status: 200,
+        data: res.rows[0],
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  return result;
+}
+
+const DivisionTeamSchema = z.object({
+  team_id: z.number().min(1).optional(),
+  division_id: z.number().min(1).optional(),
+  division_team_id: z.number().min(1).optional(),
+  league_id: z.number().min(1),
+});
+
+type DivisionTeamErrorProps = {
+  team_id?: string[] | undefined;
+  division_id?: string[] | undefined;
+  division_team_id?: string[] | undefined;
+};
+
+type DivisionTeamFormState =
+  | {
+      errors?: DivisionTeamErrorProps;
+      message?: string;
+      status?: number;
+      link?: string;
+      data?: {
+        team_id?: number;
+        division_id?: number;
+        division_team_id?: number;
+      };
+    }
+  | undefined;
+
+export async function addTeamToDivision(
+  state: DivisionTeamFormState,
+  formData: FormData,
+): Promise<DivisionFormState> {
+  const submittedData = {
+    team_id: parseInt(formData.get("team_id") as string),
+    division_id: parseInt(formData.get("division_id") as string),
+    league_id: parseInt(formData.get("league_id") as string),
+  };
+
+  const { canEdit } = await canEditLeague(submittedData.league_id);
+
+  if (!canEdit) {
+    return {
+      message: "You do not have permission to add teams to this division.",
+      status: 401,
+    };
+  }
+
+  // Validate form fields
+  const validatedFields = DivisionTeamSchema.safeParse(submittedData);
+
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const sql = `
+    INSERT INTO league_management.division_teams
+      (division_id, team_id)
+    VALUES
+      ($1, $2)
+  `;
+
+  const result = await db
+    .query(sql, [submittedData.division_id, submittedData.team_id])
+    .then((res) => {
+      console.log(res);
+      return {
+        message: "Team added to division!",
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (result.status === 400) return result;
+
+  state?.link && redirect(state?.link);
+}
+
+export async function removeTeamFromDivision(
+  state: DivisionTeamFormState,
+  formData: FormData,
+): Promise<DivisionFormState> {
+  const submittedData = {
+    team_id: parseInt(formData.get("team_id") as string),
+    division_id: parseInt(formData.get("division_id") as string),
+    league_id: parseInt(formData.get("league_id") as string),
+  };
+
+  const { canEdit } = await canEditLeague(submittedData.league_id);
+
+  if (!canEdit) {
+    return {
+      message: "You do not have permission to add teams to this division.",
+      status: 401,
+    };
+  }
+
+  // Validate form fields
+  const validatedFields = DivisionTeamSchema.safeParse(submittedData);
+
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const sql = `
+    DELETE FROM league_management.division_teams
+    WHERE
+      division_id = $1
+      AND
+      team_id = $2
+  `;
+
+  const result = await db
+    .query(sql, [submittedData.division_id, submittedData.team_id])
+    .then((res) => {
+      console.log(res);
+      return {
+        message: "Team removed from division!",
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (result.status === 400) return result;
+
+  state?.link && redirect(state?.link);
+}
+
+const JoinDivisionSchema = z.object({
+  join_code: z.string(),
+  team_id: z.number().min(1),
+  division_id: z.number().min(1),
+});
+
+type JoinDivisionErrorProps = {
+  join_code?: string[] | undefined;
+  team_id?: string[] | undefined;
+  division_id?: string[] | undefined;
+};
+
+type JoinDivisionFormState =
+  | {
+      errors?: JoinDivisionErrorProps;
+      message?: string;
+      status?: number;
+      link?: string;
+      data?: {
+        join_code?: string;
+        team_id?: number;
+        division_id?: number;
+      };
+    }
+  | undefined;
+
+export async function joinDivision(
+  state: JoinDivisionFormState,
+  formData: FormData,
+): Promise<JoinDivisionFormState> {
+  const submittedData = {
+    join_code: formData.get("join_code") as string,
+    team_id: parseInt(formData.get("team_id") as string),
+    division_id: parseInt(formData.get("division_id") as string),
+  };
+
+  // Validate form fields
+  const validatedFields = JoinDivisionSchema.safeParse(submittedData);
+
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      link: state?.link,
+    };
+  }
+
+  // check user can edit selected team
+  const { canEdit } = await canEditTeam(submittedData.team_id);
+
+  if (!canEdit) {
+    return {
+      message:
+        "You do not have permission to join this division on behalf of this team.",
+      status: 401,
+      link: state?.link,
+    };
+  }
+
+  // get division join_code from database
+  const joinCodeSql = `
+    SELECT
+      join_code
+    FROM
+      league_management.divisions
+    WHERE
+      division_id = $1
+  `;
+
+  const joinCodeResult: ResultProps<{ join_code: string }> = await db
+    .query(joinCodeSql, [submittedData.division_id])
+    .then((res) => {
+      if (res.rowCount === 0) {
+        throw new Error("Division not found!");
+      }
+      return {
+        message: "Join code retrieved!",
+        status: 200,
+        data: res.rows[0],
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (!joinCodeResult?.data) {
+    return {
+      ...joinCodeResult,
+      link: state?.link,
+    };
+  }
+
+  // check if submitted join code matches division join code
+  const joinCodesMatch =
+    joinCodeResult.data.join_code === submittedData.join_code;
+
+  // if join_codes do not match, short circuit
+  if (!joinCodesMatch)
+    return {
+      message: "Join code does not match the division's join code!",
+      status: 401,
+      link: state?.link,
+    };
+
+  // check if team is already in division
+  const inDivisionCheckSql = `
+    SELECT 
+      count(*)
+    FROM
+      league_management.division_teams
+    WHERE
+      team_id = $1
+      AND
+      division_id = $2
+  `;
+
+  const inDivisionCheckResult = await db
+    .query(inDivisionCheckSql, [
+      submittedData.team_id,
+      submittedData.division_id,
+    ])
+    .then((res) => {
+      if (res.rows[0].count > 0) {
+        throw new Error("Team is already a member of this division!");
+      }
+      return {
+        message: "Team is not in division.",
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  // Team is not in division
+  if (inDivisionCheckResult.status === 200) {
+    // add team to division
+    const insertSql = `
+      INSERT INTO league_management.division_teams
+        (division_id, team_id)
+      VALUES
+        ($1, $2)
+    `;
+
+    const insertResult = await db
+      .query(insertSql, [submittedData.division_id, submittedData.team_id])
+      .then((res) => {
+        return {
+          message: "Membership updated!",
+          status: 200,
+        };
+      })
+      .catch((err) => {
+        return {
+          message: err.message,
+          status: 400,
+        };
+      });
+
+    if (insertResult.status === 400) return insertResult;
+
+    state?.link && redirect(state.link);
+  }
+
+  return {
+    ...inDivisionCheckResult,
+    link: state?.link,
   };
 }
 

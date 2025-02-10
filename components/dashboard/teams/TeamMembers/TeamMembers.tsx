@@ -29,9 +29,9 @@ export default function TeamMembers({
 
   const editDialogRef = useRef<HTMLDialogElement>(null);
   const removeDialogRef = useRef<HTMLDialogElement>(null);
-  const [teamMemberToEdit, setTeamMemberToEdit] = useState<TeamUserData>(
-    teamMembers[0],
-  );
+  const [teamMemberToEdit, setTeamMemberToEdit] = useState<
+    TeamUserData | undefined
+  >(teamMembers[0]);
   const [editState, editAction, editPending] = useActionState(
     editTeamMembership,
     {
@@ -76,7 +76,7 @@ export default function TeamMembers({
 
   return (
     <>
-      {teamMembers && teamMembers.length >= 1 && (
+      {teamMembers && teamMembers.length >= 1 ? (
         // <Table hColWidth={`${hColWidth}%`} colWidth={colWidth}>
         <Table hColWidth={`${hColWidth}%`} colWidth={colWidth}>
           <thead>
@@ -142,67 +142,79 @@ export default function TeamMembers({
             })}
           </tbody>
         </Table>
+      ) : (
+        <p>
+          This team has no members. Use the team invite join code to invite new
+          members!
+        </p>
       )}
-      <Dialog ref={editDialogRef}>
-        <form action={editAction}>
-          <Grid cols={2} gap="base">
-            <Col fullSpan>
-              <h3>Edit {teamMemberToEdit?.first_name}</h3>
-            </Col>
-            <input type="hidden" name="team_id" value={team_id} />
-            <input
-              type="hidden"
-              name="team_membership_id"
-              value={teamMemberToEdit.team_membership_id}
-            />
-            <Col fullSpan>
-              <Select
-                name="team_role"
-                label="Team Role"
-                choices={[
-                  { label: "Manager", value: 1 },
-                  { label: "Member", value: 2 },
-                ]}
-                errors={{ errs: editState?.errors?.team_role, type: "danger" }}
-                selected={teamMemberToEdit.team_role}
-              />
-            </Col>
-            <Button type="submit" disabled={editPending}>
-              <Icon icon="save" label="Save" />
-            </Button>
-            <Button
-              onClick={() => editDialogRef?.current?.close()}
-              variant="grey"
-            >
-              <Icon icon="cancel" label="Cancel" />
-            </Button>
-          </Grid>
-        </form>
-      </Dialog>
-      <Dialog ref={removeDialogRef}>
-        <form action={removeAction}>
-          <Grid cols={2} gap="base">
-            <Col fullSpan>
-              <h3>Remove {teamMemberToEdit?.first_name}?</h3>
-            </Col>
-            <input type="hidden" name="team_id" value={team_id} />
-            <input
-              type="hidden"
-              name="team_membership_id"
-              value={teamMemberToEdit.team_membership_id}
-            />
-            <Button type="submit" disabled={removePending} variant="danger">
-              <Icon icon="delete" label="Confirm" />
-            </Button>
-            <Button
-              onClick={() => removeDialogRef?.current?.close()}
-              variant="grey"
-            >
-              <Icon icon="cancel" label="Cancel" />
-            </Button>
-          </Grid>
-        </form>
-      </Dialog>
+      {teamMemberToEdit && (
+        <>
+          <Dialog ref={editDialogRef}>
+            <form action={editAction}>
+              <Grid cols={2} gap="base">
+                <Col fullSpan>
+                  <h3>Edit {teamMemberToEdit?.first_name}</h3>
+                </Col>
+                <input type="hidden" name="team_id" value={team_id} />
+                <input
+                  type="hidden"
+                  name="team_membership_id"
+                  value={teamMemberToEdit.team_membership_id}
+                />
+                <Col fullSpan>
+                  <Select
+                    name="team_role"
+                    label="Team Role"
+                    choices={[
+                      { label: "Manager", value: 1 },
+                      { label: "Member", value: 2 },
+                    ]}
+                    errors={{
+                      errs: editState?.errors?.team_role,
+                      type: "danger",
+                    }}
+                    selected={teamMemberToEdit.team_role}
+                  />
+                </Col>
+                <Button type="submit" disabled={editPending}>
+                  <Icon icon="save" label="Save" />
+                </Button>
+                <Button
+                  onClick={() => editDialogRef?.current?.close()}
+                  variant="grey"
+                >
+                  <Icon icon="cancel" label="Cancel" />
+                </Button>
+              </Grid>
+            </form>
+          </Dialog>
+          <Dialog ref={removeDialogRef}>
+            <form action={removeAction}>
+              <Grid cols={2} gap="base">
+                <Col fullSpan>
+                  <h3>Remove {teamMemberToEdit?.first_name}?</h3>
+                </Col>
+                <input type="hidden" name="team_id" value={team_id} />
+                <input
+                  type="hidden"
+                  name="team_membership_id"
+                  value={teamMemberToEdit.team_membership_id}
+                />
+                <Button type="submit" disabled={removePending} variant="danger">
+                  <Icon icon="delete" label="Confirm" />
+                </Button>
+                <Button
+                  onClick={() => removeDialogRef?.current?.close()}
+                  variant="grey"
+                >
+                  <Icon icon="cancel" label="Cancel" />
+                </Button>
+              </Grid>
+            </form>
+          </Dialog>
+        </>
+      )}
     </>
   );
 }

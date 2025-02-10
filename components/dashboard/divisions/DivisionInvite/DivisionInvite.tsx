@@ -1,6 +1,5 @@
 "use client";
 
-import { setTeamJoinCode } from "@/actions/teams";
 import Button from "@/components/ui/Button/Button";
 import Card from "@/components/ui/Card/Card";
 import Input from "@/components/ui/forms/Input";
@@ -9,32 +8,38 @@ import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { useActionState, useEffect, useRef, useState } from "react";
-import css from "./teamInvite.module.css";
+import css from "./divisionInvite.module.css";
+import { setDivisionJoinCode } from "@/actions/divisions";
 
-interface TeamInviteProps {
-  team: TeamData;
-  division_id?: number;
+interface DivisionInviteProps {
+  division: DivisionData;
 }
 
-export default function TeamInvite({ team, division_id }: TeamInviteProps) {
-  const { name, join_code, slug } = team;
+export default function DivisionInvite({ division }: DivisionInviteProps) {
+  const {
+    name,
+    division_id,
+    join_code,
+    slug: division_slug,
+    season_slug,
+    league_slug,
+    league_id,
+  } = division;
 
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [state, action, pending] = useActionState(setTeamJoinCode, undefined);
+  const [state, action, pending] = useActionState(
+    setDivisionJoinCode,
+    undefined,
+  );
   const [joinCodeValue, setJoinCodeValue] = useState<string>(
     state?.data?.join_code || join_code || "",
   );
   const [updating, setUpdating] = useState<boolean>(false);
   const [hasBeenCopied, setHasBeenCopied] = useState<boolean>(false);
 
-  useEffect(() => {
-    state?.data?.join_code && setJoinCodeValue(state?.data?.join_code);
-    setUpdating(false);
-  }, [state]);
-
   function copyCodeLink() {
     const copyLink = createDashboardUrl(
-      { t: slug, d: division_id },
+      { l: league_slug, s: season_slug, d: division_slug },
       `join/?join_code=${joinCodeValue}`,
     );
 
@@ -49,21 +54,27 @@ export default function TeamInvite({ team, division_id }: TeamInviteProps) {
     }, 2000);
   }
 
+  useEffect(() => {
+    console.log(state);
+
+    state?.data?.join_code && setJoinCodeValue(state?.data?.join_code);
+    setUpdating(false);
+  }, [state]);
+
   if (join_code && join_code !== "" && !updating)
     return (
       <>
         <Card padding="l" isContainer>
-          <h3 className="push-m">Team Invite</h3>
+          <h3 className="push-m">Division Invite</h3>
           <p className="push">
-            Invite players to join <strong>{name}</strong>! This code allows
-            players to easily join <strong>{name}</strong>{" "}
-            {division_id && "on the roster for this division "}without needing a
-            team administrator to approve a join request.
+            Invite teams to join <strong>{name}</strong>! This code allows teams
+            to easily join <strong>{name}</strong> without needing a league
+            administrator to approve a join request.
           </p>
           <dl className={css.join_code_info}>
-            <dt>Team:</dt>
+            <dt>Division:</dt>
             <dd>
-              <span className={css.join_code_info_line}>{team.name}</span>
+              <span className={css.join_code_info_line}>{name}</span>
             </dd>
             <dt>Code:</dt>
             <dd>
@@ -93,8 +104,8 @@ export default function TeamInvite({ team, division_id }: TeamInviteProps) {
       <Card padding="l">
         <h3 className="push-m">{updating ? "Update" : "Create a"} Join Code</h3>
         <p className="push-s">
-          This code allows players to easily join <strong>{name}</strong>{" "}
-          without needing a team administrator to approve a join request.
+          This code allows teams to easily join this division without needing a
+          league administrator to approve a join request.
         </p>
         <small className="push block">
           <strong>Note:</strong> The code needs to be unique, minimum of 6
@@ -117,7 +128,8 @@ export default function TeamInvite({ team, division_id }: TeamInviteProps) {
                 hideLabel
               />
             </Col>
-            <input type="hidden" name="team_id" value={team.team_id} />
+            <input type="hidden" name="division_id" value={division_id} />
+            <input type="hidden" name="league_id" value={league_id} />
             <Button
               onClick={() => dialogRef?.current?.showModal()}
               disabled={pending}

@@ -30,7 +30,7 @@ type TeamPageData = TeamData & {
   members: Omit<UserData, "password_hash">[];
 };
 
-type TeamDivisionsProps = {
+type TeamDivisionsData = {
   division: string;
   division_id: number;
   division_slug: string;
@@ -40,6 +40,13 @@ type TeamDivisionsProps = {
   end_date: Date;
   league: string;
   league_slug: string;
+};
+
+type DivisionTeamData = Pick<
+  TeamData,
+  "team_id" | "slug" | "name" | "status" | "color"
+> & {
+  division_team_id: number;
 };
 
 type TeamStandingsData = Pick<
@@ -224,42 +231,6 @@ type RoleData = {
   role: number;
   title: string;
 };
-
-// type ShotStatData = BaseStatsData & {
-//   shot_id: number;
-// };
-
-// type GoalStatData = BaseStatsData & {
-//   goal_id: number;
-//   shorthanded: boolean;
-//   power_play: boolean;
-//   empty_net: boolean;
-//   assists?: AssistStatData[];
-// };
-
-// type AssistStatData = Omit<BaseStatsData, "period" | "period_time"> & {
-//   assist_id: number;
-//   goal_id: number;
-//   primary_assist: boolean;
-// };
-
-// type SaveStatData = BaseStatsData & {
-//   save_id: number;
-//   penalty_kill: boolean;
-//   rebound: boolean;
-// };
-
-// type PenaltyStatData = BaseStatsData & {
-//   penalty_id: number;
-//   infraction: string;
-//   minutes: number;
-// };
-
-// type GameFeedItemData = BaseStatsData &
-//   Partial<ShotStatData> &
-//   Partial<GoalStatData> &
-//   Partial<SaveStatData> &
-//   Partial<PenaltyStatData>;
 
 type AdminRole = {
   league_role: number | undefined;

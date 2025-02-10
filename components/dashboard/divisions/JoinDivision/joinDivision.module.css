@@ -1,0 +1,5 @@
+.join_division {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+}
