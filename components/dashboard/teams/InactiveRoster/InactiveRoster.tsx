@@ -33,8 +33,9 @@ export default function InactiveRoster({
   const pathname = usePathname();
 
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [teamMemberToActivate, setTeamMemberToActivate] =
-    useState<TeamUserData>(teamMembers[0]);
+  const [teamMemberToActivate, setTeamMemberToActivate] = useState<
+    TeamUserData | undefined
+  >(teamMembers[0]);
   const [state, action, pending] = useActionState(addPlayerToDivisionTeam, {
     link: pathname,
   });

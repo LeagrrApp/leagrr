@@ -1217,21 +1217,49 @@ VALUES
 INSERT INTO league_management.teams
   (slug, name, description, color)
 VALUES
-  ('significant-otters', 'Significant Otters', null, '#942f2f'),
-  ('otterwa-senators', 'Otterwa Senators', null, '#8d45a3'),
-  ('otter-chaos', 'Otter Chaos', null, '#2f945b'),
-  ('otter-nonsense', 'Otter Nonsense', null, '#2f3794'),
-  ('frostbiters', 'Frostbiters', 'An icy team known for their chilling defense.', 'green'),
-  ('blazing-blizzards', 'Blazing Blizzards', 'A team that combines fiery offense with frosty precision.', 'purple'),
-  ('polar-puckers', 'Polar Puckers', 'Masters of the north, specializing in swift plays.', '#285fa2'),
-  ('arctic-avengers', 'Arctic Avengers', 'A cold-blooded team with a knack for thrilling comebacks.', 'yellow'),
-  ('glacial-guardians', 'Glacial Guardians', 'Defensive titans who freeze their opponents in their tracks.', 'pink'),
-  ('tundra-titans', 'Tundra Titans', 'A powerhouse team dominating the ice with strength and speed.', 'orange'),
-  ('permafrost-predators', 'Permafrost Predators', 'Known for their unrelenting pressure and icy precision.', '#bc83d4'),
-  ('snowstorm-scorchers', 'Snowstorm Scorchers', 'A team with a fiery spirit and unstoppable energy.', 'rebeccapurple'),
-  ('frozen-flames', 'Frozen Flames', 'Bringing the heat to the ice with blazing fast attacks.', 'cyan'),
-  ('chill-crushers', 'Chill Crushers', 'Breaking the ice with powerful plays and intense rivalries.', 'lime')
+  ('significant-otters', 'Significant Otters', null, '#942f2f'), -- 1
+  ('otterwa-senators', 'Otterwa Senators', null, '#8d45a3'), -- 2
+  ('otter-chaos', 'Otter Chaos', null, '#2f945b'), -- 3
+  ('otter-nonsense', 'Otter Nonsense', null, '#2f3794'), -- 4
+  ('frostbiters', 'Frostbiters', 'An icy team known for their chilling defense.', 'green'), -- 5
+  ('blazing-blizzards', 'Blazing Blizzards', 'A team that combines fiery offense with frosty precision.', 'purple'), -- 6
+  ('polar-puckers', 'Polar Puckers', 'Masters of the north, specializing in swift plays.', '#285fa2'), -- 7
+  ('arctic-avengers', 'Arctic Avengers', 'A cold-blooded team with a knack for thrilling comebacks.', 'yellow'), -- 8
+  ('glacial-guardians', 'Glacial Guardians', 'Defensive titans who freeze their opponents in their tracks.', 'pink'), -- 9
+  ('tundra-titans', 'Tundra Titans', 'A powerhouse team dominating the ice with strength and speed.', 'orange'), -- 10
+  ('permafrost-predators', 'Permafrost Predators', 'Known for their unrelenting pressure and icy precision.', '#bc83d4'), -- 11
+  ('snowstorm-scorchers', 'Snowstorm Scorchers', 'A team with a fiery spirit and unstoppable energy.', 'rebeccapurple'), -- 12
+  ('frozen-flames', 'Frozen Flames', 'Bringing the heat to the ice with blazing fast attacks.', 'cyan'), -- 13
+  ('chill-crushers', 'Chill Crushers', 'Breaking the ice with powerful plays and intense rivalries.', 'lime') -- 14
 ;
+
+-- new samples
+INSERT INTO league_management.teams
+  (name, description, color)
+VALUES
+  ('Shadow Panthers', 'A fierce team known for their unpredictable playstyle.', '#222222'), -- 15
+  ('Crimson Vipers', 'Fast and aggressive with deadly precision.', '#B22222'), -- 16
+  ('Golden Stingers', 'Masters of quick strikes and counterattacks.', '#FFD700'), -- 17
+  ('Thunder Hawks', 'A high-energy team that dominates the rink.', '#8B0000'), -- 18
+  ('Emerald Guardians', 'A defensive powerhouse with an unbreakable strategy.', '#228B22'), -- 19
+  ('Steel Titans', 'Strong, resilient, and impossible to shake.', '#708090'), -- 20
+  ('Phoenix Fire', 'Rises to the occasion in clutch moments.', '#FF4500'), -- 21
+  ('Iron Wolves', 'A relentless team that never backs down.', '#2F4F4F'), -- 22
+  ('Midnight Reapers', 'Lethal in the final minutes of every game.', '#4B0082'), -- 23
+  ('Neon Strikers', 'A high-scoring team with flashy plays.', '#00FF7F'), -- 24
+  ('Scarlet Blades', 'Masters of precision passing and quick attacks.', '#DC143C'), -- 25
+  ('Cobalt Chargers', 'Unstoppable speed and offensive firepower.', '#4169E1'), -- 26
+  ('Onyx Predators', 'A physically dominant team that wears down opponents.', '#000000'), -- 27
+  ('Amber Raptors', 'Fast and unpredictable, known for creative plays.', '#FF8C00'), -- 28
+  ('Silver Foxes', 'A veteran team with discipline and experience.', '#C0C0C0'), -- 29
+  ('Voltage Kings', 'Electrifying speed and a lightning-fast transition game.', '#FFFF00'), -- 30
+  ('Obsidian Warriors', 'A tough and resilient team that grinds out wins.', '#1C1C1C'), -- 31
+  ('Titanium Blizzards', 'A well-balanced team with elite skill.', '#D3D3D3'), -- 32
+  ('Ruby Thunder', 'A powerhouse with a thunderous offensive presence.', '#8B0000'), -- 33
+  ('Sapphire Storm', 'A dynamic team known for their speed and agility.', '#0000FF') -- 34
+;
+
+
 
 -- Add captains to OPH teams
 INSERT INTO league_management.team_memberships
@@ -1457,6 +1485,32 @@ VALUES
   (11, 13), -- 13
   (11, 14), -- 14
   (4, 2) -- 15
+;
+
+-- new sample teams
+INSERT INTO league_management.division_teams
+  (division_id, team_id)
+VALUES
+  (5, 15), -- 16
+  (5, 16), -- 17
+  (5, 17), -- 18
+  (5, 18), -- 19
+  (5, 19), -- 20
+  (5, 20), -- 21
+  (6, 21), -- 22
+  (6, 22), -- 23
+  (6, 23), -- 24
+  (6, 24), -- 25
+  (6, 25), -- 26
+  (6, 26), -- 27
+  (7, 27), -- 28
+  (7, 28), -- 29
+  (7, 29), -- 30
+  (7, 30), -- 31
+  (8, 31), -- 32
+  (8, 32), -- 33
+  (8, 33), -- 34
+  (8, 34) -- 35
 ;
 
 -- Default division_rosters

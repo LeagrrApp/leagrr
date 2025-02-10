@@ -16,7 +16,7 @@ export default function DivisionTabs({ divisions, canAdd }: DivisionProps) {
   const params = useParams();
   const pathname = usePathname();
 
-  const { league, season } = params;
+  const { league, season, division } = params;
 
   if (typeof league !== "string" || typeof season !== "string") return null;
 
@@ -24,15 +24,33 @@ export default function DivisionTabs({ divisions, canAdd }: DivisionProps) {
 
   if (canAdd) classes.push(css.division_tabs_can_add);
 
+  let tabLinkAddition: string | undefined = undefined;
+
+  if (
+    pathname ===
+    createDashboardUrl(
+      {
+        l: league,
+        s: season,
+        d: division as string,
+      },
+      "teams",
+    )
+  )
+    tabLinkAddition = "teams";
+
   return (
     <nav className={apply_classes(classes)}>
       <ol className={css.division_tabs_list}>
         {divisions.map((div) => {
-          const url = createDashboardUrl({
-            l: league,
-            s: season,
-            d: div.slug,
-          });
+          const url = createDashboardUrl(
+            {
+              l: league,
+              s: season,
+              d: div.slug,
+            },
+            tabLinkAddition,
+          );
 
           let icon: string | undefined;
 

@@ -1,0 +1,8 @@
+.color_indicator {
+  background-color: var(--ci-color);
+  border: 0.0625rem solid hsl(from var(--ci-color, white) h s calc(l * 0.75));
+  display: inline-block;
+  width: var(--ci-size, 1.5rem);
+  height: var(--ci-size, 1.5rem);
+  border-radius: var(--spacer-s);
+}

@@ -36,11 +36,11 @@ export default function ActiveRoster({
 
   const editDialogRef = useRef<HTMLDialogElement>(null);
   const removeDialogRef = useRef<HTMLDialogElement>(null);
-  const [teamMemberToEdit, setTeamMemberToEdit] = useState<TeamUserData>(
-    teamMembers[0],
-  );
+  const [teamMemberToEdit, setTeamMemberToEdit] = useState<
+    TeamUserData | undefined
+  >(teamMembers[0]);
   const [rosterRoleValue, setRosterRoleValue] = useState<number | undefined>(
-    teamMemberToEdit.roster_role,
+    teamMemberToEdit?.roster_role,
   );
   const [editState, editAction, editPending] = useActionState(
     editPlayerOnDivisionTeam,
@@ -56,7 +56,7 @@ export default function ActiveRoster({
   );
 
   useEffect(() => {
-    setRosterRoleValue(teamMemberToEdit.roster_role);
+    teamMemberToEdit && setRosterRoleValue(teamMemberToEdit.roster_role);
   }, [teamMemberToEdit]);
 
   function handleClick(user_id: number, remove?: boolean) {
@@ -167,74 +167,76 @@ export default function ActiveRoster({
           </Table>
         </>
       )}
-      <h4 className="push-m">Players</h4>
       {players && players.length >= 1 && (
-        <Table
-          className="push-l"
-          hColWidth={`${playerHColWidth}%`}
-          colWidth={playerColWidth}
-        >
-          <thead>
-            <tr>
-              {playerColHeaders.map((th) => (
-                <th
-                  key={th.title}
-                  scope="col"
-                  title={th.shorthand ? th.title : undefined}
-                  data-highlight-col={th.highlightCol ? true : undefined}
-                >
-                  {th.shorthand ? (
-                    <span aria-hidden="true">{th.shorthand}</span>
-                  ) : (
-                    <>{th.title}</>
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {players.map((p) => {
-              const isCaptain = p.roster_role === 2;
-              const isAlternateCaptain = p.roster_role === 3;
-
-              return (
-                <tr key={p.username}>
-                  <th scope="row">
-                    <Link href={createDashboardUrl({ u: p.username })}>
-                      {nameDisplay(p.first_name, p.last_name, "full")}
-                    </Link>{" "}
-                    {isCaptain && <strong title="Captain">(C)</strong>}
-                    {isAlternateCaptain && (
-                      <strong title="Alternate Captain">(A)</strong>
+        <>
+          <h4 className="push-m">Players</h4>
+          <Table
+            className="push-l"
+            hColWidth={`${playerHColWidth}%`}
+            colWidth={playerColWidth}
+          >
+            <thead>
+              <tr>
+                {playerColHeaders.map((th) => (
+                  <th
+                    key={th.title}
+                    scope="col"
+                    title={th.shorthand ? th.title : undefined}
+                    data-highlight-col={th.highlightCol ? true : undefined}
+                  >
+                    {th.shorthand ? (
+                      <span aria-hidden="true">{th.shorthand}</span>
+                    ) : (
+                      <>{th.title}</>
                     )}
                   </th>
-                  <td>{p.pronouns}</td>
-                  <td>{p.gender}</td>
-                  <td title={p.position}>{makeAcronym(p.position || "")}</td>
-                  <td>{p.number}</td>
-                  <td>
-                    <Button
-                      style={{ position: "relative" }}
-                      variant="grey"
-                      onClick={() => handleClick(p.user_id)}
-                    >
-                      <Icon icon="edit_square" label="Edit" hideLabel />
-                    </Button>
-                  </td>
-                  <td>
-                    <Button
-                      style={{ position: "relative" }}
-                      variant="danger"
-                      onClick={() => handleClick(p.user_id, true)}
-                    >
-                      <Icon icon="person_remove" label="Remove" hideLabel />
-                    </Button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </Table>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {players.map((p) => {
+                const isCaptain = p.roster_role === 2;
+                const isAlternateCaptain = p.roster_role === 3;
+
+                return (
+                  <tr key={p.username}>
+                    <th scope="row">
+                      <Link href={createDashboardUrl({ u: p.username })}>
+                        {nameDisplay(p.first_name, p.last_name, "full")}
+                      </Link>{" "}
+                      {isCaptain && <strong title="Captain">(C)</strong>}
+                      {isAlternateCaptain && (
+                        <strong title="Alternate Captain">(A)</strong>
+                      )}
+                    </th>
+                    <td>{p.pronouns}</td>
+                    <td>{p.gender}</td>
+                    <td title={p.position}>{makeAcronym(p.position || "")}</td>
+                    <td>{p.number}</td>
+                    <td>
+                      <Button
+                        style={{ position: "relative" }}
+                        variant="grey"
+                        onClick={() => handleClick(p.user_id)}
+                      >
+                        <Icon icon="edit_square" label="Edit" hideLabel />
+                      </Button>
+                    </td>
+                    <td>
+                      <Button
+                        style={{ position: "relative" }}
+                        variant="danger"
+                        onClick={() => handleClick(p.user_id, true)}
+                      >
+                        <Icon icon="person_remove" label="Remove" hideLabel />
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        </>
       )}
       {spares && spares.length >= 1 && (
         <>
@@ -303,93 +305,105 @@ export default function ActiveRoster({
           </Table>
         </>
       )}
-      <Dialog ref={editDialogRef}>
-        <form action={editAction}>
-          <Grid cols={2} gap="base">
-            <Col fullSpan>
-              <h3>Edit {teamMemberToEdit?.first_name}</h3>
-            </Col>
-            <input type="hidden" name="team_id" value={team_id} />
-            <input
-              type="hidden"
-              name="division_roster_id"
-              value={teamMemberToEdit.division_roster_id}
-            />
-            <Col fullSpan>
-              <Select
-                name="roster_role"
-                label="Roster Role"
-                choices={rosterRoleOptions}
-                errors={{
-                  errs: editState?.errors?.roster_role,
-                  type: "danger",
-                }}
-                selected={rosterRoleValue}
-                onChange={(e) => setRosterRoleValue(parseInt(e.target.value))}
-              />
-            </Col>
-            {rosterRoleValue !== 1 && (
-              <>
-                <Input
-                  name="number"
-                  label="Number"
-                  type="number"
-                  min="1"
-                  max="98"
-                  defaultValue={teamMemberToEdit?.number?.toString()}
-                  errors={{ errs: editState?.errors?.number, type: "danger" }}
+      {teamMemberToEdit && (
+        <>
+          <Dialog ref={editDialogRef}>
+            <form action={editAction}>
+              <Grid cols={2} gap="base">
+                <Col fullSpan>
+                  <h3>Edit {teamMemberToEdit?.first_name}</h3>
+                </Col>
+                <input type="hidden" name="team_id" value={team_id} />
+                <input
+                  type="hidden"
+                  name="division_roster_id"
+                  value={teamMemberToEdit.division_roster_id}
                 />
-                <Select
-                  name="position"
-                  label="Position"
-                  choices={[
-                    "Center",
-                    "Right Wing",
-                    "Left Wing",
-                    "Defense",
-                    "Goalie",
-                  ]}
-                  errors={{ errs: editState?.errors?.position, type: "danger" }}
-                  selected={teamMemberToEdit.position}
+                <Col fullSpan>
+                  <Select
+                    name="roster_role"
+                    label="Roster Role"
+                    choices={rosterRoleOptions}
+                    errors={{
+                      errs: editState?.errors?.roster_role,
+                      type: "danger",
+                    }}
+                    selected={rosterRoleValue}
+                    onChange={(e) =>
+                      setRosterRoleValue(parseInt(e.target.value))
+                    }
+                  />
+                </Col>
+                {rosterRoleValue !== 1 && (
+                  <>
+                    <Input
+                      name="number"
+                      label="Number"
+                      type="number"
+                      min="1"
+                      max="98"
+                      defaultValue={teamMemberToEdit?.number?.toString()}
+                      errors={{
+                        errs: editState?.errors?.number,
+                        type: "danger",
+                      }}
+                    />
+                    <Select
+                      name="position"
+                      label="Position"
+                      choices={[
+                        "Center",
+                        "Right Wing",
+                        "Left Wing",
+                        "Defense",
+                        "Goalie",
+                      ]}
+                      errors={{
+                        errs: editState?.errors?.position,
+                        type: "danger",
+                      }}
+                      selected={teamMemberToEdit.position}
+                    />
+                  </>
+                )}
+                <Button type="submit" disabled={editPending}>
+                  <Icon icon="save" label="Save" />
+                </Button>
+                <Button
+                  onClick={() => editDialogRef?.current?.close()}
+                  variant="grey"
+                >
+                  <Icon icon="cancel" label="Cancel" />
+                </Button>
+              </Grid>
+            </form>
+          </Dialog>
+          <Dialog ref={removeDialogRef}>
+            <form action={removeAction}>
+              <Grid cols={2} gap="base">
+                <Col fullSpan>
+                  <h3>Remove {teamMemberToEdit?.first_name}?</h3>
+                </Col>
+                <input type="hidden" name="team_id" value={team_id} />
+                <input
+                  type="hidden"
+                  name="division_roster_id"
+                  value={teamMemberToEdit.division_roster_id}
                 />
-              </>
-            )}
-            <Button type="submit" disabled={editPending}>
-              <Icon icon="save" label="Save" />
-            </Button>
-            <Button
-              onClick={() => editDialogRef?.current?.close()}
-              variant="grey"
-            >
-              <Icon icon="cancel" label="Cancel" />
-            </Button>
-          </Grid>
-        </form>
-      </Dialog>
-      <Dialog ref={removeDialogRef}>
-        <form action={removeAction}>
-          <Grid cols={2} gap="base">
-            <Col fullSpan>
-              <h3>Remove {teamMemberToEdit?.first_name}?</h3>
-            </Col>
-            <input type="hidden" name="team_id" value={team_id} />
-            <input
-              type="hidden"
-              name="division_roster_id"
-              value={teamMemberToEdit.division_roster_id}
-            />
-            <Button type="submit" disabled={removePending} variant="danger">
-              <Icon icon="delete" label="Confirm" />
-            </Button>
-            <Button
-              onClick={() => removeDialogRef?.current?.close()}
-              variant="grey"
-            >
-              <Icon icon="cancel" label="Cancel" />
-            </Button>
-          </Grid>
-        </form>
-      </Dialog>
+                <Button type="submit" disabled={removePending} variant="danger">
+                  <Icon icon="delete" label="Confirm" />
+                </Button>
+                <Button
+                  onClick={() => removeDialogRef?.current?.close()}
+                  variant="grey"
+                >
+                  <Icon icon="cancel" label="Cancel" />
+                </Button>
+              </Grid>
+            </form>
+          </Dialog>
+        </>
+      )}
     </>
   );
 }

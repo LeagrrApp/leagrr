@@ -12,7 +12,7 @@ import css from "./teamHeader.module.css";
 interface TeamHeaderProps {
   team: TeamData;
   canEdit: boolean;
-  divisions: TeamDivisionsProps[];
+  divisions: TeamDivisionsData[];
 }
 
 export default function TeamHeader({

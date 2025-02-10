@@ -433,7 +433,7 @@ export async function getTeamDivisionRoster(
 
 export async function getDivisionsByTeam(
   team_id: number,
-): Promise<ResultProps<TeamDivisionsProps[]>> {
+): Promise<ResultProps<TeamDivisionsData[]>> {
   // verify signed in
   await verifySession();
 
@@ -840,11 +840,7 @@ export async function setTeamJoinCode(
       };
     });
 
-  return {
-    data: result.data,
-    message: result.message,
-    status: result.status,
-  };
+  return result;
 }
 
 const JoinTeamSchema = z.object({
@@ -930,7 +926,7 @@ export async function joinTeam(
           throw new Error("Team not found!");
         }
         return {
-          message: "Membership updated!",
+          message: "Join code retrieved!",
           status: 200,
           data: res.rows[0],
         };

@@ -201,3 +201,99 @@ export async function verifyUserRole(roleType: number) {
 
   return user_role === roleType;
 }
+
+export async function getUserManagedTeams(
+  user_id?: number,
+): Promise<ResultProps<TeamData[]>> {
+  // verify session
+  const { user_id: logged_user_id } = await verifySession();
+
+  let id = user_id || logged_user_id;
+
+  const sql = `
+    SELECT 
+      t.team_id,
+      t.name,
+      t.slug,
+      tm.team_role
+    FROM
+      league_management.team_memberships AS tm
+    JOIN
+      league_management.teams AS t
+    ON
+      tm.team_id = t.team_id
+    WHERE
+      tm.user_id = $1
+      AND
+      tm.team_role = 1
+    ORDER BY t.name
+  `;
+
+  const result = await db
+    .query(sql, [id])
+    .then((res) => {
+      return {
+        message: `Managed teams found!`,
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  return result;
+}
+
+export async function getUserManagedTeamsForJoinDivision(
+  division_id: number,
+  user_id?: number,
+): Promise<ResultProps<TeamData[]>> {
+  // verify session
+  const { user_id: logged_user_id } = await verifySession();
+
+  let id = user_id || logged_user_id;
+
+  const sql = `
+    SELECT 
+      t.team_id,
+      t.name,
+      t.slug,
+      tm.team_role
+    FROM
+      league_management.team_memberships AS tm
+    JOIN
+      league_management.teams AS t
+    ON
+      tm.team_id = t.team_id
+    WHERE
+      tm.user_id = $1
+      AND
+      tm.team_role = 1
+      AND
+      t.team_id NOT IN (SELECT team_id FROM league_management.division_teams WHERE division_id = $2)
+    ORDER BY t.name
+  `;
+
+  const result = await db
+    .query(sql, [id, division_id])
+    .then((res) => {
+      console.log(res);
+      return {
+        message: `Managed teams found!`,
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  return result;
+}

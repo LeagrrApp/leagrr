@@ -84,6 +84,16 @@ export default async function Page({
           <h3>
             <Icon icon="trophy" label="Standings" labelFirst />
           </h3>
+          {canEdit && (
+            <Button
+              href={createDashboardUrl(
+                { l: league, s: season, d: division },
+                "teams",
+              )}
+            >
+              <Icon icon="groups" label="Manage Teams" />
+            </Button>
+          )}
         </DashboardUnitHeader>
         {teams && teams.length > 0 ? (
           <DivisionStandings
@@ -97,7 +107,7 @@ export default async function Page({
               <Button
                 href={createDashboardUrl(
                   { l: league, s: season, d: division },
-                  "t",
+                  "teams",
                 )}
               >
                 Invite teams

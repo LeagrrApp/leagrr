@@ -10,7 +10,7 @@ import { createDashboardUrl } from "@/utils/helpers/formatting";
 
 interface DivisionSelectorProps {
   canEdit: boolean;
-  divisions: TeamDivisionsProps[];
+  divisions: TeamDivisionsData[];
 }
 
 export default function DivisionSelector({

@@ -1,0 +1,13 @@
+.layout {
+  display: grid;
+  gap: var(--spacer-l) var(--spacer-base);
+
+  @container (width >= 60rem) {
+    grid-template-columns: 2fr 1fr;
+    grid-auto-flow: dense;
+  }
+}
+
+.division_teams {
+  grid-column: 1 / 2;
+}
