@@ -1,20 +1,19 @@
 "use client";
 
-import Button from "@/components/ui/Button/Button";
-import Icon from "@/components/ui/Icon/Icon";
-import { useActionState, useEffect, useRef, useState } from "react";
-import css from "./gameFeedAdd.module.css";
-import Select from "@/components/ui/forms/Select";
-import Alert from "@/components/ui/Alert/Alert";
-import { nameDisplay } from "@/utils/helpers/formatting";
-import Col from "@/components/ui/layout/Col";
-import NumberSelect from "@/components/ui/forms/NumberSelect";
-import Switch from "@/components/ui/forms/Switch/Switch";
 import { addToGameFeed } from "@/actions/games";
-import Input from "@/components/ui/forms/Input";
-import { usePathname } from "next/navigation";
+import Alert from "@/components/ui/Alert/Alert";
+import Button from "@/components/ui/Button/Button";
 import Checkbox from "@/components/ui/forms/Checkbox";
+import Input from "@/components/ui/forms/Input";
+import NumberSelect from "@/components/ui/forms/NumberSelect";
+import Select from "@/components/ui/forms/Select";
+import Icon from "@/components/ui/Icon/Icon";
+import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
+import { nameDisplay } from "@/utils/helpers/formatting";
+import { usePathname } from "next/navigation";
+import { useActionState, useEffect, useState } from "react";
+import css from "./gameFeedAdd.module.css";
 
 interface GameFeedAddProps {
   game: GameData;
@@ -34,7 +33,6 @@ type Choice = { label: string; value: number };
 
 export default function GameFeedAdd({
   game,
-  canEdit,
   teamRosters,
   currentTime,
 }: GameFeedAddProps) {
@@ -64,7 +62,9 @@ export default function GameFeedAdd({
   const [adding, setAdding] = useState<boolean>(false);
   const [type, setType] = useState<string>("shot");
   const [team, setTeam] = useState<number>(game.away_team_id);
-  const [player, setPlayer] = useState<number>(away_players[0].value);
+  const [player, setPlayer] = useState<number | undefined>(
+    away_players[0]?.value || undefined,
+  );
   const [canAssist, setCanAssist] = useState<Choice[]>([]);
   const [goalie, setGoalie] = useState<number>(
     teamRosters.home_roster.find((p) => p.position === "Goalie")?.user_id || 0,
@@ -73,8 +73,8 @@ export default function GameFeedAdd({
   useEffect(() => {
     setPlayer(
       team === game.home_team_id
-        ? home_players[0].value
-        : away_players[0].value,
+        ? home_players[0]?.value
+        : away_players[0]?.value,
     );
     setGoalie(
       (team === game.home_team_id

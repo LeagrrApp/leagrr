@@ -28,7 +28,12 @@ export default async function GameFeed({
     game.division_id,
   );
 
-  if (!teamRosters) return null;
+  if (
+    !teamRosters ||
+    teamRosters.away_roster.length === 0 ||
+    teamRosters.home_roster.length === 0
+  )
+    return null;
 
   const currentTime = {
     period: 1,
