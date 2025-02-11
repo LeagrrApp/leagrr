@@ -1,0 +1,19 @@
+.user_header_container {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacer-l);
+}
+
+.user_headline {
+  display: flex;
+  align-items: center;
+  gap: var(--spacer-base);
+}
+
+.user_info {
+  font-size: var(--type-scale-h5);
+}
+
+.user_username {
+  font-style: italic;
+}

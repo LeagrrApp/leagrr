@@ -1,5 +1,6 @@
 .dashboard_header {
   padding-block: var(--spacer-l) var(--spacer-base);
+  margin-block-end: var(--spacer-l);
   background: linear-gradient(
     225deg,
     hsla(from var(--dbh-bg-color, var(--color-white)) h s l / 0.5),

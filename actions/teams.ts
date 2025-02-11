@@ -33,14 +33,7 @@ type TeamErrorProps = {
   join_code?: string[] | undefined;
 };
 
-type TeamFormState =
-  | {
-      errors?: TeamErrorProps;
-      message?: string;
-      status?: number;
-      data?: Partial<TeamData>;
-    }
-  | undefined;
+type TeamFormState = FormState<TeamErrorProps, Partial<TeamData>>;
 
 export async function createTeam(
   state: TeamFormState,
@@ -102,7 +95,10 @@ export async function createTeam(
       });
 
   if (!teamInsertResult.data) {
-    return teamInsertResult;
+    return {
+      ...teamInsertResult,
+      data: teamData,
+    };
   }
   // add user to team as manager (1)
   const teamMembershipSql = `
@@ -142,7 +138,7 @@ export async function createTeam(
 
     await db.query(deleteSql, [teamInsertResult.data.team_id]);
 
-    return teamMembershipInsertResult;
+    return { ...teamMembershipInsertResult, data: teamData };
 
     // return {
     //   message: "There was an error creating team. Try again.",
@@ -733,6 +729,7 @@ export async function editTeam(
     return {
       message: "You do not have permission to edit this team.",
       status: 401,
+      data: teamData,
     };
   }
 
@@ -772,7 +769,7 @@ export async function editTeam(
   if (result?.data?.slug)
     redirect(createDashboardUrl({ t: result?.data?.slug }));
 
-  return result;
+  return { ...result, data: teamData };
 }
 
 const TeamJoinCodeSchema = z.object({
@@ -799,6 +796,7 @@ export async function setTeamJoinCode(
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
+      data: teamData,
     };
   }
 
@@ -810,6 +808,7 @@ export async function setTeamJoinCode(
     return {
       message: "You do not have permission to edit this team.",
       status: 401,
+      data: teamData,
     };
   }
 
@@ -840,8 +839,31 @@ export async function setTeamJoinCode(
       };
     });
 
-  return result;
+  return { ...result, data: teamData };
 }
+
+type TeamMembershipErrorProps = {
+  team_id?: string[] | undefined;
+  join_code?: string[] | undefined;
+  division_id?: string[] | undefined;
+  number?: string[] | undefined;
+  position?: string[] | undefined;
+  team_role?: string[] | undefined;
+  team_membership_id?: string[] | undefined;
+};
+
+type TeamMembershipFormState = FormState<
+  TeamMembershipErrorProps,
+  {
+    team_id?: number;
+    join_code?: string;
+    division_id?: number;
+    number?: number;
+    position?: string;
+    team_role?: string;
+    team_membership_id?: number;
+  }
+>;
 
 const JoinTeamSchema = z.object({
   team_id: z.number().min(1),
@@ -851,34 +873,10 @@ const JoinTeamSchema = z.object({
   position: z.string().optional(),
 });
 
-type JoinTeamErrorProps = {
-  team_id?: string[] | undefined;
-  join_code?: string[] | undefined;
-  division_id?: string[] | undefined;
-  number?: string[] | undefined;
-  position?: string[] | undefined;
-};
-
-type JoinTeamFormState =
-  | {
-      errors?: JoinTeamErrorProps;
-      message?: string;
-      status?: number;
-      link?: string;
-      data?: {
-        team_id?: number;
-        join_code?: string;
-        division_id?: number;
-        number?: number;
-        position?: string;
-      };
-    }
-  | undefined;
-
 export async function joinTeam(
-  state: JoinTeamFormState,
+  state: TeamMembershipFormState,
   formData: FormData,
-): Promise<JoinTeamFormState> {
+): Promise<TeamMembershipFormState> {
   // check user is logged in and get their user_id
   const { user_id } = await verifySession();
 
@@ -939,7 +937,7 @@ export async function joinTeam(
       });
 
   if (!teamDataResult?.data) {
-    return teamDataResult;
+    return { ...teamDataResult, data: submittedData };
   }
 
   // compare submitted join_code
@@ -951,6 +949,7 @@ export async function joinTeam(
     return {
       message: "Join code does not match team's join code!",
       status: 401,
+      data: submittedData,
     };
 
   // check if they are already a team member
@@ -1006,7 +1005,8 @@ export async function joinTeam(
         };
       });
 
-    if (teamResult.status === 400) return teamResult;
+    if (teamResult.status === 400)
+      return { ...teamResult, data: submittedData };
   }
 
   // if division_id is provided, also add user to team division roster
@@ -1080,7 +1080,8 @@ export async function joinTeam(
           };
         });
 
-      if (rosterAddResult.status === 400) return rosterAddResult;
+      if (rosterAddResult.status === 400)
+        return { ...rosterAddResult, data: submittedData };
 
       // redirect to specific division if division_id provide
       redirect(
@@ -1092,12 +1093,13 @@ export async function joinTeam(
     }
 
     // user was already on the roster
-    return rosterCheckResult;
+    return { ...rosterCheckResult, data: submittedData };
   }
 
   // if user was already a member of the team and
   // did not need to be added to a division roster
-  if (membershipCheckResult.status === 400) return membershipCheckResult;
+  if (membershipCheckResult.status === 400)
+    return { ...membershipCheckResult, data: submittedData };
 
   // else redirect to team page
   if (teamDataResult.data.slug)
@@ -1109,26 +1111,8 @@ const EditTeamMembershipSchema = z.object({
   team_membership_id: z.number().min(1),
 });
 
-type EditTeamMembershipErrorProps = {
-  team_role?: string[] | undefined;
-  team_membership_id?: string[] | undefined;
-};
-
-type EditTeamMembershipFormState =
-  | {
-      errors?: EditTeamMembershipErrorProps;
-      message?: string;
-      status?: number;
-      link?: string;
-      data?: {
-        team_role?: string;
-        team_membership_id?: number;
-      };
-    }
-  | undefined;
-
 export async function editTeamMembership(
-  state: EditTeamMembershipFormState,
+  state: TeamMembershipFormState,
   formData: FormData,
 ) {
   const submittedData = {
@@ -1194,20 +1178,8 @@ const RemoveTeamMembershipSchema = z.object({
   team_membership_id: z.number().min(1),
 });
 
-type RemoveTeamMembershipFormState =
-  | {
-      errors?: EditTeamMembershipErrorProps;
-      message?: string;
-      status?: number;
-      link?: string;
-      data?: {
-        team_membership_id?: number;
-      };
-    }
-  | undefined;
-
 export async function removeTeamMembership(
-  state: RemoveTeamMembershipFormState,
+  state: TeamMembershipFormState,
   formData: FormData,
 ) {
   const submittedData = {
@@ -1268,15 +1240,7 @@ export async function removeTeamMembership(
   return state;
 }
 
-const AddPlayerToDivisionTeamSchema = z.object({
-  division_team_id: z.number().min(1),
-  team_membership_id: z.number().min(1),
-  number: z.number().min(1).max(98).optional(),
-  position: z.string().optional(),
-  roster_role: z.number().min(1).max(5),
-});
-
-type AddPlayerToDivisionTeamErrorProps = {
+type DivisionTeamErrorProps = {
   division_roster_id?: string[] | undefined;
   division_team_id?: string[] | undefined;
   team_membership_id?: string[] | undefined;
@@ -1285,27 +1249,30 @@ type AddPlayerToDivisionTeamErrorProps = {
   roster_role?: string[] | undefined;
 };
 
-type AddPlayerToDivisionTeamFormState =
-  | {
-      errors?: AddPlayerToDivisionTeamErrorProps;
-      message?: string;
-      status?: number;
-      link?: string;
-      data?: {
-        team_id?: number;
-        division_team_id?: number;
-        team_membership_id?: number;
-        number?: number;
-        position?: string;
-        roster_role?: number;
-      };
-    }
-  | undefined;
+type DivisionTeamFormState = FormState<
+  DivisionTeamErrorProps,
+  {
+    team_id?: number;
+    division_team_id?: number;
+    team_membership_id?: number;
+    number?: number;
+    position?: string;
+    roster_role?: number;
+  }
+>;
+
+const AddPlayerToDivisionTeamSchema = z.object({
+  division_team_id: z.number().min(1),
+  team_membership_id: z.number().min(1),
+  number: z.number().min(1).max(98).optional(),
+  position: z.string().optional(),
+  roster_role: z.number().min(1).max(5),
+});
 
 export async function addPlayerToDivisionTeam(
-  state: AddPlayerToDivisionTeamFormState,
+  state: DivisionTeamFormState,
   formData: FormData,
-): Promise<AddPlayerToDivisionTeamFormState> {
+): Promise<DivisionTeamFormState> {
   const submittedData = {
     team_id: parseInt(formData.get("team_id") as string),
     division_team_id: parseInt(formData.get("division_team_id") as string),
@@ -1339,6 +1306,7 @@ export async function addPlayerToDivisionTeam(
     return {
       message: "You do not have permission to modify rosters for this team.",
       status: 401,
+      data: submittedData,
     };
   }
 
@@ -1385,7 +1353,7 @@ const EditPlayerOnDivisionTeamSchema = z.object({
 });
 
 export async function editPlayerOnDivisionTeam(
-  state: AddPlayerToDivisionTeamFormState,
+  state: DivisionTeamFormState,
   formData: FormData,
 ) {
   const submittedData = {
@@ -1464,21 +1432,8 @@ const RemovePlayerFromDivisionTeamSchema = z.object({
   division_roster_id: z.number().min(1),
 });
 
-type RemovePlayerFromDivisionTeamFormState =
-  | {
-      errors?: AddPlayerToDivisionTeamErrorProps;
-      message?: string;
-      status?: number;
-      link?: string;
-      data?: {
-        team_id?: number;
-        division_team_id?: number;
-      };
-    }
-  | undefined;
-
 export async function removePlayerFromDivisionTeam(
-  state: RemovePlayerFromDivisionTeamFormState,
+  state: DivisionTeamFormState,
   formData: FormData,
 ) {
   const submittedData = {

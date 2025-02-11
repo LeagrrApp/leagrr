@@ -121,7 +121,6 @@ export default function TeamInvite({ team, division_id }: TeamInviteProps) {
             <Button
               onClick={() => dialogRef?.current?.showModal()}
               disabled={pending}
-              padding={["s"]}
               type="submit"
             >
               <Icon

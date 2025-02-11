@@ -39,14 +39,21 @@ type DivisionErrorProps = {
   join_code?: string[] | undefined;
 };
 
-type DivisionFormState =
-  | {
-      errors?: DivisionErrorProps;
-      message?: string;
-      status?: number;
-      link?: string;
-    }
-  | undefined;
+type DivisionFormState = FormState<
+  DivisionErrorProps,
+  Partial<
+    Pick<
+      DivisionData,
+      | "name"
+      | "description"
+      | "season_id"
+      | "league_id"
+      | "tier"
+      | "gender"
+      | "join_code"
+    >
+  >
+>;
 
 export async function createDivision(
   state: DivisionFormState,
@@ -55,34 +62,36 @@ export async function createDivision(
   // check user is logged in
   await verifySession();
 
-  const divisionData = {
-    name: formData.get("name"),
-    description: formData.get("description"),
+  const submittedData = {
+    name: formData.get("name") as string,
+    description: formData.get("description") as string,
     season_id: parseInt(formData.get("season_id") as string),
     league_id: parseInt(formData.get("league_id") as string),
     tier: parseInt(formData.get("tier") as string),
-    gender: formData.get("gender"),
-    join_code: formData.get("join_code"),
+    gender: formData.get("gender") as string,
+    join_code: formData.get("join_code") as string,
   };
 
   // Check to see if the user is allowed to create a division for this season
-  const { canEdit } = await canEditLeague(divisionData.league_id);
+  const { canEdit } = await canEditLeague(submittedData.league_id);
 
   if (!canEdit) {
     return {
       message:
         "You do not have permission to create a division for this season",
       status: 400,
+      data: submittedData,
     };
   }
 
   // Validate form fields
-  const validatedFields = DivisionFormSchema.safeParse(divisionData);
+  const validatedFields = DivisionFormSchema.safeParse(submittedData);
 
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
+      data: submittedData,
     };
   }
 
@@ -101,13 +110,13 @@ export async function createDivision(
   // query database
   const insertResult: ResultProps<DivisionData> = await db
     .query(sql, [
-      divisionData.name,
-      divisionData.description,
-      divisionData.season_id,
-      divisionData.tier,
-      divisionData.gender,
-      divisionData.join_code,
-      divisionData.league_id,
+      submittedData.name,
+      submittedData.description,
+      submittedData.season_id,
+      submittedData.tier,
+      submittedData.gender,
+      submittedData.join_code,
+      submittedData.league_id,
     ])
     .then((res) => {
       return {
@@ -132,7 +141,7 @@ export async function createDivision(
       }),
     );
 
-  return insertResult;
+  return { ...insertResult, data: submittedData };
 }
 
 export async function getDivisionsBySeason(season_id: number) {
@@ -1070,35 +1079,37 @@ export async function editDivision(
   // check user is logged in
   await verifySession();
 
-  const divisionData = {
-    name: formData.get("name"),
-    description: formData.get("description"),
+  const submittedData = {
+    name: formData.get("name") as string,
+    description: formData.get("description") as string,
     division_id: parseInt(formData.get("division_id") as string),
     league_id: parseInt(formData.get("league_id") as string),
     tier: parseInt(formData.get("tier") as string),
-    gender: formData.get("gender"),
-    join_code: formData.get("join_code"),
-    status: formData.get("status"),
+    gender: formData.get("gender") as string,
+    join_code: formData.get("join_code") as string,
+    status: formData.get("status") as string,
   };
 
   // Check to see if the user is allowed to create a season for this league
-  const { canEdit } = await canEditLeague(divisionData.league_id);
+  const { canEdit } = await canEditLeague(submittedData.league_id);
 
   if (!canEdit) {
     return {
       message:
         "You do not have permission to create a division for this season",
       status: 400,
+      data: submittedData,
     };
   }
 
   // Validate form fields
-  const validatedFields = DivisionFormSchema.safeParse(divisionData);
+  const validatedFields = DivisionFormSchema.safeParse(submittedData);
 
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
+      data: submittedData,
     };
   }
 
@@ -1118,13 +1129,13 @@ export async function editDivision(
 
   const updateResult: { message: string; status: number } = await db
     .query(updateSql, [
-      divisionData.name,
-      divisionData.description,
-      divisionData.tier,
-      divisionData.gender,
-      divisionData.join_code,
-      divisionData.status,
-      divisionData.division_id,
+      submittedData.name,
+      submittedData.description,
+      submittedData.tier,
+      submittedData.gender,
+      submittedData.join_code,
+      submittedData.status,
+      submittedData.division_id,
     ])
     .then((res) => {
       return {
@@ -1142,7 +1153,7 @@ export async function editDivision(
   // TODO: get slug for redirect in case of slug change
   if (state?.link) redirect(state?.link);
 
-  return { ...updateResult };
+  return { ...updateResult, data: submittedData };
 }
 
 const DivisionJoinCodeSchema = z.object({
@@ -1159,19 +1170,14 @@ type DivisionJoinCodeErrorProps = {
   league_id?: string[] | undefined;
 };
 
-type DivisionJoinCodeFormState =
-  | {
-      errors?: DivisionJoinCodeErrorProps;
-      message?: string;
-      status?: number;
-      link?: string;
-      data?: {
-        join_code?: string;
-        division_id?: number;
-        league_id?: number;
-      };
-    }
-  | undefined;
+type DivisionJoinCodeFormState = FormState<
+  DivisionJoinCodeErrorProps,
+  {
+    join_code?: string;
+    division_id?: number;
+    league_id?: number;
+  }
+>;
 
 export async function setDivisionJoinCode(
   state: DivisionJoinCodeFormState,
@@ -1189,6 +1195,7 @@ export async function setDivisionJoinCode(
     return {
       message: "You do not have permission to add teams to this division.",
       status: 401,
+      data: submittedData,
     };
   }
 
@@ -1199,6 +1206,7 @@ export async function setDivisionJoinCode(
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
+      data: submittedData,
     };
   }
 
@@ -1229,7 +1237,13 @@ export async function setDivisionJoinCode(
       };
     });
 
-  return result;
+  return {
+    ...result,
+    data: {
+      ...submittedData,
+      join_code: result.data?.join_code,
+    },
+  };
 }
 
 const DivisionTeamSchema = z.object({
@@ -1245,19 +1259,14 @@ type DivisionTeamErrorProps = {
   division_team_id?: string[] | undefined;
 };
 
-type DivisionTeamFormState =
-  | {
-      errors?: DivisionTeamErrorProps;
-      message?: string;
-      status?: number;
-      link?: string;
-      data?: {
-        team_id?: number;
-        division_id?: number;
-        division_team_id?: number;
-      };
-    }
-  | undefined;
+type DivisionTeamFormState = FormState<
+  DivisionTeamErrorProps,
+  {
+    team_id?: number;
+    division_id?: number;
+    division_team_id?: number;
+  }
+>;
 
 export async function addTeamToDivision(
   state: DivisionTeamFormState,
@@ -1275,6 +1284,7 @@ export async function addTeamToDivision(
     return {
       message: "You do not have permission to add teams to this division.",
       status: 401,
+      data: submittedData,
     };
   }
 
@@ -1285,6 +1295,7 @@ export async function addTeamToDivision(
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
+      data: submittedData,
     };
   }
 
@@ -1311,7 +1322,7 @@ export async function addTeamToDivision(
       };
     });
 
-  if (result.status === 400) return result;
+  if (result.status === 400) return { ...result, data: submittedData };
 
   state?.link && redirect(state?.link);
 }
@@ -1332,6 +1343,7 @@ export async function removeTeamFromDivision(
     return {
       message: "You do not have permission to add teams to this division.",
       status: 401,
+      data: submittedData,
     };
   }
 
@@ -1342,6 +1354,7 @@ export async function removeTeamFromDivision(
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
+      data: submittedData,
     };
   }
 
@@ -1369,7 +1382,7 @@ export async function removeTeamFromDivision(
       };
     });
 
-  if (result.status === 400) return result;
+  if (result.status === 400) return { ...result, data: submittedData };
 
   state?.link && redirect(state?.link);
 }
@@ -1386,19 +1399,14 @@ type JoinDivisionErrorProps = {
   division_id?: string[] | undefined;
 };
 
-type JoinDivisionFormState =
-  | {
-      errors?: JoinDivisionErrorProps;
-      message?: string;
-      status?: number;
-      link?: string;
-      data?: {
-        join_code?: string;
-        team_id?: number;
-        division_id?: number;
-      };
-    }
-  | undefined;
+type JoinDivisionFormState = FormState<
+  JoinDivisionErrorProps,
+  {
+    join_code?: string;
+    team_id?: number;
+    division_id?: number;
+  }
+>;
 
 export async function joinDivision(
   state: JoinDivisionFormState,
@@ -1418,6 +1426,7 @@ export async function joinDivision(
     return {
       errors: validatedFields.error.flatten().fieldErrors,
       link: state?.link,
+      data: submittedData,
     };
   }
 
@@ -1430,6 +1439,7 @@ export async function joinDivision(
         "You do not have permission to join this division on behalf of this team.",
       status: 401,
       link: state?.link,
+      data: submittedData,
     };
   }
 
@@ -1466,6 +1476,7 @@ export async function joinDivision(
     return {
       ...joinCodeResult,
       link: state?.link,
+      data: submittedData,
     };
   }
 
@@ -1479,6 +1490,7 @@ export async function joinDivision(
       message: "Join code does not match the division's join code!",
       status: 401,
       link: state?.link,
+      data: submittedData,
     };
 
   // check if team is already in division
@@ -1539,7 +1551,8 @@ export async function joinDivision(
         };
       });
 
-    if (insertResult.status === 400) return insertResult;
+    if (insertResult.status === 400)
+      return { ...insertResult, data: submittedData };
 
     state?.link && redirect(state.link);
   }
@@ -1547,6 +1560,7 @@ export async function joinDivision(
   return {
     ...inDivisionCheckResult,
     link: state?.link,
+    data: submittedData,
   };
 }
 

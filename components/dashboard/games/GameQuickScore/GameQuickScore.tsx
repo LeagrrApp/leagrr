@@ -23,9 +23,8 @@ export default function GameQuickScore({
   const { league } = useParams();
 
   const initialState = {
-    league: typeof league === "string" ? league : "",
-    game,
     link: pathname,
+    data: { league: typeof league === "string" ? league : "", game },
   };
 
   const [state, action, pending] = useActionState(setGameScore, initialState);
@@ -80,7 +79,9 @@ export default function GameQuickScore({
                 required
               />
             </div>
-            <Button type="submit">Confirm Score</Button>
+            <Button type="submit" disabled={pending}>
+              Confirm Score
+            </Button>
             <Button
               type="button"
               onClick={() => dialogRef?.current?.close()}

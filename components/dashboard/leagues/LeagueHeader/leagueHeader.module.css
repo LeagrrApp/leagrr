@@ -1,7 +1,3 @@
-.league_header {
-  margin-block-end: var(--spacer-l);
-}
-
 .league_header_container {
   --display: grid;
 

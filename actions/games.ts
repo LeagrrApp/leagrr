@@ -181,21 +181,16 @@ type GameErrorProps = {
   status?: string[] | undefined;
 };
 
-type GameFormState =
-  | {
-      errors?: GameErrorProps;
-      message?: string;
-      status?: number;
-      link?: string;
-      data?: {
-        home_team_id: number;
-        away_team_id: number;
-        arena_id: number;
-        date_time: string;
-        status: string;
-      };
-    }
-  | undefined;
+type GameFormState = FormState<
+  GameErrorProps,
+  {
+    home_team_id: number;
+    away_team_id: number;
+    arena_id: number;
+    date_time: Date | string;
+    status: string;
+  }
+>;
 
 export async function createGame(
   state: GameFormState,
@@ -204,7 +199,7 @@ export async function createGame(
   // check user is logged in
   await verifySession();
 
-  const gameData = {
+  const submittedData = {
     division_id: parseInt(formData.get("division_id") as string),
     league_id: parseInt(formData.get("league_id") as string),
     home_team_id: parseInt(formData.get("home_team_id") as string),
@@ -215,26 +210,27 @@ export async function createGame(
   };
 
   // Check to see if the user is allowed to create a season for this league
-  const { canEdit } = await canEditLeague(gameData.league_id);
+  const { canEdit } = await canEditLeague(submittedData.league_id);
 
   if (!canEdit) {
     return {
       message: "You do not have permission to create games for this division",
       status: 400,
+      data: submittedData,
     };
   }
 
   let errors: GameErrorProps = {};
 
   // Validate form fields
-  const validatedFields = GameCreateFormSchema.safeParse(gameData);
+  const validatedFields = GameCreateFormSchema.safeParse(submittedData);
 
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
     errors = validatedFields.error.flatten().fieldErrors;
   }
 
-  if (gameData.home_team_id === gameData.away_team_id) {
+  if (submittedData.home_team_id === submittedData.away_team_id) {
     if (errors.away_team_id) {
       errors.away_team_id.push("Home and away teams must be different!");
     } else {
@@ -248,11 +244,11 @@ export async function createGame(
       link: state?.link,
       errors,
       data: {
-        home_team_id: gameData.home_team_id,
-        away_team_id: gameData.away_team_id,
-        arena_id: gameData.arena_id,
+        home_team_id: submittedData.home_team_id,
+        away_team_id: submittedData.away_team_id,
+        arena_id: submittedData.arena_id,
         date_time: formData.get("date_time") as string,
-        status: gameData.status,
+        status: submittedData.status,
       },
     };
 
@@ -266,12 +262,12 @@ export async function createGame(
 
   const insertResult: ResultProps<{ game_id: number }> = await db
     .query(insertSql, [
-      gameData.home_team_id,
-      gameData.away_team_id,
-      gameData.division_id,
-      gameData.date_time,
-      gameData.arena_id,
-      gameData.status,
+      submittedData.home_team_id,
+      submittedData.away_team_id,
+      submittedData.division_id,
+      submittedData.date_time,
+      submittedData.arena_id,
+      submittedData.status,
     ])
     .then((res) => {
       return {
@@ -291,6 +287,7 @@ export async function createGame(
     return {
       message: insertResult.message,
       status: insertResult.status,
+      data: submittedData,
     };
   }
 
@@ -435,7 +432,7 @@ export async function editGame(
   // check user is logged in
   await verifySession();
 
-  const gameData = {
+  const submittedData = {
     game_id: parseInt(formData.get("game_id") as string),
     league_id: parseInt(formData.get("league_id") as string),
     home_team_id: parseInt(formData.get("home_team_id") as string),
@@ -446,26 +443,27 @@ export async function editGame(
   };
 
   // Check to see if the user is allowed to create a season for this league
-  const { canEdit } = await canEditLeague(gameData.league_id);
+  const { canEdit } = await canEditLeague(submittedData.league_id);
 
   if (!canEdit) {
     return {
       message: "You do not have permission to edit this game.",
       status: 400,
+      data: submittedData,
     };
   }
 
   let errors: GameErrorProps = {};
 
   // Validate form fields
-  const validatedFields = GameEditFormSchema.safeParse(gameData);
+  const validatedFields = GameEditFormSchema.safeParse(submittedData);
 
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
     errors = validatedFields.error.flatten().fieldErrors;
   }
 
-  if (gameData.home_team_id === gameData.away_team_id) {
+  if (submittedData.home_team_id === submittedData.away_team_id) {
     if (errors.away_team_id) {
       errors.away_team_id.push("Home and away teams must be different!");
     } else {
@@ -479,11 +477,11 @@ export async function editGame(
       link: state?.link,
       errors,
       data: {
-        home_team_id: gameData.home_team_id,
-        away_team_id: gameData.away_team_id,
-        arena_id: gameData.arena_id,
+        home_team_id: submittedData.home_team_id,
+        away_team_id: submittedData.away_team_id,
+        arena_id: submittedData.arena_id,
         date_time: formData.get("date_time") as string,
-        status: gameData.status,
+        status: submittedData.status,
       },
     };
 
@@ -502,12 +500,12 @@ export async function editGame(
 
   const updateResult: ResultProps<{ game_id: number }> = await db
     .query(updateSql, [
-      gameData.home_team_id,
-      gameData.away_team_id,
-      gameData.arena_id,
-      gameData.date_time,
-      gameData.status,
-      gameData.game_id,
+      submittedData.home_team_id,
+      submittedData.away_team_id,
+      submittedData.arena_id,
+      submittedData.date_time,
+      submittedData.status,
+      submittedData.game_id,
     ])
     .then((res) => {
       return {
@@ -525,8 +523,8 @@ export async function editGame(
 
   if (updateResult.status === 400) {
     return {
-      message: updateResult.message,
-      status: updateResult.status,
+      ...updateResult,
+      data: submittedData,
     };
   }
 
@@ -540,34 +538,41 @@ const GameScoreSchema = z.object({
   away_team_score: z.number().min(0),
 });
 
-type GameScoreState =
+type GameScoreState = FormState<
+  {
+    home_team_score?: string[] | undefined;
+    away_team_score?: string[] | undefined;
+  },
   | {
-      errors?: {
-        home_team_score?: string[] | undefined;
-        away_team_score?: string[] | undefined;
-      };
-      message?: string;
-      status?: number;
-      link?: string;
       game?: GameData;
       league?: string;
+      home_team_score?: number;
+      away_team_score?: number;
     }
-  | undefined;
+  | undefined
+>;
 
 export async function setGameScore(
   state: GameScoreState,
   formData: FormData,
 ): Promise<GameScoreState> {
-  if (!state || !state.league || !state.game || !state.link)
+  if (
+    !state ||
+    !state.data ||
+    !state.data.game ||
+    !state.data.league ||
+    !state.link
+  )
     return {
       message: "Missing necessary data to set the score!",
       status: 400,
+      data: state?.data,
     };
 
   // verify user is signed in
   await verifySession();
 
-  const { canEdit } = await canEditLeague(state.league);
+  const { canEdit } = await canEditLeague(state.data.league);
 
   if (!canEdit) {
     return {
@@ -607,7 +612,7 @@ export async function setGameScore(
     .query(sql, [
       gameScoreData.home_team_score,
       gameScoreData.away_team_score,
-      state.game.game_id,
+      state.data.game.game_id,
     ])
     .then((res) => {
       return {
@@ -622,7 +627,14 @@ export async function setGameScore(
       };
     });
 
-  if (gameScoreResult.status === 400) return gameScoreResult;
+  if (gameScoreResult.status === 400)
+    return {
+      ...gameScoreResult,
+      data: {
+        ...state?.data,
+        ...gameScoreData,
+      },
+    };
 
   redirect(state.link);
 }
@@ -1069,14 +1081,26 @@ type AddGameFeedErrorProps = {
   rebound?: string[] | undefined;
 };
 
-type AddGameFeedState =
-  | {
-      errors?: AddGameFeedErrorProps;
-      message?: string;
-      status?: number;
-      link?: string;
-    }
-  | undefined;
+type AddGameFeedState = FormState<
+  AddGameFeedErrorProps,
+  {
+    game_id: number;
+    user_id: number;
+    team_id: number;
+    period: number;
+    minutes: number;
+    seconds: number;
+    shorthanded?: boolean;
+    power_play?: boolean;
+    empty_net?: boolean;
+    rebound?: boolean;
+    assists?: string[];
+    penalty_minutes?: number;
+    infraction?: string;
+    goalie_id?: number;
+    opposition_id?: number;
+  }
+>;
 
 export async function addToGameFeed(
   state: AddGameFeedState,
@@ -1094,7 +1118,7 @@ export async function addToGameFeed(
     power_play: formData.get("power_play") === "true",
     empty_net: formData.get("empty_net") === "true",
     rebound: formData.get("rebound") === "true",
-    assists: formData.getAll("assists"),
+    assists: formData.getAll("assists") as string[],
     penalty_minutes: parseInt(formData.get("penalty_minutes") as string),
     infraction: formData.get("infraction") as string,
     goalie_id: parseInt(formData.get("goalie_id") as string),
@@ -1150,7 +1174,11 @@ export async function addToGameFeed(
       if (goalResult.data) {
         inserted_goal_id = goalResult.data.goal_id;
       } else {
-        return goalResult;
+        return {
+          ...goalResult,
+          data: feedItemData,
+          link: state?.link,
+        };
       }
 
       // -- -- add assists
@@ -1360,31 +1388,25 @@ export default async function endGame(state: {
   redirect(state.backLink);
 }
 
-type DeleteFeedItemState =
-  | {
-      id: number;
-      type: string;
-      backLink: string;
-      message?: string;
-      status?: number;
-    }
-  | undefined;
+type DeleteFeedItemState = FormState<undefined, { id: number; type: string }>;
 
 export async function deleteFeedItem(
   state: DeleteFeedItemState,
 ): Promise<DeleteFeedItemState> {
-  if (!state?.id || !state?.type)
+  if (!state?.data?.id || !state?.data?.type)
     return {
-      id: state?.id || 0,
-      type: state?.type || "stats.goal",
-      backLink: state?.backLink || "stats.goal",
       message: "Missing necessary data to delete feed item!",
       status: 400,
+      link: state?.link,
+      data: {
+        id: state?.data?.id || 0,
+        type: state?.data?.type || "stats.goal",
+      },
     };
 
   let sql: string;
 
-  switch (state.type) {
+  switch (state.data.type) {
     case "stats.goals":
       sql = `
         DELETE FROM stats.goals
@@ -1412,7 +1434,7 @@ export async function deleteFeedItem(
   }
 
   await db
-    .query(sql, [state.id])
+    .query(sql, [state.data.id])
     .then(() => {
       return {
         message: "Feed item deleted!",
@@ -1426,5 +1448,5 @@ export async function deleteFeedItem(
       };
     });
 
-  state.backLink && redirect(state.backLink);
+  state?.link && redirect(state.link);
 }

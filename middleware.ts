@@ -4,7 +4,7 @@ import { decrypt } from "./lib/session";
 import { JWTPayload } from "jose";
 
 interface SessionProps extends JWTPayload {
-  userData?: UserData;
+  userData?: UserSessionData;
 }
 
 export default async function middleware(req: NextRequest) {
