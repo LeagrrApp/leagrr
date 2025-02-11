@@ -1,14 +1,13 @@
 import { canEditUser, getUser } from "@/actions/users";
 import EditUser from "@/components/dashboard/user/EditUser";
+import UpdatePassword from "@/components/dashboard/user/UpdatePassword";
 import BackButton from "@/components/ui/BackButton/BackButton";
-import { verifySession } from "@/lib/session";
 import {
   createDashboardUrl,
   createMetaTitle,
 } from "@/utils/helpers/formatting";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import css from "./page.module.css";
-import UpdatePassword from "@/components/dashboard/user/UpdatePassword";
 
 export async function generateMetadata({
   params,
@@ -43,15 +42,20 @@ export default async function Page({
     notFound();
   }
 
-  const { isCurrentUser } = await canEditUser(username);
-
   const backLink = createDashboardUrl({ u: username });
+
+  const { canEdit, isCurrentUser } = await canEditUser(username);
+
+  if (!canEdit) redirect(backLink);
 
   const { first_name } = userData;
 
   return (
     <>
-      <BackButton href={backLink} label={`Back to ${first_name}'s page`} />
+      <BackButton
+        href={backLink}
+        label={`Back to ${isCurrentUser ? "your" : `${first_name}'s`} page`}
+      />
       <h2 className="push">Edit User</h2>
       <div className={css.layout}>
         <EditUser user={userData} />

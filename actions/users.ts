@@ -2,7 +2,7 @@
 
 import bcrypt from "bcrypt";
 import { db } from "@/db/pg";
-import { verifySession } from "@/lib/session";
+import { createSession, verifySession } from "@/lib/session";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { wait } from "@/utils/helpers/general";
 import { isObjectEmpty } from "@/utils/helpers/objects";
@@ -375,7 +375,7 @@ export async function editUser(
   }
 
   // check if user can edit the user
-  const { canEdit } = await canEditUser(submittedData.user_id);
+  const { canEdit, isCurrentUser } = await canEditUser(submittedData.user_id);
 
   if (!canEdit) {
     return {
@@ -397,10 +397,19 @@ export async function editUser(
     WHERE
       user_id = $7
     RETURNING
-      username
+    ${
+      isCurrentUser
+        ? `user_id,
+        username,
+        user_role,
+        first_name,
+        last_name,
+        img`
+        : `username`
+    }
   `;
 
-  const result: ResultProps<{ username: string }> = await db
+  const result: ResultProps<UserSessionData> = await db
     .query(sql, [
       submittedData.username,
       submittedData.email,
@@ -411,6 +420,7 @@ export async function editUser(
       submittedData.user_id,
     ])
     .then((res) => {
+      console.log(res);
       return {
         message: "User updated!",
         status: 200,
@@ -429,6 +439,10 @@ export async function editUser(
       ...result,
       data: submittedData,
     };
+  }
+
+  if (isCurrentUser) {
+    await createSession(result.data);
   }
 
   redirect(createDashboardUrl({ u: result.data.username }, "edit"));
