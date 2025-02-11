@@ -1,43 +1,59 @@
 "use server";
 
 import bcrypt from "bcrypt";
-import { SignupFormSchema, SignInUpFormState } from "@/lib/definitions";
 import { db } from "@/db/pg";
 import { createSession } from "@/lib/session";
 import { isObjectEmpty } from "@/utils/helpers/objects";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { z } from "zod";
 
-interface ErrorProps {
-  email?: string[] | undefined;
-  username?: string[] | undefined;
-  first_name?: string[] | undefined;
-  last_name?: string[] | undefined;
-  password?: string[] | undefined;
-  password_confirm?: string[] | undefined;
-}
+const SignupFormSchema = z.object({
+  username: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters long." })
+    .trim(),
+  email: z.string().email({ message: "Please enter a valid email." }).trim(),
+  first_name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters long." })
+    .trim(),
+  last_name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters long." })
+    .trim(),
+  password: z
+    .string()
+    .min(8, { message: "Be at least 8 characters long" })
+    .regex(/[a-zA-Z]/, { message: "Contain at least one letter." })
+    .regex(/[0-9]/, { message: "Contain at least one number." })
+    .regex(/[^a-zA-Z0-9]/, {
+      message: "Contain at least one special character.",
+    })
+    .trim(),
+});
 
-export async function signUp(state: SignInUpFormState, formData: FormData) {
-  const userData = {
-    email: formData.get("email"),
-    username: formData.get("username"),
-    first_name: formData.get("first_name"),
-    last_name: formData.get("last_name"),
+export async function signUp(state: UserFormState, formData: FormData) {
+  const submittedData = {
+    email: formData.get("email") as string,
+    username: formData.get("username") as string,
+    first_name: formData.get("first_name") as string,
+    last_name: formData.get("last_name") as string,
     password: formData.get("password") as string,
   };
 
-  let errors: ErrorProps = {};
+  let errors: UserErrorProps = {};
 
   // Validate form fields
-  const validatedFields = SignupFormSchema.safeParse(userData);
+  const validatedFields = SignupFormSchema.safeParse(submittedData);
 
-  // If any form fields are invalid, return early
+  // If any form fields are invalid, add errors to list
   if (!validatedFields.success) {
     errors = validatedFields.error.flatten().fieldErrors;
   }
 
   // check if passwords match
-  if (userData.password !== formData.get("password_confirm")) {
+  if (submittedData.password !== formData.get("password_confirm")) {
     errors.password_confirm = ["Passwords must match!"];
   }
 
@@ -45,11 +61,12 @@ export async function signUp(state: SignInUpFormState, formData: FormData) {
   if (!isObjectEmpty(errors)) {
     return {
       errors,
+      data: submittedData,
     };
   }
 
   // hash password with bcrypt
-  const password_hash = await bcrypt.hash(userData.password, 10);
+  const password_hash = await bcrypt.hash(submittedData.password, 10);
 
   // create PostgreSQL insert statement
   const insertSql: string = `
@@ -62,16 +79,17 @@ export async function signUp(state: SignInUpFormState, formData: FormData) {
       user_role,
       username,
       first_name,
-      last_name
+      last_name,
+      img
     `;
 
   // run PostgreSql query with pg
   const insertResult: ResultProps<UserData> = await db
     .query(insertSql, [
-      userData.username,
-      userData.email,
-      userData.first_name,
-      userData.last_name,
+      submittedData.username,
+      submittedData.email,
+      submittedData.first_name,
+      submittedData.last_name,
       password_hash,
     ])
     .then((res) => {
@@ -91,7 +109,7 @@ export async function signUp(state: SignInUpFormState, formData: FormData) {
 
   // If insert was a success, it will return data
   if (insertResult.data) {
-    const { user_id, user_role, username, first_name, last_name } =
+    const { user_id, user_role, username, first_name, last_name, img } =
       insertResult.data;
 
     // create user session
@@ -101,6 +119,7 @@ export async function signUp(state: SignInUpFormState, formData: FormData) {
       username,
       first_name,
       last_name,
+      img,
     });
 
     // redirect user
@@ -110,10 +129,15 @@ export async function signUp(state: SignInUpFormState, formData: FormData) {
   // if it failed, return message and status
   return {
     ...insertResult,
+    data: submittedData,
   };
 }
 
-export async function signIn(state: SignInUpFormState, formData: FormData) {
+type UserSignInData = UserSessionData & {
+  password_hash: string;
+};
+
+export async function signIn(state: UserFormState, formData: FormData) {
   const identifier = formData.get("identifier") as string;
   const password = formData.get("password") as string;
 
@@ -127,6 +151,7 @@ export async function signIn(state: SignInUpFormState, formData: FormData) {
       username,
       first_name,
       last_name,
+      img,
       password_hash
     FROM
       admin.users
@@ -134,7 +159,7 @@ export async function signIn(state: SignInUpFormState, formData: FormData) {
       username=$1 OR email=$1
   `;
 
-  const selectResult: ResultProps<UserData> = await db
+  const selectResult: ResultProps<UserSignInData> = await db
     .query(selectSql, [identifier])
     .then((res) => {
       if (!res.rowCount) {
@@ -162,12 +187,16 @@ export async function signIn(state: SignInUpFormState, formData: FormData) {
       first_name,
       last_name,
       password_hash,
+      img,
     } = selectResult.data;
 
     if (!password_hash) {
       return {
         message: "Username or password was incorrect",
         status: 401,
+        data: {
+          identifier,
+        },
       };
     }
 
@@ -179,6 +208,9 @@ export async function signIn(state: SignInUpFormState, formData: FormData) {
       return {
         message: "Username or password was incorrect",
         status: 401,
+        data: {
+          identifier,
+        },
       };
 
     // create user session
@@ -188,6 +220,7 @@ export async function signIn(state: SignInUpFormState, formData: FormData) {
       username,
       first_name,
       last_name,
+      img,
     });
 
     // redirect user
@@ -197,6 +230,9 @@ export async function signIn(state: SignInUpFormState, formData: FormData) {
   // user not found, return result for front end alerts
   return {
     ...selectResult,
+    data: {
+      identifier,
+    },
   };
 }
 

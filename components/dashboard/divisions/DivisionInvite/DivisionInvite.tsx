@@ -55,13 +55,11 @@ export default function DivisionInvite({ division }: DivisionInviteProps) {
   }
 
   useEffect(() => {
-    console.log(state);
-
     state?.data?.join_code && setJoinCodeValue(state?.data?.join_code);
     setUpdating(false);
   }, [state]);
 
-  if (join_code && join_code !== "" && !updating)
+  if (state?.data?.join_code || (join_code && join_code !== "" && !updating))
     return (
       <>
         <Card padding="l" isContainer>
@@ -115,7 +113,7 @@ export default function DivisionInvite({ division }: DivisionInviteProps) {
           button.
         </small>
         <form action={action}>
-          <Grid cols={2} gap="base">
+          <Grid gap="base">
             <Col fullSpan>
               <Input
                 name="join_code"
@@ -133,17 +131,18 @@ export default function DivisionInvite({ division }: DivisionInviteProps) {
             <Button
               onClick={() => dialogRef?.current?.showModal()}
               disabled={pending}
-              padding={["s"]}
               type="submit"
             >
               <Icon
                 icon={updating ? "update" : "add_circle"}
-                label={updating ? "Update" : "Set Join Code"}
+                label={updating ? "Update" : "Set Code"}
               />
             </Button>
-            <Button onClick={() => setUpdating(false)} variant="grey">
-              <Icon icon="cancel" label="Cancel" />
-            </Button>
+            {updating && (
+              <Button onClick={() => setUpdating(false)} variant="grey">
+                <Icon icon="cancel" label="Cancel" />
+              </Button>
+            )}
           </Grid>
         </form>
         <form action="action"></form>

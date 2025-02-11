@@ -29,13 +29,16 @@ interface LeagueErrorProps {
   status?: string[] | undefined;
 }
 
-export type LeagueFormState =
-  | {
-      errors?: LeagueErrorProps;
-      message?: string;
-      status?: number;
-    }
-  | undefined;
+type LeagueFormState = FormState<
+  LeagueErrorProps,
+  {
+    name: string;
+    description: string;
+    sport: string;
+    status?: string;
+    league_id?: number;
+  }
+>;
 
 export async function createLeague(
   state: LeagueFormState,
@@ -45,21 +48,22 @@ export async function createLeague(
   const { user_id } = await verifySession();
 
   // insert data from form into object that can be checked for errors
-  const leagueData = {
-    name: formData.get("name"),
-    description: formData.get("description"),
-    sport: formData.get("sport"),
+  const submittedData = {
+    name: formData.get("name") as string,
+    description: formData.get("description") as string,
+    sport: formData.get("sport") as string,
   };
 
   // let errors: ErrorProps = {};
 
   // Validate form fields
-  const validatedFields = LeagueFormSchema.safeParse(leagueData);
+  const validatedFields = LeagueFormSchema.safeParse(submittedData);
 
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
+      data: submittedData,
     };
   }
 
@@ -75,9 +79,9 @@ export async function createLeague(
   // Insert new league into the database
   const leagueInsertResult: ResultProps<LeagueData> = await db
     .query(leagueInsertSql, [
-      leagueData.name,
-      leagueData.description,
-      leagueData.sport,
+      submittedData.name,
+      submittedData.description,
+      submittedData.sport,
     ])
     .then((res) => {
       return {
@@ -95,7 +99,10 @@ export async function createLeague(
 
   // if no data was returned, there was an error, return the error
   if (!leagueInsertResult.data) {
-    return leagueInsertResult;
+    return {
+      ...leagueInsertResult,
+      data: submittedData,
+    };
   }
 
   // get league_id and slug generated and returned by the database
@@ -126,7 +133,10 @@ export async function createLeague(
   if (leagueAdminInsertResult.status === 400) {
     // TODO: delete the league on this error
 
-    return leagueAdminInsertResult;
+    return {
+      ...leagueAdminInsertResult,
+      data: submittedData,
+    };
   }
 
   // Success route, redirect to the new league page
@@ -373,32 +383,34 @@ export async function editLeague(
   await verifySession();
 
   // insert data from form into object that can be checked for errors
-  const leagueData = {
-    name: formData.get("name"),
-    description: formData.get("description"),
-    sport: formData.get("sport"),
-    status: formData.get("status"),
+  const submittedData = {
+    name: formData.get("name") as string,
+    description: formData.get("description") as string,
+    sport: formData.get("sport") as string,
+    status: formData.get("status") as string,
     league_id: parseInt(formData.get("league_id") as string),
   };
 
   // check if user can edit league
-  const { canEdit } = await canEditLeague(leagueData.league_id);
+  const { canEdit } = await canEditLeague(submittedData.league_id);
 
   if (!canEdit) {
     // failed both user role check and league role check, shortcut out
     return {
       message: "You do not have permission to edit this league.",
       status: 401,
+      data: submittedData,
     };
   }
 
   // Validate form fields
-  const validatedFields = LeagueFormSchema.safeParse(leagueData);
+  const validatedFields = LeagueFormSchema.safeParse(submittedData);
 
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
+      data: submittedData,
     };
   }
 
@@ -420,11 +432,11 @@ export async function editLeague(
   // query the database
   const updatedResult: ResultProps<LeagueData> = await db
     .query(sql, [
-      leagueData.name,
-      leagueData.description,
-      leagueData.sport,
-      leagueData.status,
-      leagueData.league_id,
+      submittedData.name,
+      submittedData.description,
+      submittedData.sport,
+      submittedData.status,
+      submittedData.league_id,
     ])
     .then((res) => {
       return {
@@ -443,7 +455,10 @@ export async function editLeague(
   if (updatedResult?.data?.slug)
     redirect(createDashboardUrl({ l: updatedResult?.data?.slug }));
 
-  return updatedResult;
+  return {
+    ...updatedResult,
+    data: submittedData,
+  };
 }
 
 export async function deleteLeague(state: { league_id: number }) {

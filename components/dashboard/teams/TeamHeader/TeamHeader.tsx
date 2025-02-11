@@ -37,7 +37,6 @@ export default function TeamHeader({
       className={css.team_header}
       containerClassName={css.team_header_container}
       color={color}
-      hideLine
     >
       <div className={css.team_header_unit}>
         <h1 className={css.team_header_headline}>

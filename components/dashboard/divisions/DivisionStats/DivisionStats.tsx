@@ -55,7 +55,11 @@ export default function DivisionStats({ statLeaders }: DivisionStatsProps) {
                 <h4 className={css.stats_card_title}>
                   <Icon icon={icon} label={capitalize(type)} gap="s" />
                 </h4>
-                <ProfileImg label={`${first_name} ${last_name}`} size={150} />
+                <ProfileImg
+                  className="push-ml"
+                  label={`${first_name} ${last_name}`}
+                  size={150}
+                />
                 <h5 className={css.stats_card_name}>
                   {first_name} {last_name}
                 </h5>

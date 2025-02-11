@@ -6,15 +6,23 @@ type ResultProps<T> = {
 
 type UserData = {
   user_id: number;
-  first_name?: string;
-  last_name?: string;
-  username?: string;
-  email?: string;
-  pronouns?: string;
-  gender?: string;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  gender: string;
+  pronouns: string;
   user_role: number;
-  password_hash?: string;
+  img: string;
+  status: "active" | "inactive" | "suspended" | "banned";
 };
+
+type UserSessionData = Required<
+  Pick<
+    UserData,
+    "user_id" | "user_role" | "username" | "first_name" | "last_name" | "img"
+  >
+>;
 
 type TeamData = {
   team_id: number;

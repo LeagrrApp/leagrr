@@ -14,7 +14,7 @@ import { usePathname } from "next/navigation";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 
 interface MenuProps {
-  userData: UserData;
+  userData: UserSessionData;
   menuData: {
     teams: MenuItemData[];
     leagues: MenuItemData[];
@@ -25,7 +25,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const imgUrl = null;
+  const { username, first_name, last_name, user_role, img } = userData;
 
   const { teams, leagues } = menuData;
 
@@ -37,27 +37,25 @@ export default function Menu({ userData, menuData }: MenuProps) {
 
       <Link
         className={css.menu_item}
-        href={createDashboardUrl({ u: userData.username })}
-        aria-current={pathname.includes(
-          createDashboardUrl({ u: userData.username }),
-        )}
+        href={createDashboardUrl({ u: username })}
+        aria-current={pathname.includes(createDashboardUrl({ u: username }))}
       >
-        {imgUrl ? (
+        {img ? (
           <Image
             className={css.menu_item_pic}
-            src={imgUrl}
-            alt={`${userData?.first_name} ${userData?.last_name}`}
+            src={img}
+            alt={`${first_name} ${last_name}`}
             width="50"
             height="50"
           />
         ) : (
           <span className={css.menu_item_letters}>
-            {userData?.first_name?.substring(0, 1)}
-            {userData?.last_name?.substring(0, 1)}
+            {first_name?.substring(0, 1)}
+            {last_name?.substring(0, 1)}
           </span>
         )}
         <span>
-          {userData?.first_name} {userData?.last_name?.substring(0, 1)}.
+          {first_name} {last_name?.substring(0, 1)}.
         </span>
       </Link>
 
@@ -112,7 +110,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
           </li>
         </ul>
 
-        {(leagues.length > 0 || userData.user_role === (1 || 2)) && (
+        {(leagues.length > 0 || user_role === (1 || 2)) && (
           <>
             <h2 className={css.menu_heading}>Leagues</h2>
             <ul className={css.menu_list}>
@@ -142,7 +140,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
                   </Link>
                 </li>
               ))}
-              {userData.user_role === (1 || 2) && (
+              {user_role === (1 || 2) && (
                 <li>
                   <Icon
                     className={css.menu_item}
@@ -158,7 +156,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
         )}
 
         <ul className={apply_classes([css.menu_list, css.menu_actions])}>
-          {userData.user_role === 1 && (
+          {user_role === 1 && (
             <li>
               <Icon
                 href="/dashboard/admin/"

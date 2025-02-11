@@ -1,16 +1,46 @@
 "use server";
 
 import { db } from "@/db/pg";
-import {
-  SeasonErrorProps,
-  SeasonFormSchema,
-  SeasonFormState,
-} from "@/lib/definitions";
 import { verifySession } from "@/lib/session";
 import { isObjectEmpty } from "@/utils/helpers/objects";
 import { redirect } from "next/navigation";
 import { canEditLeague, verifyLeagueAdminRole } from "./leagues";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { z } from "zod";
+
+const SeasonFormSchema = z.object({
+  name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters long." })
+    .trim(),
+  description: z.string().trim().optional(),
+  league_id: z.number(),
+  start_date: z.string().date(),
+  end_date: z.string().date(),
+  status: z.enum(["draft", "public", "archived"]).optional(),
+});
+
+interface SeasonErrorProps {
+  name?: string[] | undefined;
+  description?: string[] | undefined;
+  league_id?: string[] | undefined;
+  start_date?: string[] | undefined;
+  end_date?: string[] | undefined;
+  status?: string[] | undefined;
+}
+
+type SeasonFormState = FormState<
+  SeasonErrorProps,
+  {
+    name: string;
+    description: string;
+    league_id: number;
+    start_date: Date | string;
+    end_date: Date | string;
+    season_id?: number;
+    status?: string;
+  }
+>;
 
 export async function createSeason(
   state: SeasonFormState,
@@ -20,18 +50,18 @@ export async function createSeason(
   const { user_id } = await verifySession();
 
   // insert data from form into object to check for errors
-  const seasonData = {
-    name: formData.get("name"),
-    description: formData.get("description"),
+  const submittedData = {
+    name: formData.get("name") as string,
+    description: formData.get("description") as string,
     league_id: parseInt(formData.get("league_id") as string),
-    start_date: formData.get("start_date"),
-    end_date: formData.get("end_date"),
+    start_date: formData.get("start_date") as string,
+    end_date: formData.get("end_date") as string,
   };
 
   let errors: SeasonErrorProps = {};
 
   // Validate form fields
-  const validatedFields = SeasonFormSchema.safeParse(seasonData);
+  const validatedFields = SeasonFormSchema.safeParse(submittedData);
 
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
@@ -39,8 +69,8 @@ export async function createSeason(
   }
 
   // check if end_date is after start_date
-  const start_date_as_date = new Date(seasonData.start_date as string);
-  const end_date_as_date = new Date(seasonData.end_date as string);
+  const start_date_as_date = new Date(submittedData.start_date as string);
+  const end_date_as_date = new Date(submittedData.end_date as string);
 
   if (start_date_as_date > end_date_as_date) {
     if (errors.end_date) {
@@ -51,15 +81,16 @@ export async function createSeason(
   }
 
   // if there are any validation errors, return errors
-  if (!isObjectEmpty(errors)) return { errors };
+  if (!isObjectEmpty(errors)) return { errors, data: submittedData };
 
   // Check to see if the user is allowed to create a season for this league
-  const { canEdit } = await canEditLeague(seasonData.league_id);
+  const { canEdit } = await canEditLeague(submittedData.league_id);
 
   if (!canEdit) {
     return {
       message: "You do not have permission to create a season for this league",
       status: 400,
+      data: submittedData,
     };
   }
 
@@ -75,11 +106,11 @@ export async function createSeason(
   // query database
   const seasonInsertResult: ResultProps<SeasonData> = await db
     .query(sql, [
-      seasonData.name,
-      seasonData.description,
-      seasonData.league_id,
-      seasonData.start_date,
-      seasonData.end_date,
+      submittedData.name,
+      submittedData.description,
+      submittedData.league_id,
+      submittedData.start_date,
+      submittedData.end_date,
     ])
     .then((res) => {
       return {
@@ -103,7 +134,10 @@ export async function createSeason(
       }),
     );
 
-  return seasonInsertResult;
+  return {
+    ...seasonInsertResult,
+    data: submittedData,
+  };
 }
 
 export async function getSeason(
@@ -210,20 +244,20 @@ export async function editSeason(
   await verifySession();
 
   // insert data from form into object to check for errors
-  const seasonData = {
-    name: formData.get("name"),
-    description: formData.get("description"),
+  const submittedData = {
+    name: formData.get("name") as string,
+    description: formData.get("description") as string,
     league_id: parseInt(formData.get("league_id") as string),
     season_id: parseInt(formData.get("season_id") as string),
-    start_date: formData.get("start_date"),
-    end_date: formData.get("end_date"),
-    status: formData.get("status"),
+    start_date: formData.get("start_date") as string,
+    end_date: formData.get("end_date") as string,
+    status: formData.get("status") as string,
   };
 
   let errors: SeasonErrorProps = {};
 
   // Validate form fields
-  const validatedFields = SeasonFormSchema.safeParse(seasonData);
+  const validatedFields = SeasonFormSchema.safeParse(submittedData);
 
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
@@ -231,8 +265,8 @@ export async function editSeason(
   }
 
   // check if end_date is after start_date
-  const start_date_as_date = new Date(seasonData.start_date as string);
-  const end_date_as_date = new Date(seasonData.end_date as string);
+  const start_date_as_date = new Date(submittedData.start_date as string);
+  const end_date_as_date = new Date(submittedData.end_date as string);
 
   if (start_date_as_date > end_date_as_date) {
     if (errors.end_date) {
@@ -243,17 +277,18 @@ export async function editSeason(
   }
 
   // if there are any validation errors, return errors
-  if (!isObjectEmpty(errors)) return { errors };
+  if (!isObjectEmpty(errors)) return { errors, data: submittedData };
 
   // Check to see if the user is allowed to edit a season for this league
 
   // check for site wide admin privileges
-  const { canEdit } = await canEditLeague(seasonData.league_id);
+  const { canEdit } = await canEditLeague(submittedData.league_id);
 
   if (!canEdit) {
     return {
       message: "You do not have permission to edit this season.",
       status: 401,
+      data: submittedData,
     };
   }
 
@@ -277,12 +312,12 @@ export async function editSeason(
   // query database
   const seasonUpdateResult: ResultProps<SeasonData> = await db
     .query(updateSql, [
-      seasonData.name,
-      seasonData.description,
-      seasonData.start_date,
-      seasonData.end_date,
-      seasonData.status,
-      seasonData.season_id,
+      submittedData.name,
+      submittedData.description,
+      submittedData.start_date,
+      submittedData.end_date,
+      submittedData.status,
+      submittedData.season_id,
     ])
     .then((res) => {
       return {
@@ -306,7 +341,10 @@ export async function editSeason(
       }),
     );
 
-  return seasonUpdateResult;
+  return {
+    ...seasonUpdateResult,
+    data: submittedData,
+  };
 }
 
 export async function deleteSeason(state: {

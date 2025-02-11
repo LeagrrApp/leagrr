@@ -1,5 +1,4 @@
 import "server-only";
-import { SessionPayload } from "./definitions";
 import { JWTPayload, jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
@@ -7,6 +6,11 @@ import { redirect } from "next/navigation";
 
 const secretKey = process.env.SESSION_SECRET;
 const encodedKey = new TextEncoder().encode(secretKey);
+
+interface SessionPayload extends JWTPayload {
+  userData: UserSessionData;
+  expiresAt: Date;
+}
 
 export async function encrypt(payload: SessionPayload) {
   return new SignJWT(payload)
@@ -28,7 +32,7 @@ export async function decrypt(session: string | undefined = "") {
   }
 }
 
-export async function createSession(userData: UserData) {
+export async function createSession(userData: UserSessionData) {
   // const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // One week
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // One day
   const session = await encrypt({ userData, expiresAt });
@@ -44,7 +48,7 @@ export async function createSession(userData: UserData) {
 }
 
 interface SessionProps extends JWTPayload {
-  userData?: UserData;
+  userData?: UserSessionData;
 }
 
 export async function getSession(): Promise<SessionProps | undefined> {
@@ -53,7 +57,7 @@ export async function getSession(): Promise<SessionProps | undefined> {
   return (await decrypt(session)) as SessionProps;
 }
 
-export async function verifySession(): Promise<UserData> {
+export async function verifySession(): Promise<UserSessionData> {
   const cookie = (await cookies()).get("session")?.value;
   const session: SessionProps | undefined = await decrypt(cookie);
 

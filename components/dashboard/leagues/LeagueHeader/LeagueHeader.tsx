@@ -26,7 +26,6 @@ export default function LeagueHeader({ league, canEdit }: LeagueHeaderProps) {
     <DHeader
       className={css.league_header}
       containerClassName={css.league_header_container}
-      hideLine
     >
       <div className={css.league_header_unit}>
         <h1 className={css.league_header_headline}>

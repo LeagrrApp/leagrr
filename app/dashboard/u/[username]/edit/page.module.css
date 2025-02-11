@@ -1,0 +1,9 @@
+.layout {
+  display: grid;
+  gap: var(--spacer-xl);
+  align-items: flex-start;
+
+  @container (width >= 60rem) {
+    grid-template-columns: 2fr 1fr;
+  }
+}
