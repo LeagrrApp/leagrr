@@ -22,7 +22,7 @@ export default async function Layout({
     notFound();
   }
 
-  const { canEdit } = await canEditUser(username);
+  const { canEdit, isCurrentUser } = await canEditUser(username);
 
   const editLink = createDashboardUrl({ u: username }, "edit");
 
@@ -33,7 +33,12 @@ export default async function Layout({
 
   return (
     <>
-      <UserHeader user={userData} canEdit={canEdit} editLink={editLink} />
+      <UserHeader
+        user={userData}
+        canEdit={canEdit}
+        editLink={editLink}
+        isCurrentUser={isCurrentUser}
+      />
       <Container className="pbe-l">{children}</Container>
     </>
   );

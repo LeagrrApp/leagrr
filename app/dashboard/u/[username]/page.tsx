@@ -1,5 +1,6 @@
 import { getUser } from "@/actions/users";
 import UserHeader from "@/components/dashboard/user/UserHeader/UserHeader";
+import UserSnapshot from "@/components/dashboard/user/UserSnapshot/UserSnapshot";
 import Container from "@/components/ui/Container/Container";
 import Icon from "@/components/ui/Icon/Icon";
 import { verifySession } from "@/lib/session";
@@ -8,6 +9,7 @@ import {
   createMetaTitle,
 } from "@/utils/helpers/formatting";
 import { notFound } from "next/navigation";
+import css from "./page.module.css";
 
 export async function generateMetadata({
   params,
@@ -34,10 +36,9 @@ export default async function Page({
 }: {
   params: Promise<{ username: string }>;
 }) {
-  const userSession = await verifySession();
+  const { user_id: logged_user_id } = await verifySession();
 
   const { username } = await params;
-  const currentUser = username === userSession.username;
 
   const { data: userData } = await getUser(username);
 
@@ -45,14 +46,16 @@ export default async function Page({
     notFound();
   }
 
+  const isCurrentUser = userData.user_id === logged_user_id;
+
   // TODO:  Things to include on profile:
   //        - basic details: name, username, pronoun/gender, profile pic/icon
   //        - up next: next game from any team/division
   //        - team history with basic team/player stats
 
   return (
-    <>
-      <h2>User Page</h2>
-    </>
+    <div className={css.user_grid}>
+      {isCurrentUser && <UserSnapshot user={userData} />}
+    </div>
   );
 }

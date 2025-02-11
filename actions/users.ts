@@ -330,6 +330,93 @@ export async function getUserManagedTeamsForJoinDivision(
   return result;
 }
 
+export async function getUserGamePreviews(
+  user_id: number,
+  pastGames?: boolean,
+): Promise<GameData>;
+export async function getUserGamePreviews(
+  user_id: number,
+  pastGames = false,
+  limit = 1,
+): Promise<GameData | GameData[]> {
+  const sql = `
+    SELECT
+      g.division_id,
+      g.game_id,
+      g.home_team_id,
+      (SELECT name FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team,
+      (SELECT slug FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team_slug,
+      (SELECT color FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team_color,
+      (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id = g.home_team_id AND sh.game_id = g.game_id)::int AS home_team_shots,
+      g.home_team_score,
+      g.away_team_id,
+      (SELECT name FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team,
+      (SELECT slug FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team_slug,
+      (SELECT color FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team_color,
+      (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id = g.away_team_id AND sh.game_id = g.game_id)::int AS away_team_shots,
+      g.away_team_score,
+      g.date_time,
+      g.arena_id,
+      (SELECT name FROM league_management.arenas WHERE arena_id = g.arena_id) AS arena,
+      (SELECT name FROM league_management.venues WHERE venue_id = (
+      SELECT venue_id FROM league_management.arenas WHERE arena_id = g.arena_id
+      )) AS venue,
+      g.status
+    FROM
+      league_management.team_memberships AS tm
+    JOIN
+      league_management.division_rosters AS dr
+    ON
+      dr.team_membership_id = tm.team_membership_id
+    JOIN
+      league_management.division_teams AS dt
+    ON
+      dt.division_team_id = dr.division_team_id
+    JOIN
+      league_management.teams AS t
+    ON
+      tm.team_id = t.team_id
+    JOIN
+      league_management.games AS g
+    ON
+      t.team_id = g.home_team_id OR t.team_id = g.away_team_id
+    WHERE
+      tm.user_id = $1
+      AND
+      t.status = 'active'
+      AND
+      g.date_time ${pastGames ? "<" : ">"} now()
+      AND
+      g.status = ${pastGames ? "'completed'" : "'public'"}
+    ORDER BY
+      g.date_time ${pastGames ? "DESC" : "ASC"}
+    LIMIT $2
+  `;
+
+  const result = await db
+    .query(sql, [user_id, limit])
+    .then((res) => {
+      return {
+        message: `Games found!`,
+        status: 200,
+        data: res.rows,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+        data: [],
+      };
+    });
+
+  // TODO: add better error handling
+  if (limit === 1) {
+    return result.data[0];
+  }
+  return result.data;
+}
+
 const EditUserSchema = z.object({
   username: z
     .string()

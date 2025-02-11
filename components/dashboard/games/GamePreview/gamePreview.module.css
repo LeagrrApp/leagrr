@@ -79,8 +79,13 @@
 }
 
 .game_preview_team_score {
-  font-size: var(--type-scale-h2);
+  font-size: var(--type-scale-xxl);
+  line-height: 1;
   font-weight: bold;
+
+  @container (min-width: 45rem) {
+    font-size: var(--type-scale-h2);
+  }
 }
 
 .game_preview_team_info_home {
