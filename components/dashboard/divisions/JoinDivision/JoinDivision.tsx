@@ -1,18 +1,18 @@
 "use client";
 
-import Container from "@/components/ui/Container/Container";
-import css from "./joinDivision.module.css";
-import Card from "@/components/ui/Card/Card";
-import Grid from "@/components/ui/layout/Grid";
-import Col from "@/components/ui/layout/Col";
-import Input from "@/components/ui/forms/Input";
-import { useSearchParams } from "next/navigation";
-import Select from "@/components/ui/forms/Select";
+import { joinDivision } from "@/actions/divisions";
 import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
-import { useActionState, useEffect } from "react";
-import { joinDivision } from "@/actions/divisions";
+import Card from "@/components/ui/Card/Card";
+import Container from "@/components/ui/Container/Container";
+import Input from "@/components/ui/forms/Input";
+import Select from "@/components/ui/forms/Select";
 import Icon from "@/components/ui/Icon/Icon";
+import Col from "@/components/ui/layout/Col";
+import Grid from "@/components/ui/layout/Grid";
+import { useSearchParams } from "next/navigation";
+import { useActionState } from "react";
+import css from "./joinDivision.module.css";
 
 interface JoinDivisionProps {
   division: DivisionData;
@@ -28,11 +28,8 @@ export default function JoinDivision({
   const searchParams = useSearchParams();
   const [state, action, pending] = useActionState(joinDivision, {
     link: backLink,
+    data: {},
   });
-
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
 
   const { name, division_id } = division;
 

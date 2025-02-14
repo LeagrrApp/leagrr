@@ -42,15 +42,21 @@ export default function EditUser({ user }: EditUserProps) {
     emailValue,
     genderValue,
     pronounsValue,
+    user.email,
+    user.first_name,
+    user.gender,
+    user.last_name,
+    user.pronouns,
+    user.username,
   ]);
 
   useEffect(() => {
-    state?.data?.first_name && setFirstNameValue(state?.data?.first_name);
-    state?.data?.last_name && setLastNameValue(state?.data?.last_name);
-    state?.data?.username && setUsernameValue(state?.data?.username);
-    state?.data?.email && setEmailValue(state?.data?.email);
-    state?.data?.gender && setGenderValue(state?.data?.gender);
-    state?.data?.pronouns && setPronounsValue(state?.data?.pronouns);
+    if (state?.data?.first_name) setFirstNameValue(state?.data?.first_name);
+    if (state?.data?.last_name) setLastNameValue(state?.data?.last_name);
+    if (state?.data?.username) setUsernameValue(state?.data?.username);
+    if (state?.data?.email) setEmailValue(state?.data?.email);
+    if (state?.data?.gender) setGenderValue(state?.data?.gender);
+    if (state?.data?.pronouns) setPronounsValue(state?.data?.pronouns);
   }, [state]);
 
   function revertChanges() {

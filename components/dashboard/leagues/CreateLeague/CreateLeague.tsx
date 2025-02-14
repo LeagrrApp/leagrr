@@ -2,17 +2,16 @@
 
 import { createLeague } from "@/actions/leagues";
 import Button from "@/components/ui/Button/Button";
+import Card from "@/components/ui/Card/Card";
 import Container from "@/components/ui/Container/Container";
 import Input from "@/components/ui/forms/Input";
-import Select from "@/components/ui/forms/Select";
 import TextArea from "@/components/ui/forms/TextArea";
+import IconSport from "@/components/ui/Icon/IconSport";
 import Grid from "@/components/ui/layout/Grid";
 import { sports_options } from "@/lib/definitions";
+import { capitalize } from "@/utils/helpers/formatting";
 import { CSSProperties, useActionState, useState } from "react";
 import css from "./createLeague.module.css";
-import Card from "@/components/ui/Card/Card";
-import { capitalize } from "@/utils/helpers/formatting";
-import IconSport from "@/components/ui/Icon/IconSport";
 
 interface CreateLeagueProps {
   user_id: number;

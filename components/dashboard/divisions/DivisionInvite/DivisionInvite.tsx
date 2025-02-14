@@ -1,5 +1,6 @@
 "use client";
 
+import { setDivisionJoinCode } from "@/actions/divisions";
 import Button from "@/components/ui/Button/Button";
 import Card from "@/components/ui/Card/Card";
 import Input from "@/components/ui/forms/Input";
@@ -9,7 +10,6 @@ import Grid from "@/components/ui/layout/Grid";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { useActionState, useEffect, useRef, useState } from "react";
 import css from "./divisionInvite.module.css";
-import { setDivisionJoinCode } from "@/actions/divisions";
 
 interface DivisionInviteProps {
   division: DivisionData;
@@ -55,7 +55,7 @@ export default function DivisionInvite({ division }: DivisionInviteProps) {
   }
 
   useEffect(() => {
-    state?.data?.join_code && setJoinCodeValue(state?.data?.join_code);
+    if (state?.data?.join_code) setJoinCodeValue(state?.data?.join_code);
     setUpdating(false);
   }, [state]);
 

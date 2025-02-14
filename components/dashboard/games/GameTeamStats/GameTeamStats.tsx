@@ -1,16 +1,16 @@
-import Card from "@/components/ui/Card/Card";
-import Table from "@/components/ui/Table/Table";
-import css from "./gameTeamStats.module.css";
-import { apply_classes } from "@/utils/helpers/html-attributes";
 import { getTeamGameStats } from "@/actions/games";
-import Link from "next/link";
+import Card from "@/components/ui/Card/Card";
+import Indicator from "@/components/ui/Indicator/Indicator";
+import Table from "@/components/ui/Table/Table";
+import { verifySession } from "@/lib/session";
 import {
   createDashboardUrl,
   makeAcronym,
   nameDisplay,
 } from "@/utils/helpers/formatting";
-import { verifySession } from "@/lib/session";
-import Indicator from "@/components/ui/Indicator/Indicator";
+import { apply_classes } from "@/utils/helpers/html-attributes";
+import Link from "next/link";
+import css from "./gameTeamStats.module.css";
 
 interface GameTeamStatsProps {
   game: GameData;
@@ -89,7 +89,7 @@ export default async function GameTeamStats({
     { title: "Goals Against", shorthand: "GA" },
     { title: "Save Percentage", shorthand: "SV%" },
   ];
-  const goalieHColWidth = 40;
+  const goalieHColWidth = 55;
   const goalieColWidth = `${
     (100 - goalieHColWidth) / goalieHeadings.length - 1
   }%`;
@@ -158,7 +158,7 @@ export default async function GameTeamStats({
           <span className={css.team_stats_team_name}>{team.name}</span>
         </h3>
         <Card padding="ml">
-          <Table hColWidth={`${playerHColWidth}%`} colWidth={playerColWidth}>
+          <Table hColWidth={`${goalieHColWidth}%`} colWidth={goalieColWidth}>
             <thead>
               <tr>
                 {goalieHeadings.map((th) => (

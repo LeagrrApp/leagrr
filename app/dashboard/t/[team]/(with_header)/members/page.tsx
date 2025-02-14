@@ -1,15 +1,14 @@
 import { canEditTeam, getAllTeamMembers, getTeam } from "@/actions/teams";
+import TeamInvite from "@/components/dashboard/teams/TeamInvite/TeamInvite";
 import TeamMembers from "@/components/dashboard/teams/TeamMembers/TeamMembers";
 import Alert from "@/components/ui/Alert/Alert";
 import BackButton from "@/components/ui/BackButton/BackButton";
-import Icon from "@/components/ui/Icon/Icon";
 import {
   createDashboardUrl,
   createMetaTitle,
 } from "@/utils/helpers/formatting";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
-import TeamInvite from "@/components/dashboard/teams/TeamInvite/TeamInvite";
 
 export async function generateMetadata({
   params,

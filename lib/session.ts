@@ -1,8 +1,7 @@
-import "server-only";
 import { JWTPayload, jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
 import { redirect } from "next/navigation";
+import "server-only";
 
 const secretKey = process.env.SESSION_SECRET;
 const encodedKey = new TextEncoder().encode(secretKey);
@@ -28,7 +27,7 @@ export async function decrypt(session: string | undefined = "") {
     return payload;
   } catch (error) {
     // TODO: set up proper decrypt error validation
-    console.log("Failed to verify token");
+    console.log("Failed to verify token. Error: ", error);
   }
 }
 

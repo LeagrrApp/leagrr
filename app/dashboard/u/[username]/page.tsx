@@ -1,10 +1,10 @@
 import { getUser } from "@/actions/users";
+import UserRosters from "@/components/dashboard/user/UserRosters/UserRosters";
 import UserSnapshot from "@/components/dashboard/user/UserSnapshot/UserSnapshot";
 import { verifySession } from "@/lib/session";
 import { createMetaTitle } from "@/utils/helpers/formatting";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
-import UserRosters from "@/components/dashboard/user/UserRosters/UserRosters";
 
 export async function generateMetadata({
   params,

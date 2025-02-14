@@ -17,7 +17,7 @@ export default async function Page({
 
   if (leagueData.seasons && leagueData.seasons.length > 0) {
     // redirect to first season that has a start_date before today and an end_date after today.
-    const currentSeasons = leagueData.seasons.filter((s, i) => {
+    const currentSeasons = leagueData.seasons.filter((s) => {
       if (!s.start_date || !s.end_date) {
         return false;
       }
@@ -47,7 +47,7 @@ export default async function Page({
 
   return (
     <Container>
-      <h2>It looks like this league doesn't have any seasons yet...</h2>
+      <h2>It looks like this league doesn&apos;t have any seasons yet...</h2>
       <Button href={`./${league}/s/`}>Add Season</Button>
     </Container>
   );

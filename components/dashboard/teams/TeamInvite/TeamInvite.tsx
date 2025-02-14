@@ -28,7 +28,7 @@ export default function TeamInvite({ team, division_id }: TeamInviteProps) {
   const [hasBeenCopied, setHasBeenCopied] = useState<boolean>(false);
 
   useEffect(() => {
-    state?.data?.join_code && setJoinCodeValue(state?.data?.join_code);
+    if (state?.data?.join_code) setJoinCodeValue(state?.data?.join_code);
     setUpdating(false);
   }, [state]);
 

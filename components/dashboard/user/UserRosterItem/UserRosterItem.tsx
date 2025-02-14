@@ -1,9 +1,9 @@
 import Card from "@/components/ui/Card/Card";
-import css from "./userRosterItem.module.css";
-import Link from "next/link";
-import { applyColor, createDashboardUrl } from "@/utils/helpers/formatting";
 import Table from "@/components/ui/Table/Table";
+import { applyColor, createDashboardUrl } from "@/utils/helpers/formatting";
+import Link from "next/link";
 import { CSSProperties } from "react";
+import css from "./userRosterItem.module.css";
 
 interface UserRosterItemProps {
   team: {
@@ -18,15 +18,12 @@ interface UserRosterItemStyles extends CSSProperties {
 }
 
 export default async function UserRosterItem({ team }: UserRosterItemProps) {
-  console.log(team);
-
   const {
     team_name,
     team_slug,
     division_name,
     division_id,
     division_slug,
-    season_name,
     season_slug,
     league_name,
     league_slug,

@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
-import css from "./modalConfirmAction.module.css";
-import Grid from "@/components/ui/layout/Grid";
-import Button, { ButtonProps } from "@/components/ui/Button/Button";
-import { apply_classes } from "@/utils/helpers/html-attributes";
 import Alert from "@/components/ui/Alert/Alert";
+import Button, { ButtonProps } from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
 import Icon from "@/components/ui/Icon/Icon";
+import Grid from "@/components/ui/layout/Grid";
+import { apply_classes } from "@/utils/helpers/html-attributes";
+import { useActionState, useRef } from "react";
+import css from "./modalConfirmAction.module.css";
 
 interface ModalConfirmActionProps {
   defaultState?: any;

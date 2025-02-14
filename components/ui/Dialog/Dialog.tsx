@@ -1,6 +1,6 @@
+import { apply_classes } from "@/utils/helpers/html-attributes";
 import { CSSProperties, DialogHTMLAttributes, RefObject } from "react";
 import css from "./dialog.module.css";
-import { apply_classes } from "@/utils/helpers/html-attributes";
 
 interface DialogProps extends DialogHTMLAttributes<HTMLDialogElement> {
   ref: RefObject<HTMLDialogElement | null>;
@@ -26,7 +26,7 @@ export default function Dialog({
 
   if (className) classes.push(className);
 
-  let styles: DialogStyles = style || {};
+  const styles: DialogStyles = style || {};
 
   if (maxWidth) styles["--dialog-width"] = maxWidth;
 

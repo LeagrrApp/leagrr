@@ -1,12 +1,12 @@
 "use client";
 
-import { useParams, usePathname, useSearchParams } from "next/navigation";
-import css from "./divisionSelector.module.css";
-import { useRef } from "react";
 import Button from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
-import Link from "next/link";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
+import Link from "next/link";
+import { useParams, usePathname } from "next/navigation";
+import { useRef } from "react";
+import css from "./divisionSelector.module.css";
 
 interface DivisionSelectorProps {
   canEdit: boolean;

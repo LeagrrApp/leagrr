@@ -10,9 +10,9 @@ import Select from "@/components/ui/forms/Select";
 import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
-import { CSSProperties, useActionState, useEffect } from "react";
-import css from "./joinTeam.module.css";
 import { applyColor } from "@/utils/helpers/formatting";
+import { CSSProperties, useActionState } from "react";
+import css from "./joinTeam.module.css";
 
 interface JoinTeamProps {
   team: TeamData;

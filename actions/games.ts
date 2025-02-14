@@ -1,17 +1,17 @@
 "use server";
 
-import { verifySession } from "@/lib/session";
-import { canEditLeague } from "./leagues";
 import { db } from "@/db/pg";
-import { z } from "zod";
 import { game_status_options } from "@/lib/definitions";
-import { isObjectEmpty } from "@/utils/helpers/objects";
-import { redirect } from "next/navigation";
+import { verifySession } from "@/lib/session";
 import {
   createDashboardUrl,
   createMetaTitle,
   createPeriodTimeString,
 } from "@/utils/helpers/formatting";
+import { isObjectEmpty } from "@/utils/helpers/objects";
+import { redirect } from "next/navigation";
+import { z } from "zod";
+import { canEditLeague } from "./leagues";
 
 // TODO: Rename this function to something clearer
 export async function getLeagueInfoForGames(
@@ -185,11 +185,11 @@ type GameErrorProps = {
 type GameFormState = FormState<
   GameErrorProps,
   {
-    home_team_id: number;
-    away_team_id: number;
-    arena_id: number;
-    date_time: Date | string;
-    status: string;
+    home_team_id?: number;
+    away_team_id?: number;
+    arena_id?: number;
+    date_time?: Date | string;
+    status?: string;
   }
 >;
 
@@ -294,7 +294,7 @@ export async function createGame(
 
   // TODO: handle if there link isn't working
 
-  state?.link && redirect(state?.link);
+  if (state?.link) redirect(state?.link);
 }
 
 export async function getGame(game_id: number) {
@@ -612,7 +612,7 @@ export async function editGame(
 
   // TODO: handle if there link isn't working
 
-  state?.link && redirect(state?.link);
+  if (state?.link) redirect(state?.link);
 }
 
 const GameScoreSchema = z.object({
@@ -696,7 +696,7 @@ export async function setGameScore(
       gameScoreData.away_team_score,
       state.data.game.game_id,
     ])
-    .then((res) => {
+    .then(() => {
       return {
         message: "Game score updated",
         status: 200,
@@ -1141,16 +1141,18 @@ export async function getGameTeamRosters(
   };
 }
 
-const AddGameFeedShotSchema = z.object({
-  team_id: z.number().min(1),
-  game_id: z.number().min(1),
-  user_id: z.number().min(1),
-  period: z.number().min(1).max(3),
-  minutes: z.number().min(0).max(19),
-  seconds: z.number().min(0).max(59),
-  power_play: z.boolean(),
-  rebound: z.boolean(),
-});
+// TODO: Add game feed data validation
+
+// const AddGameFeedShotSchema = z.object({
+//   team_id: z.number().min(1),
+//   game_id: z.number().min(1),
+//   user_id: z.number().min(1),
+//   period: z.number().min(1).max(3),
+//   minutes: z.number().min(0).max(19),
+//   seconds: z.number().min(0).max(59),
+//   power_play: z.boolean(),
+//   rebound: z.boolean(),
+// });
 
 type AddGameFeedErrorProps = {
   team_id?: string[] | undefined;
@@ -1166,12 +1168,12 @@ type AddGameFeedErrorProps = {
 type AddGameFeedState = FormState<
   AddGameFeedErrorProps,
   {
-    game_id: number;
-    user_id: number;
-    team_id: number;
-    period: number;
-    minutes: number;
-    seconds: number;
+    game_id?: number;
+    user_id?: number;
+    team_id?: number;
+    period?: number;
+    minutes?: number;
+    seconds?: number;
     shorthanded?: boolean;
     power_play?: boolean;
     empty_net?: boolean;
@@ -1424,7 +1426,7 @@ export async function addToGameFeed(
     }
   }
 
-  state?.link && redirect(`${state?.link}#game-feed-add`);
+  if (state?.link) redirect(`${state?.link}#game-feed-add`);
 }
 
 export default async function endGame(state: {
@@ -1475,7 +1477,7 @@ type DeleteFeedItemState = FormState<undefined, { id: number; type: string }>;
 export async function deleteFeedItem(
   state: DeleteFeedItemState,
 ): Promise<DeleteFeedItemState> {
-  if (!state?.data?.id || !state?.data?.type)
+  if (!state?.data?.id || !state?.data?.type) {
     return {
       message: "Missing necessary data to delete feed item!",
       status: 400,
@@ -1485,6 +1487,7 @@ export async function deleteFeedItem(
         type: state?.data?.type || "stats.goal",
       },
     };
+  }
 
   let sql: string;
 
@@ -1530,5 +1533,5 @@ export async function deleteFeedItem(
       };
     });
 
-  state?.link && redirect(state.link);
+  if (state?.link) redirect(state?.link);
 }

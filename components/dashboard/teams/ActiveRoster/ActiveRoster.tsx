@@ -4,6 +4,7 @@ import {
   editPlayerOnDivisionTeam,
   removePlayerFromDivisionTeam,
 } from "@/actions/teams";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
 import Input from "@/components/ui/forms/Input";
@@ -46,17 +47,19 @@ export default function ActiveRoster({
     editPlayerOnDivisionTeam,
     {
       link: pathname,
+      data: {},
     },
   );
   const [removeState, removeAction, removePending] = useActionState(
     removePlayerFromDivisionTeam,
     {
       link: pathname,
+      data: {},
     },
   );
 
   useEffect(() => {
-    teamMemberToEdit && setRosterRoleValue(teamMemberToEdit.roster_role);
+    if (teamMemberToEdit) setRosterRoleValue(teamMemberToEdit.roster_role);
   }, [teamMemberToEdit]);
 
   function handleClick(user_id: number, remove?: boolean) {
@@ -390,6 +393,9 @@ export default function ActiveRoster({
                   name="division_roster_id"
                   value={teamMemberToEdit.division_roster_id}
                 />
+                {removeState?.message && removeState?.status === 400 && (
+                  <Alert alert={removeState.message} type="danger" />
+                )}
                 <Button type="submit" disabled={removePending} variant="danger">
                   <Icon icon="delete" label="Confirm" />
                 </Button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { removeTeamFromDivision } from "@/actions/divisions";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import ColorIndicator from "@/components/ui/ColorIndicator/ColorIndicator";
 import Dialog from "@/components/ui/Dialog/Dialog";
@@ -25,6 +26,7 @@ export default function DivisionTeams({ teams, division }: DivisionTeamsProps) {
   const [teamToRemove, setTeamToRemove] = useState<DivisionTeamData>(teams[0]);
   const [state, action, pending] = useActionState(removeTeamFromDivision, {
     link: pathname,
+    data: {},
   });
 
   function handleClick(team_id: number) {
@@ -106,6 +108,11 @@ export default function DivisionTeams({ teams, division }: DivisionTeamsProps) {
             >
               <Icon icon="cancel" label="Cancel" />
             </Button>
+            {state?.status === 400 && state?.message && (
+              <Col fullSpan>
+                <Alert type="danger" alert={state.message} />
+              </Col>
+            )}
           </Grid>
         </form>
       </Dialog>

@@ -2,12 +2,12 @@
 
 import Badge from "@/components/ui/Badge/Badge";
 import Icon from "@/components/ui/Icon/Icon";
+import IconSport from "@/components/ui/Icon/IconSport";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { usePathname } from "next/navigation";
 import DHeader from "../../DHeader/DHeader";
 import SeasonSelector from "../../seasons/SeasonSelector/SeasonSelector";
 import css from "./leagueHeader.module.css";
-import IconSport from "@/components/ui/Icon/IconSport";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
 
 interface LeagueHeaderProps {
   league: LeagueData;
@@ -17,7 +17,7 @@ interface LeagueHeaderProps {
 export default function LeagueHeader({ league, canEdit }: LeagueHeaderProps) {
   const pathname = usePathname();
 
-  let badgeColor: ColorOptions =
+  const badgeColor: ColorOptions =
     league.status === "archived" ? "danger" : "warning";
 
   const editLink = createDashboardUrl({ l: league.slug }, "edit");

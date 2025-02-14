@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useState } from "react";
 import Alert from "../Alert/Alert";
 import forms from "./forms.module.css";
 
@@ -9,7 +9,7 @@ interface NumberSelectProps extends Partial<HTMLSelectElement> {
   labelAfter?: boolean;
   min: number;
   max: number;
-  onChange?(e: ChangeEvent<HTMLSelectElement>): any;
+  onChange?(e: ChangeEvent<HTMLSelectElement>): unknown;
   errors?: {
     errs?: string[];
     type?: string;
@@ -33,10 +33,6 @@ export default function NumberSelect({
   const [selectValue, setSelectValue] = useState<string | number | undefined>(
     selected || "",
   );
-
-  useEffect(() => {
-    setSelectValue(selected || "");
-  }, [selected]);
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     setSelectValue(e.currentTarget.value);

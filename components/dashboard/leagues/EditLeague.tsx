@@ -2,7 +2,6 @@
 
 import { editLeague } from "@/actions/leagues";
 import Button from "@/components/ui/Button/Button";
-import Container from "@/components/ui/Container/Container";
 import Input from "@/components/ui/forms/Input";
 import Select from "@/components/ui/forms/Select";
 import TextArea from "@/components/ui/forms/TextArea";

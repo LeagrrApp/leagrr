@@ -8,7 +8,7 @@ import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { gender_options, status_options } from "@/lib/definitions";
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react";
 
 interface EditDivisionProps {
   division: DivisionData;
@@ -21,6 +21,7 @@ export default function EditDivisionInfo({
 }: EditDivisionProps) {
   const [state, action, pending] = useActionState(editDivision, {
     link: divisionLink,
+    data: {},
   });
 
   return (

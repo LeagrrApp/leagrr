@@ -1,6 +1,7 @@
 "use client";
 
 import { addTeamToDivision } from "@/actions/divisions";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import ColorIndicator from "@/components/ui/ColorIndicator/ColorIndicator";
 import Dialog from "@/components/ui/Dialog/Dialog";
@@ -25,6 +26,7 @@ export default function LeagueTeams({ teams, division }: LeagueTeamsProps) {
   const [teamToAdd, setTeamToAdd] = useState<TeamData>(teams[0]);
   const [state, action, pending] = useActionState(addTeamToDivision, {
     link: pathname,
+    data: {},
   });
 
   function handleClick(team_id: number) {
@@ -96,6 +98,11 @@ export default function LeagueTeams({ teams, division }: LeagueTeamsProps) {
               value={division.division_id}
             />
             <input type="hidden" name="league_id" value={division.league_id} />
+            {state?.message && state?.status === 400 && (
+              <Col fullSpan>
+                <Alert type="danger" alert={state.message} />
+              </Col>
+            )}
             <Button type="submit" disabled={pending}>
               <Icon icon="delete" label="Confirm" />
             </Button>

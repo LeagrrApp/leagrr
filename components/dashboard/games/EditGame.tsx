@@ -9,7 +9,7 @@ import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { game_status_options } from "@/lib/definitions";
 import { formatDateForInput } from "@/utils/helpers/formatting";
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react";
 
 interface EditGameProps {
   game_id: number;
@@ -28,6 +28,7 @@ export default function EditGame({
 }: EditGameProps) {
   const [state, action, pending] = useActionState(editGame, {
     link: backLink,
+    data: {},
   });
 
   const team_options: SelectOption[] = [];
@@ -96,7 +97,7 @@ export default function EditGame({
           label="Date & Time"
           errors={{ errs: state?.errors?.date_time, type: "danger" }}
           value={
-            state?.data?.date_time || formatDateForInput(gameData.date_time)
+            state?.data?.date_time ? formatDateForInput(gameData.date_time) : ""
           }
           required
         />

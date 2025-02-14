@@ -1,8 +1,7 @@
-import { Url } from "next/dist/shared/lib/router/router";
-import css from "./icon.module.css";
 import { apply_classes, paddingString } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
 import { AnchorHTMLAttributes, CSSProperties } from "react";
+import css from "./icon.module.css";
 
 interface IconProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   icon: string;
@@ -34,13 +33,7 @@ export default function Icon(props: IconProps) {
   } = props;
 
   const styles: IconStyles = {};
-  let classes: string[] = [css.icon];
-
-  if (className) {
-    typeof className === "string"
-      ? classes.push(className)
-      : (classes = [...classes, ...className]);
-  }
+  const classes: string[] = [css.icon];
 
   if (hideLabel) {
     classes.push(css.icon_only);
@@ -55,7 +48,7 @@ export default function Icon(props: IconProps) {
       <Link
         style={styles}
         href={href}
-        className={apply_classes(classes)}
+        className={apply_classes(classes, className)}
         aria-current={props["aria-current"]}
       >
         {labelFirst && (

@@ -17,7 +17,7 @@ import {
 } from "@/utils/helpers/formatting";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 
 interface InactiveRosterProps {
   team_id: number;
@@ -38,6 +38,7 @@ export default function InactiveRoster({
   >(teamMembers[0]);
   const [state, action, pending] = useActionState(addPlayerToDivisionTeam, {
     link: pathname,
+    data: {},
   });
   const [rosterRoleValue, setRosterRoleValue] = useState<number>(4);
 
