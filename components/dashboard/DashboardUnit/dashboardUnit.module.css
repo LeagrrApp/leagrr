@@ -2,3 +2,8 @@
   container: division_unit / inline-size;
   grid-area: var(--grid-area, auto);
 }
+
+.dashboard_unit_stretch {
+  display: grid;
+  grid-template-rows: auto 1fr;
+}

@@ -1,4 +1,5 @@
 import Card from "@/components/ui/Card/Card";
+import Icon from "@/components/ui/Icon/Icon";
 import Table from "@/components/ui/Table/Table";
 import { applyColor, createDashboardUrl } from "@/utils/helpers/formatting";
 import Link from "next/link";
@@ -67,6 +68,22 @@ export default async function UserRosterItem({ team }: UserRosterItemProps) {
   const styles: UserRosterItemStyles = {
     "--color-team": applyColor(team.rosterInfo.team_color),
   };
+
+  let teamPlaceClass: string | undefined;
+
+  switch (team?.teamStandings?.position) {
+    case 1:
+      teamPlaceClass = `${css.user_roster_placed} ${css.user_roster_first}`;
+      break;
+    case 2:
+      teamPlaceClass = `${css.user_roster_placed} ${css.user_roster_second}`;
+      break;
+    case 3:
+      teamPlaceClass = `${css.user_roster_placed} ${css.user_roster_third}`;
+      break;
+    default:
+      break;
+  }
 
   return (
     <article style={styles}>
@@ -144,17 +161,29 @@ export default async function UserRosterItem({ team }: UserRosterItemProps) {
               </thead>
               <tbody>
                 <tr>
-                  <td data-highlight-col>
-                    <strong>{team.teamStandings.position}</strong>
+                  <td align="center" data-highlight-col>
+                    {team.teamStandings.position && teamPlaceClass ? (
+                      <strong className={teamPlaceClass}>
+                        <Icon
+                          icon="trophy"
+                          label={team.teamStandings.position.toString()}
+                          gap="m"
+                        />
+                      </strong>
+                    ) : (
+                      <strong>{team.teamStandings.position}</strong>
+                    )}
                   </td>
-                  <td>{team.teamStandings.games_played}</td>
-                  <td>{team.teamStandings.wins}</td>
-                  <td>{team.teamStandings.losses}</td>
-                  <td>{team.teamStandings.ties}</td>
-                  <td>{team.teamStandings.points}</td>
-                  <td>{team.teamStandings.goals_for || 0}</td>
-                  <td>{team.teamStandings.goals_against || 0}</td>
-                  <td>
+                  <td align="center">{team.teamStandings.games_played}</td>
+                  <td align="center">{team.teamStandings.wins}</td>
+                  <td align="center">{team.teamStandings.losses}</td>
+                  <td align="center">{team.teamStandings.ties}</td>
+                  <td align="center">{team.teamStandings.points}</td>
+                  <td align="center">{team.teamStandings.goals_for || 0}</td>
+                  <td align="center">
+                    {team.teamStandings.goals_against || 0}
+                  </td>
+                  <td align="center">
                     {team.teamStandings.goals_for -
                       team.teamStandings.goals_against}
                   </td>

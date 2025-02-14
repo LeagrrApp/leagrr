@@ -4,8 +4,6 @@
   gap: var(--spacer-m) var(--spacer-base);
   margin-block-end: var(--spacer-m);
 
-  /* margin-block-start: var(--spacer-base); */
-
   @container (min-width: 30rem) {
     flex-direction: row;
     justify-content: space-between;

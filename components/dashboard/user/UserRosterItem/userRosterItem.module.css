@@ -40,3 +40,26 @@
 .user_roster_sub_heading {
   font-size: var(--type-scale-h5);
 }
+
+.user_roster_placed {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacer-xs) var(--spacer-s);
+  border-radius: var(--spacer-s);
+  border: 0.0625rem solid;
+}
+
+.user_roster_first {
+  background-color: var(--color-warning-light);
+  border-color: var(--color-warning);
+}
+
+.user_roster_second {
+  background-color: var(--color-grey-light);
+  border-color: var(--color-grey);
+}
+
+.user_roster_third {
+  background-color: var(--color-caution-light);
+  border-color: var(--color-caution);
+}
