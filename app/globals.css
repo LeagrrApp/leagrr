@@ -1,51 +1,107 @@
 :root {
-  /* Colors */
+  /* ---------- Color ---------- */
+
+  /* primary */
   --color-primary: #056cf2;
-  --color-primary-pale: hsl(
-    from var(--color-primary) h calc(s - 40) calc(l + 45)
+  --color-primary-lightest: hsl(
+    from var(--color-primary) h calc(s * 0.5) calc(l + ((100 - l) * 0.75))
   );
-  --color-primary-paler: hsl(
-    from var(--color-primary) h calc(s - 40) calc(l + 50)
+  --color-primary-light: hsl(
+    from var(--color-primary) h calc(s * 0.5) calc(l + ((100 - l) * 0.5))
   );
-  --color-primary-dark: hsl(from var(--color-primary) h s calc(l - 20));
-  --color-primary-darker: hsl(from var(--color-primary) h s calc(l - 30));
+  --color-primary-medium: hsl(from var(--color-primary) h s calc(l * 0.8));
+  --color-primary-dark: hsl(from var(--color-primary) h s calc(l * 0.6));
+  --color-primary-darker: hsl(from var(--color-primary) h s calc(l * 0.35));
+
+  /* secondary */
   --color-secondary: #daa0f2;
-  --color-secondary-pale: hsl(
-    from var(--color-secondary) h calc(s - 40) calc(l + 15)
+  --color-secondary-lightest: hsl(
+    from var(--color-secondary) h calc(s * 0.5) calc(l + ((100 - l) * 0.75))
   );
   --color-secondary-light: hsl(
-    from var(--color-secondary) h calc(s - 40) calc(l + 5)
+    from var(--color-secondary) h calc(s * 0.5) calc(l + ((100 - l) * 0.5))
   );
-  --color-secondary-dark: hsl(from var(--color-secondary) h s calc(l - 20));
+  --color-secondary-medium: hsl(from var(--color-secondary) h s calc(l * 0.8));
+  --color-secondary-dark: hsl(from var(--color-secondary) h s calc(l * 0.6));
+  --color-secondary-darker: hsl(from var(--color-secondary) h s calc(l * 0.35));
+
+  /* accent */
   --color-accent: #88dff2;
-  --color-accent-pale: hsl(
-    from var(--color-accent) h calc(s - 40) calc(l + 15)
+  --color-accent-lightest: hsl(
+    from var(--color-accent) h calc(s * 0.5) calc(l + ((100 - l) * 0.75))
   );
-  --color-accent-dark: hsl(from var(--color-accent) h s calc(l - 20));
+  --color-accent-light: hsl(
+    from var(--color-accent) h calc(s * 0.5) calc(l + ((100 - l) * 0.5))
+  );
+  --color-accent-medium: hsl(from var(--color-accent) h s calc(l * 0.8));
+  --color-accent-dark: hsl(from var(--color-accent) h s calc(l * 0.6));
+  --color-accent-darker: hsl(from var(--color-accent) h s calc(l * 0.35));
+
+  /* success */
   --color-success: #88f2a6;
-  --color-success-pale: hsl(from var(--color-success) h s calc(l + 20));
-  --color-success-dark: hsl(from var(--color-success) h s calc(l - 20));
+  --color-success-lightest: hsl(
+    from var(--color-success) h calc(s * 0.5) calc(l + ((100 - l) * 0.75))
+  );
+  --color-success-light: hsl(
+    from var(--color-success) h calc(s * 0.5) calc(l + ((100 - l) * 0.5))
+  );
+  --color-success-medium: hsl(from var(--color-success) h s calc(l * 0.8));
+  --color-success-dark: hsl(from var(--color-success) h s calc(l * 0.6));
+  --color-success-darker: hsl(from var(--color-success) h s calc(l * 0.35));
+
+  /* warning */
   --color-warning: #f2eb88;
-  --color-warning-pale: hsl(from var(--color-warning) h s calc(l + 23));
-  --color-warning-dark: hsl(from var(--color-warning) h s calc(l - 20));
-  --color-warning-darker: hsl(from var(--color-warning) h s calc(l - 40));
+  --color-warning-lightest: hsl(
+    from var(--color-warning) h calc(s * 0.5) calc(l + ((100 - l) * 0.75))
+  );
+  --color-warning-light: hsl(
+    from var(--color-warning) h calc(s * 0.5) calc(l + ((100 - l) * 0.5))
+  );
+  --color-warning-medium: hsl(from var(--color-warning) h s calc(l * 0.8));
+  --color-warning-dark: hsl(from var(--color-warning) h s calc(l * 0.6));
+  --color-warning-darker: hsl(from var(--color-warning) h s calc(l * 0.35));
+
+  /* caution */
   --color-caution: #f2bd88;
-  --color-caution-pale: hsl(from var(--color-caution) h s calc(l + 23));
-  --color-caution-dark: hsl(from var(--color-caution) h s calc(l - 20));
-  --color-caution-darker: hsl(from var(--color-caution) h s calc(l - 40));
+  --color-caution-lightest: hsl(
+    from var(--color-caution) h calc(s * 0.5) calc(l + ((100 - l) * 0.75))
+  );
+  --color-caution-light: hsl(
+    from var(--color-caution) h calc(s * 0.5) calc(l + ((100 - l) * 0.5))
+  );
+  --color-caution-medium: hsl(from var(--color-caution) h s calc(l * 0.8));
+  --color-caution-dark: hsl(from var(--color-caution) h s calc(l * 0.6));
+  --color-caution-darker: hsl(from var(--color-caution) h s calc(l * 0.35));
+
+  /* danger */
   --color-danger: #f28d88;
-  --color-danger-pale: hsl(from var(--color-danger) h s calc(l + 20));
-  --color-danger-dark: hsl(from var(--color-danger) h s calc(l - 20));
+  --color-danger-lightest: hsl(
+    from var(--color-danger) h calc(s * 0.5) calc(l + ((100 - l) * 0.75))
+  );
+  --color-danger-light: hsl(
+    from var(--color-danger) h calc(s * 0.5) calc(l + ((100 - l) * 0.5))
+  );
+  --color-danger-medium: hsl(from var(--color-danger) h s calc(l * 0.8));
+  --color-danger-dark: hsl(from var(--color-danger) h s calc(l * 0.6));
+  --color-danger-darker: hsl(from var(--color-danger) h s calc(l * 0.35));
+
+  /* grey */
   --color-grey: #d8e0f2;
-  --color-grey-light: hsl(from var(--color-grey) h s calc(l + 6));
-  --color-grey-dark: hsl(from var(--color-grey) h s calc(l - 20));
-  --color-grey-darker: hsl(from var(--color-grey) h s calc(l - 30));
+  --color-grey-lightest: hsl(
+    from var(--color-grey) h calc(s * 0.5) calc(l + ((100 - l) * 0.75))
+  );
+  --color-grey-light: hsl(
+    from var(--color-grey) h calc(s * 0.5) calc(l + ((100 - l) * 0.5))
+  );
+  --color-grey-medium: hsl(from var(--color-grey) h s calc(l * 0.8));
+  --color-grey-dark: hsl(from var(--color-grey) h s calc(l * 0.6));
+  --color-grey-darker: hsl(from var(--color-grey) h s calc(l * 0.35));
+
+  /* general */
   --color-white: #fff;
   --color-black: #000;
   --color-foreground: var(--color-black);
-
-  /* --color-background: var(--color-white); */
-  --color-background: var(--color-primary-paler);
+  --color-background: var(--color-grey-lightest);
 
   /* containers */
   --container: 75rem;

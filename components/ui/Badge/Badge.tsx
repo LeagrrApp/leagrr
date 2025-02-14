@@ -16,7 +16,7 @@ interface BadgeStyles extends CSSProperties {
 export default function Badge({ text, type, fontSize }: BadgeProps) {
   const styles: BadgeStyles = {
     "--badge-color": `var(--color-${type || "primary"})`,
-    "--badge-bg": `var(--color-${type || "primary"}-pale)`,
+    "--badge-bg": `var(--color-${type || "primary"}-lightest)`,
   };
 
   if (fontSize) {

@@ -180,9 +180,14 @@ export const color_options = [
   "grey",
 ];
 
-export function applyColor(color: string): string {
+export function applyColor(
+  color: string,
+  variant?: "dark" | "darker" | "medium" | "light" | "lightest",
+): string {
   if (color_options.includes(color)) {
-    return `var(--color-${color})`;
+    return variant
+      ? `var(--color-${color}-${variant})`
+      : `var(--color-${color})`;
   }
   return color;
 }

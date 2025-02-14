@@ -59,7 +59,7 @@
   gap: var(--spacer-em-base);
 
   &:where([aria-current="true"]) {
-    background-color: hsla(from var(--color-primary-dark) h s l / 0.5);
+    background-color: var(--color-primary-medium);
   }
 
   &:where(a:hover, a:focus-visible) {
@@ -71,7 +71,7 @@
 
 .menu_item_pic {
   border-radius: 50%;
-  border: 0.0625rem solid var(--color-primary-pale);
+  border: 0.0625rem solid var(--color-primary-lightest);
   width: 1.25rem;
   height: 1.25rem;
   object-fit: cover;

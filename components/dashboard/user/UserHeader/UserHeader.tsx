@@ -12,6 +12,7 @@ interface UserHeaderProps {
   user: UserData;
   canEdit: boolean;
   editLink: string;
+  isCurrentUser: boolean;
 }
 
 // basic details: name, username, pronoun/gender, profile pic/icon
@@ -19,6 +20,7 @@ export default function UserHeader({
   canEdit,
   user,
   editLink,
+  isCurrentUser,
 }: UserHeaderProps) {
   const pathname = usePathname();
 
@@ -31,7 +33,7 @@ export default function UserHeader({
     <DHeader
       className={css.user_header}
       containerClassName={css.user_header_container}
-      color={"primary"}
+      color={isCurrentUser ? "secondary" : "primary"}
     >
       <ProfileImg label={name} src={img} size={150} />
       <div>
@@ -53,10 +55,10 @@ export default function UserHeader({
           {gender}
           {gender && pronouns ? ", " : undefined}
           {pronouns}{" "}
-          {user_role === 1 && (
-            <Badge text="Site Admin" fontSize="s" type="secondary" />
+          {user_role === 1 && <Badge text="Site Admin" fontSize="s" />}
+          {user_role === 2 && (
+            <Badge text="Commissioner" fontSize="s" type="grey" />
           )}
-          {user_role === 2 && <Badge text="Commissioner" fontSize="s" />}
         </p>
       </div>
     </DHeader>

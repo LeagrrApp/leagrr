@@ -37,7 +37,7 @@
   &:has(input:checked) {
     color: var(--color-primary);
     border-color: var(--color-primary);
-    background-color: var(--color-primary-pale);
+    background-color: var(--color-primary-lightest);
   }
 
   &:has(input:disabled) {

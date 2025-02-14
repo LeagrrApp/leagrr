@@ -24,6 +24,28 @@ type UserSessionData = Required<
   >
 >;
 
+type UserRosterData = {
+  division_roster_id: number;
+  team_id: number;
+  team_name: string;
+  team_slug: string;
+  team_color: string;
+  division_name: string;
+  division_id: number;
+  division_slug: string;
+  season_name: string;
+  season_id: number;
+  season_slug: string;
+  league_name: string;
+  league_id: number;
+  league_slug: string;
+};
+
+type UserRosterStats = Omit<
+  PlayerStats,
+  "user_id" | "username" | "first_name" | "last_name"
+>;
+
 type TeamData = {
   team_id: number;
   slug: string;
@@ -68,6 +90,7 @@ type TeamStandingsData = Pick<
   points: number;
   goals_for: number;
   goals_against: number;
+  position?: number;
 };
 
 type QuickTeam = Pick<TeamData, "team_id" | "name">;

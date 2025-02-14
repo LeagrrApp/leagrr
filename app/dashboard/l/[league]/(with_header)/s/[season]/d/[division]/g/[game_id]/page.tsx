@@ -1,4 +1,4 @@
-import { getGame } from "@/actions/games";
+import { getGame, getGameMetaInfo } from "@/actions/games";
 import { canEditLeague } from "@/actions/leagues";
 import GameControls from "@/components/dashboard/games/GameControls/GameControls";
 import GameFeed from "@/components/dashboard/games/GameFeed/GameFeed";
@@ -12,21 +12,33 @@ import css from "./page.module.css";
 import { apply_classes_conditional } from "@/utils/helpers/html-attributes";
 import BackButton from "@/components/ui/BackButton/BackButton";
 
-interface GameStyles extends CSSProperties {
-  "--color-home": string;
-  "--color-away": string;
-}
-
-export default async function Page({
-  params,
-}: {
+interface PageProps {
   params: Promise<{
     division: string;
     season: string;
     league: string;
     game_id: number;
   }>;
-}) {
+}
+
+export async function generateMetadata({ params }: PageProps) {
+  const { game_id } = await params;
+
+  const { data: gameData } = await getGame(game_id);
+
+  if (!gameData) return null;
+
+  const { data: gameMetaData } = await getGameMetaInfo(game_id);
+
+  return gameMetaData;
+}
+
+interface GameStyles extends CSSProperties {
+  "--color-home": string;
+  "--color-away": string;
+}
+
+export default async function Page({ params }: PageProps) {
   const { division, season, league, game_id } = await params;
 
   const { data: gameData } = await getGame(game_id);

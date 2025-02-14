@@ -8,7 +8,6 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getDivisionStandings } from "./divisions";
 import { verifyUserRole } from "./users";
-import slugify from "slugify";
 
 const CreateTeamSchema = z.object({
   user_id: z.number().min(1),

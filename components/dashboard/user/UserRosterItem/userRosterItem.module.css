@@ -1,0 +1,42 @@
+.user_roster {
+  display: grid;
+  gap: var(--spacer-base);
+  position: relative;
+  background: linear-gradient(
+    225deg,
+    hsla(from var(--color-team, var(--color-primary)) h s l / 0.25),
+    transparent 20%
+  );
+}
+
+.user_roster_heading_link {
+  color: var(--color-black);
+  text-decoration: none;
+
+  &::before {
+    content: " ";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  &:where(:hover, :focus-visible) {
+    color: var(--color-primary-dark);
+  }
+}
+
+.user_roster_div_link {
+  color: var(--color-black);
+  text-decoration: none;
+  font-size: var(--type-scale-s);
+  position: relative;
+  z-index: 1;
+
+  &:where(:hover, :focus-visible) {
+    color: var(--color-primary);
+  }
+}
+
+.user_roster_sub_heading {
+  font-size: var(--type-scale-h5);
+}

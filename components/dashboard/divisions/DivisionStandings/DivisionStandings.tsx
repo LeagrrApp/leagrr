@@ -15,7 +15,7 @@ export default function DivisionStandings({
   currentTeam,
 }: DivisionStandingsProps) {
   const table_headings = [
-    { title: "Team", shorthand: "Team" },
+    { title: "Team", shorthand: "Team", highlightCol: true },
     { title: "Games Played", shorthand: "GP" },
     { title: "Wins", shorthand: "W" },
     { title: "Losses", shorthand: "L" },
@@ -38,7 +38,12 @@ export default function DivisionStandings({
         <thead>
           <tr>
             {table_headings.map((th) => (
-              <th key={th.title} scope="col" title={th.title}>
+              <th
+                key={th.title}
+                scope="col"
+                title={th.title}
+                data-highlight-col={th.highlightCol}
+              >
                 <span aria-hidden="true">{th.shorthand}</span>
               </th>
             ))}
