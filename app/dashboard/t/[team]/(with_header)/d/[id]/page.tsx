@@ -64,7 +64,11 @@ export default async function Page({ params }: PageParams) {
           </h2>
         </DashboardUnitHeader>
         {nextGame ? (
-          <GamePreview game={nextGame} includeGameLink />
+          <GamePreview
+            game={nextGame}
+            currentTeam={teamData.team_id}
+            includeGameLink
+          />
         ) : (
           <Card padding="base">
             <p>There are no upcoming games.</p>
