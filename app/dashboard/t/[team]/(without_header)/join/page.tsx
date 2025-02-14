@@ -1,10 +1,6 @@
 import { getTeam } from "@/actions/teams";
 import JoinTeam from "@/components/dashboard/teams/JoinTeam/JoinTeam";
-import BackButton from "@/components/ui/BackButton/BackButton";
-import {
-  createDashboardUrl,
-  createMetaTitle,
-} from "@/utils/helpers/formatting";
+import { createMetaTitle } from "@/utils/helpers/formatting";
 import { notFound } from "next/navigation";
 
 type PageParams = {
@@ -36,8 +32,6 @@ export default async function Page({ params, searchParams }: PageParams) {
 
   // redirect if team not found
   if (!teamData) notFound();
-
-  const backLink = createDashboardUrl({ t: team });
 
   return (
     <>

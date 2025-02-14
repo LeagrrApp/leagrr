@@ -1,11 +1,11 @@
 "use server";
 
-import bcrypt from "bcrypt";
 import { db } from "@/db/pg";
 import { createSession } from "@/lib/session";
 import { isObjectEmpty } from "@/utils/helpers/objects";
-import { redirect } from "next/navigation";
+import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 const SignupFormSchema = z.object({
@@ -137,7 +137,15 @@ type UserSignInData = UserSessionData & {
   password_hash: string;
 };
 
-export async function signIn(state: UserFormState, formData: FormData) {
+type SignInFormState = FormState<
+  { identifier: string[] | undefined },
+  { identifier: string; password?: string }
+>;
+
+export async function signIn(
+  state: SignInFormState,
+  formData: FormData,
+): Promise<SignInFormState> {
   const identifier = formData.get("identifier") as string;
   const password = formData.get("password") as string;
 

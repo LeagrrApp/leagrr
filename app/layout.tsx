@@ -1,9 +1,8 @@
-import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Noto_Sans, Noto_Sans_Mono } from "next/font/google";
-import "./globals.css";
-import "material-symbols";
-import TempNav from "@/components/ui/TempNav/TempNav";
 import { apply_classes } from "@/utils/helpers/html-attributes";
+import "material-symbols";
+import type { Metadata } from "next";
+import { Noto_Sans, Noto_Sans_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import "./globals.css";
 
 const notoSans = Noto_Sans({
   variable: "--font-primary",

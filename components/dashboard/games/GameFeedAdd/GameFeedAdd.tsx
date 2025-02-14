@@ -12,7 +12,7 @@ import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { nameDisplay } from "@/utils/helpers/formatting";
 import { usePathname } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import css from "./gameFeedAdd.module.css";
 
 interface GameFeedAddProps {
@@ -39,25 +39,32 @@ export default function GameFeedAdd({
   const pathname = usePathname();
   const [state, action, pending] = useActionState(addToGameFeed, {
     link: pathname,
+    data: {},
   });
 
-  const away_players: Choice[] = [
-    ...teamRosters?.away_roster.map((p) => {
-      return {
-        label: nameDisplay(p.first_name, p.last_name, "first_initial"),
-        value: p.user_id,
-      };
-    }),
-  ];
+  const away_players: Choice[] = useMemo(
+    () => [
+      ...teamRosters?.away_roster.map((p) => {
+        return {
+          label: nameDisplay(p.first_name, p.last_name, "first_initial"),
+          value: p.user_id,
+        };
+      }),
+    ],
+    [teamRosters],
+  );
 
-  const home_players: Choice[] = [
-    ...teamRosters?.home_roster.map((p) => {
-      return {
-        label: nameDisplay(p.first_name, p.last_name, "first_initial"),
-        value: p.user_id,
-      };
-    }),
-  ];
+  const home_players: Choice[] = useMemo(
+    () => [
+      ...teamRosters?.home_roster.map((p) => {
+        return {
+          label: nameDisplay(p.first_name, p.last_name, "first_initial"),
+          value: p.user_id,
+        };
+      }),
+    ],
+    [teamRosters],
+  );
 
   const [adding, setAdding] = useState<boolean>(false);
   const [type, setType] = useState<string>("shot");
@@ -82,7 +89,7 @@ export default function GameFeedAdd({
         : teamRosters.home_roster
       ).find((p) => p.position === "Goalie")?.user_id || 0,
     );
-  }, [team]);
+  }, [team, away_players, home_players, game.home_team_id, teamRosters]);
 
   useEffect(() => {
     const baseList = team === game.home_team_id ? home_players : away_players;
@@ -90,7 +97,7 @@ export default function GameFeedAdd({
     const filteredList = baseList.filter((p) => p.value !== player);
 
     setCanAssist(filteredList);
-  }, [player]);
+  }, [player, away_players, game.home_team_id, home_players, team]);
 
   const team_choices: Choice[] = [
     { label: game.away_team, value: game.away_team_id },
@@ -216,15 +223,19 @@ export default function GameFeedAdd({
           }
         />
         <input type="hidden" name="goalie_id" value={goalie} />
+        {state?.message && state?.status === 400 && (
+          <Alert alert={state.message} type="danger" />
+        )}
         <Col fullSpan>
           <Grid cols={2} gap="base">
-            <Button type="submit">
+            <Button type="submit" disabled={pending}>
               <Icon label="Add to feed" icon="dynamic_feed" />
             </Button>
             <Button
               type="button"
               onClick={() => setAdding(false)}
               variant="grey"
+              disabled={pending}
             >
               <Icon label="Cancel" icon="cancel" />
             </Button>

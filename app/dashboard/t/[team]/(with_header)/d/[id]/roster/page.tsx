@@ -6,8 +6,9 @@ import {
 } from "@/actions/teams";
 import ActiveRoster from "@/components/dashboard/teams/ActiveRoster/ActiveRoster";
 import InactiveRoster from "@/components/dashboard/teams/InactiveRoster/InactiveRoster";
+import TeamInvite from "@/components/dashboard/teams/TeamInvite/TeamInvite";
 import Alert from "@/components/ui/Alert/Alert";
-import Icon from "@/components/ui/Icon/Icon";
+import BackButton from "@/components/ui/BackButton/BackButton";
 import {
   createDashboardUrl,
   createMetaTitle,
@@ -15,8 +16,6 @@ import {
 import { get_unique_items_by_key } from "@/utils/helpers/objects";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
-import TeamInvite from "@/components/dashboard/teams/TeamInvite/TeamInvite";
-import BackButton from "@/components/ui/BackButton/BackButton";
 
 type PageParams = {
   params: Promise<{ team: string; id: string }>;

@@ -1,12 +1,12 @@
+import { getDivision } from "@/actions/divisions";
 import { canEditLeague } from "@/actions/leagues";
 import { getSeason } from "@/actions/seasons";
+import DivisionHeader from "@/components/dashboard/divisions/DivisionHeader/DivisionHeader";
 import DivisionTabs from "@/components/dashboard/divisions/DivisionTabs/DivisionTabs";
 import Container from "@/components/ui/Container/Container";
 import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
 import css from "./layout.module.css";
-import { getDivision } from "@/actions/divisions";
-import DivisionHeader from "@/components/dashboard/divisions/DivisionHeader/DivisionHeader";
 
 export default async function Layout({
   children,
@@ -19,7 +19,7 @@ export default async function Layout({
     game_id: string;
   }>;
 }>) {
-  const { division, season, league, game_id } = await params;
+  const { division, season, league } = await params;
 
   const { data: seasonData } = await getSeason(season, league, true);
   const { data: divisionData } = await getDivision(division, season, league);

@@ -1,17 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import css from "./menu.module.css";
-import Icon from "@/components/ui/Icon/Icon";
-import { apply_classes } from "@/utils/helpers/html-attributes";
-import Image from "next/image";
-import Alert from "@/components/ui/Alert/Alert";
-import { PropsWithChildren, useState } from "react";
-import Toggle from "@/components/ui/Toggle/Toggle";
 import { logOut } from "@/actions/auth";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
-import { usePathname } from "next/navigation";
+import Icon from "@/components/ui/Icon/Icon";
+import Toggle from "@/components/ui/Toggle/Toggle";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { apply_classes } from "@/utils/helpers/html-attributes";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import css from "./menu.module.css";
 
 interface MenuProps {
   userData: UserSessionData;

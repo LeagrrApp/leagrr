@@ -859,7 +859,7 @@ type TeamMembershipFormState = FormState<
     division_id?: number;
     number?: number;
     position?: string;
-    team_role?: string;
+    team_role?: number;
     team_membership_id?: number;
   }
 >;
@@ -991,7 +991,7 @@ export async function joinTeam(
 
     const teamResult = await db
       .query(teamSql, [user_id, submittedData.team_id])
-      .then((res) => {
+      .then(() => {
         return {
           message: "Membership updated!",
           status: 200,
@@ -1066,7 +1066,7 @@ export async function joinTeam(
           submittedData.number,
           submittedData.position,
         ])
-        .then((res) => {
+        .then(() => {
           return {
             message: "Membership updated!",
             status: 200,
@@ -1113,7 +1113,7 @@ const EditTeamMembershipSchema = z.object({
 export async function editTeamMembership(
   state: TeamMembershipFormState,
   formData: FormData,
-) {
+): Promise<TeamMembershipFormState> {
   const submittedData = {
     team_role: parseInt(formData.get("team_role") as string),
     team_membership_id: parseInt(formData.get("team_membership_id") as string),
@@ -1126,7 +1126,7 @@ export async function editTeamMembership(
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
     return {
-      state,
+      data: submittedData,
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
@@ -1140,6 +1140,7 @@ export async function editTeamMembership(
       message:
         "You do not have permission to modify memberships for this team.",
       status: 401,
+      data: submittedData,
     };
   }
 
@@ -1153,7 +1154,7 @@ export async function editTeamMembership(
 
   const result = await db
     .query(sql, [submittedData.team_role, submittedData.team_membership_id])
-    .then((res) => {
+    .then(() => {
       return {
         message: "Membership updated!",
         status: 200,
@@ -1167,7 +1168,7 @@ export async function editTeamMembership(
     });
 
   if (result.status === 200) {
-    state?.link && redirect(state.link);
+    if (state?.link) redirect(state.link);
   }
 
   return state;
@@ -1180,7 +1181,7 @@ const RemoveTeamMembershipSchema = z.object({
 export async function removeTeamMembership(
   state: TeamMembershipFormState,
   formData: FormData,
-) {
+): Promise<TeamMembershipFormState> {
   const submittedData = {
     team_id: parseInt(formData.get("team_id") as string),
     team_membership_id: parseInt(formData.get("team_membership_id") as string),
@@ -1192,7 +1193,7 @@ export async function removeTeamMembership(
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
     return {
-      state,
+      data: submittedData,
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
@@ -1206,6 +1207,7 @@ export async function removeTeamMembership(
       message:
         "You do not have permission to modify memberships for this team.",
       status: 401,
+      data: submittedData,
     };
   }
 
@@ -1219,7 +1221,7 @@ export async function removeTeamMembership(
 
   const result = await db
     .query(sql, [submittedData.team_membership_id])
-    .then((res) => {
+    .then(() => {
       return {
         message: "Player removed from team!",
         status: 200,
@@ -1233,10 +1235,10 @@ export async function removeTeamMembership(
     });
 
   if (result.status === 200) {
-    state?.link && redirect(state.link);
+    if (state?.link) redirect(state.link);
   }
 
-  return state;
+  return { ...result, data: submittedData };
 }
 
 type DivisionTeamErrorProps = {
@@ -1324,7 +1326,7 @@ export async function addPlayerToDivisionTeam(
       submittedData.position,
       submittedData.roster_role,
     ])
-    .then((res) => {
+    .then(() => {
       return {
         message: "Player added to division team!",
         status: 200,
@@ -1338,7 +1340,7 @@ export async function addPlayerToDivisionTeam(
     });
 
   if (result.status === 200) {
-    state?.link && redirect(state.link);
+    if (state?.link) redirect(state.link);
   }
 
   return state;
@@ -1354,7 +1356,7 @@ const EditPlayerOnDivisionTeamSchema = z.object({
 export async function editPlayerOnDivisionTeam(
   state: DivisionTeamFormState,
   formData: FormData,
-) {
+): Promise<DivisionTeamFormState> {
   const submittedData = {
     team_id: parseInt(formData.get("team_id") as string),
     division_roster_id: parseInt(formData.get("division_roster_id") as string),
@@ -1374,7 +1376,7 @@ export async function editPlayerOnDivisionTeam(
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
     return {
-      state,
+      data: submittedData,
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
@@ -1387,6 +1389,7 @@ export async function editPlayerOnDivisionTeam(
     return {
       message: "You do not have permission to modify rosters for this team.",
       status: 401,
+      data: submittedData,
     };
   }
 
@@ -1407,7 +1410,7 @@ export async function editPlayerOnDivisionTeam(
       submittedData.roster_role,
       submittedData.division_roster_id,
     ])
-    .then((res) => {
+    .then(() => {
       return {
         message: "Player information updated!",
         status: 200,
@@ -1421,7 +1424,7 @@ export async function editPlayerOnDivisionTeam(
     });
 
   if (result.status === 200) {
-    state?.link && redirect(state.link);
+    if (state?.link) redirect(state.link);
   }
 
   return state;
@@ -1434,7 +1437,7 @@ const RemovePlayerFromDivisionTeamSchema = z.object({
 export async function removePlayerFromDivisionTeam(
   state: DivisionTeamFormState,
   formData: FormData,
-) {
+): Promise<DivisionTeamFormState> {
   const submittedData = {
     team_id: parseInt(formData.get("team_id") as string),
     division_roster_id: parseInt(formData.get("division_roster_id") as string),
@@ -1447,7 +1450,7 @@ export async function removePlayerFromDivisionTeam(
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
     return {
-      state,
+      data: submittedData,
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
@@ -1460,6 +1463,7 @@ export async function removePlayerFromDivisionTeam(
     return {
       message: "You do not have permission to modify rosters for this team.",
       status: 401,
+      data: submittedData,
     };
   }
 
@@ -1470,7 +1474,7 @@ export async function removePlayerFromDivisionTeam(
 
   const result = await db
     .query(sql, [submittedData.division_roster_id])
-    .then((res) => {
+    .then(() => {
       return {
         message: "Player removed from team!",
         status: 200,
@@ -1484,7 +1488,7 @@ export async function removePlayerFromDivisionTeam(
     });
 
   if (result.status === 200) {
-    state?.link && redirect(state.link);
+    if (state?.link) redirect(state.link);
   }
 
   return state;

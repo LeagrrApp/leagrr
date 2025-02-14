@@ -1,14 +1,14 @@
 "use client";
 
-import { ChangeEvent, ChangeEventHandler, useEffect, useState } from "react";
-import forms from "./forms.module.css";
-import Alert from "../Alert/Alert";
 import { capitalize } from "@/utils/helpers/formatting";
+import { ChangeEvent, useEffect, useState } from "react";
+import Alert from "../Alert/Alert";
+import forms from "./forms.module.css";
 
 interface SelectProps extends Partial<HTMLSelectElement> {
   label: string;
   labelAfter?: boolean;
-  onChange?(e: ChangeEvent<HTMLSelectElement>): any;
+  onChange?(e: ChangeEvent<HTMLSelectElement>): unknown;
   errors?: {
     errs?: string[];
     type?: string;

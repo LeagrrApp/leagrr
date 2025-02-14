@@ -1,6 +1,7 @@
 "use client";
 
 import { setGameScore } from "@/actions/games";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
 import Icon from "@/components/ui/Icon/Icon";
@@ -79,6 +80,9 @@ export default function GameQuickScore({
                 required
               />
             </div>
+            {state?.message && state?.status === 400 && (
+              <Alert alert={state.message} type="danger" />
+            )}
             <Button type="submit" disabled={pending}>
               Confirm Score
             </Button>

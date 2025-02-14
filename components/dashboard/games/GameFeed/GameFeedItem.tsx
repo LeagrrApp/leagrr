@@ -1,3 +1,4 @@
+import { deleteFeedItem } from "@/actions/games";
 import Icon from "@/components/ui/Icon/Icon";
 import InitialsCircle from "@/components/ui/InitialsCircle/InitialsCircle";
 import {
@@ -7,9 +8,8 @@ import {
 } from "@/utils/helpers/formatting";
 import { apply_classes } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
-import css from "./gameFeed.module.css";
 import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
-import { deleteFeedItem } from "@/actions/games";
+import css from "./gameFeed.module.css";
 
 interface GameFeedItemProps {
   item: StatsData;
@@ -163,9 +163,11 @@ export default function GameFeedItem({
       {canEdit && (
         <ModalConfirmAction
           defaultState={{
-            id: item.item_id,
-            type: item.type,
-            backLink,
+            data: {
+              id: item.item_id,
+              type: item.type,
+            },
+            link: backLink,
           }}
           actionFunction={deleteFeedItem}
           confirmationHeading={`Are you sure you want to delete this feed item?`}

@@ -1,9 +1,9 @@
 "use client";
 
+import { apply_classes_conditional } from "@/utils/helpers/html-attributes";
 import { ChangeEvent, PropsWithChildren, useEffect, useState } from "react";
 import Alert from "../Alert/Alert";
 import css from "./forms.module.css";
-import { apply_classes_conditional } from "@/utils/helpers/html-attributes";
 
 interface InputWrapProps {
   isPassword: boolean;
@@ -22,7 +22,7 @@ interface InputProps extends Partial<HTMLInputElement> {
   labelAfter?: boolean;
   labelAsPlaceholder?: boolean;
   hideLabel?: boolean;
-  onChange?(e: ChangeEvent<HTMLInputElement>): any;
+  onChange?(e: ChangeEvent<HTMLInputElement>): unknown;
   errors?: {
     errs?: string[];
     type?: string;

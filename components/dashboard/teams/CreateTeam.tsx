@@ -8,7 +8,7 @@ import TextArea from "@/components/ui/forms/TextArea";
 import Icon from "@/components/ui/Icon/Icon";
 import Grid from "@/components/ui/layout/Grid";
 import { color_options } from "@/lib/definitions";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import css from "./teamForm.module.css";
 
 interface CreateTeamProps {

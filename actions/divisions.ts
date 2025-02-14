@@ -3,13 +3,13 @@
 import { db } from "@/db/pg";
 import { gender_options, status_options } from "@/lib/definitions";
 import { verifySession } from "@/lib/session";
-import { z } from "zod";
-import { canEditLeague } from "./leagues";
-import { redirect } from "next/navigation";
 import {
   createDashboardUrl,
   createMetaTitle,
 } from "@/utils/helpers/formatting";
+import { redirect } from "next/navigation";
+import { z } from "zod";
+import { canEditLeague } from "./leagues";
 import { canEditTeam } from "./teams";
 
 const DivisionFormSchema = z.object({
@@ -1137,7 +1137,7 @@ export async function editDivision(
       submittedData.status,
       submittedData.division_id,
     ])
-    .then((res) => {
+    .then(() => {
       return {
         message: "Division teams loaded",
         status: 200,
@@ -1200,7 +1200,7 @@ export async function setDivisionJoinCode(
   }
 
   // Validate form fields
-  const validatedFields = DivisionTeamSchema.safeParse(submittedData);
+  const validatedFields = DivisionJoinCodeSchema.safeParse(submittedData);
 
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
@@ -1223,7 +1223,6 @@ export async function setDivisionJoinCode(
   const result: ResultProps<{ join_code: string }> = await db
     .query(sql, [submittedData.join_code, submittedData.division_id])
     .then((res) => {
-      console.log(res);
       return {
         message: "Join code updated!",
         status: 200,
@@ -1271,7 +1270,7 @@ type DivisionTeamFormState = FormState<
 export async function addTeamToDivision(
   state: DivisionTeamFormState,
   formData: FormData,
-): Promise<DivisionFormState> {
+): Promise<DivisionTeamFormState> {
   const submittedData = {
     team_id: parseInt(formData.get("team_id") as string),
     division_id: parseInt(formData.get("division_id") as string),
@@ -1308,8 +1307,7 @@ export async function addTeamToDivision(
 
   const result = await db
     .query(sql, [submittedData.division_id, submittedData.team_id])
-    .then((res) => {
-      console.log(res);
+    .then(() => {
       return {
         message: "Team added to division!",
         status: 200,
@@ -1324,13 +1322,13 @@ export async function addTeamToDivision(
 
   if (result.status === 400) return { ...result, data: submittedData };
 
-  state?.link && redirect(state?.link);
+  if (state?.link) redirect(state?.link);
 }
 
 export async function removeTeamFromDivision(
   state: DivisionTeamFormState,
   formData: FormData,
-): Promise<DivisionFormState> {
+): Promise<DivisionTeamFormState> {
   const submittedData = {
     team_id: parseInt(formData.get("team_id") as string),
     division_id: parseInt(formData.get("division_id") as string),
@@ -1368,8 +1366,7 @@ export async function removeTeamFromDivision(
 
   const result = await db
     .query(sql, [submittedData.division_id, submittedData.team_id])
-    .then((res) => {
-      console.log(res);
+    .then(() => {
       return {
         message: "Team removed from division!",
         status: 200,
@@ -1384,7 +1381,7 @@ export async function removeTeamFromDivision(
 
   if (result.status === 400) return { ...result, data: submittedData };
 
-  state?.link && redirect(state?.link);
+  if (state?.link) redirect(state?.link);
 }
 
 const JoinDivisionSchema = z.object({
@@ -1538,7 +1535,7 @@ export async function joinDivision(
 
     const insertResult = await db
       .query(insertSql, [submittedData.division_id, submittedData.team_id])
-      .then((res) => {
+      .then(() => {
         return {
           message: "Membership updated!",
           status: 200,
@@ -1554,7 +1551,7 @@ export async function joinDivision(
     if (insertResult.status === 400)
       return { ...insertResult, data: submittedData };
 
-    state?.link && redirect(state.link);
+    if (state?.link) redirect(state.link);
   }
 
   return {
@@ -1607,6 +1604,7 @@ export async function deleteDivision(state: {
     });
 
   // TODO: improve error handling if there is an issue deleting season
+  if (deleteResult.status === 400) return deleteResult;
 
   redirect(state.backLink);
 }

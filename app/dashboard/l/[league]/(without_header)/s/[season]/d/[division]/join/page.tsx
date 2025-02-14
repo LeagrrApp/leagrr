@@ -43,8 +43,8 @@ export default async function Page({
       <Container maxWidth="35rem">
         <h1>Sorry</h1>
         <p>
-          You don't manage any teams or all of the teams you manage are already
-          assigned to this division.
+          You don&apos;t manage any teams or all of the teams you manage are
+          already assigned to this division.
         </p>
       </Container>
     );

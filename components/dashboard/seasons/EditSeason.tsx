@@ -10,7 +10,7 @@ import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { status_options } from "@/lib/definitions";
 import { Url } from "next/dist/shared/lib/router/router";
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react";
 
 interface EditSeasonProps {
   backLink: Url;

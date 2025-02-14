@@ -1,6 +1,7 @@
 "use client";
 
 import { editTeamMembership, removeTeamMembership } from "@/actions/teams";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
 import Select from "@/components/ui/forms/Select";
@@ -36,12 +37,14 @@ export default function TeamMembers({
     editTeamMembership,
     {
       link: pathname,
+      data: {},
     },
   );
   const [removeState, removeAction, removePending] = useActionState(
     removeTeamMembership,
     {
       link: pathname,
+      data: {},
     },
   );
 
@@ -201,6 +204,9 @@ export default function TeamMembers({
                   name="team_membership_id"
                   value={teamMemberToEdit.team_membership_id}
                 />
+                {removeState?.message && removeState?.status === 400 && (
+                  <Alert alert={removeState.message} type="danger" />
+                )}
                 <Button type="submit" disabled={removePending} variant="danger">
                   <Icon icon="delete" label="Confirm" />
                 </Button>

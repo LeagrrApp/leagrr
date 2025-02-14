@@ -1,15 +1,15 @@
 "use client";
 
 import { signUp } from "@/actions/auth";
+import Button from "@/components/ui/Button/Button";
+import Container from "@/components/ui/Container/Container";
+import Input from "@/components/ui/forms/Input";
+import Col from "@/components/ui/layout/Col";
+import Flex from "@/components/ui/layout/Flex";
+import Grid from "@/components/ui/layout/Grid";
+import Link from "next/link";
 import { useActionState } from "react";
 import page from "./page.module.css";
-import Link from "next/link";
-import Container from "@/components/ui/Container/Container";
-import Grid from "@/components/ui/layout/Grid";
-import Col from "@/components/ui/layout/Col";
-import Input from "@/components/ui/forms/Input";
-import Flex from "@/components/ui/layout/Flex";
-import Button from "@/components/ui/Button/Button";
 
 export default function Page() {
   const [state, action, pending] = useActionState(signUp, undefined);
@@ -67,7 +67,9 @@ export default function Page() {
             />
             <Col fullSpan>
               <Flex alignItems="center" gap="base">
-                <Button type="submit">Sign Up</Button>
+                <Button type="submit" disabled={pending}>
+                  Sign Up
+                </Button>
                 <p>
                   Already have an account? <Link href="/sign-in">Sign In</Link>
                 </p>

@@ -8,7 +8,8 @@ import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { game_status_options } from "@/lib/definitions";
-import { useActionState, useEffect } from "react";
+import { formatDateForInput } from "@/utils/helpers/formatting";
+import { useActionState } from "react";
 
 interface CreateGameProps {
   division_id: number;
@@ -25,6 +26,7 @@ export default function CreateGame({
 }: CreateGameProps) {
   const [state, action, pending] = useActionState(createGame, {
     link: backLink,
+    data: {},
   });
 
   const team_options: SelectOption[] = [];
@@ -65,7 +67,11 @@ export default function CreateGame({
           name="date_time"
           label="Date & Time"
           errors={{ errs: state?.errors?.date_time, type: "danger" }}
-          value={state?.data?.date_time}
+          value={
+            state?.data?.date_time
+              ? formatDateForInput(state?.data?.date_time)
+              : ""
+          }
           required
         />
         <Select

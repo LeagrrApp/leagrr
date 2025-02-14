@@ -4,7 +4,6 @@ import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalC
 import EditSeason from "@/components/dashboard/seasons/EditSeason";
 import BackButton from "@/components/ui/BackButton/BackButton";
 import Container from "@/components/ui/Container/Container";
-import Icon from "@/components/ui/Icon/Icon";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
 

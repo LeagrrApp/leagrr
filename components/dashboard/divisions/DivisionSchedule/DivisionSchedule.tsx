@@ -68,7 +68,7 @@ export default function DivisionSchedule({
     }
 
     setGameCount(updatedGamesList.length);
-  }, [showPastGames, gameListOffset]);
+  }, [showPastGames, gameListOffset, games]);
 
   return (
     <DashboardUnit gridArea="schedule">

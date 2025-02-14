@@ -1,14 +1,12 @@
 "use server";
 
-import bcrypt from "bcrypt";
 import { db } from "@/db/pg";
 import { createSession, verifySession } from "@/lib/session";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
-import { wait } from "@/utils/helpers/general";
 import { isObjectEmpty } from "@/utils/helpers/objects";
+import bcrypt from "bcrypt";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { getTeam } from "./teams";
 import { getDivisionStandings } from "./divisions";
 
 export async function getDashboardMenuData(): Promise<
@@ -190,7 +188,7 @@ export async function getUserRole(
 
       return res.rows[0].user_role;
     })
-    .catch((err) => {
+    .catch(() => {
       // TODO: add more comprehensive error handling
       return 0;
     });
@@ -627,7 +625,7 @@ export async function getUserManagedTeamsForJoinDivision(
   // verify session
   const { user_id: logged_user_id } = await verifySession();
 
-  let id = user_id || logged_user_id;
+  const id = user_id || logged_user_id;
 
   const sql = `
     SELECT 
@@ -653,7 +651,6 @@ export async function getUserManagedTeamsForJoinDivision(
   const result = await db
     .query(sql, [id, division_id])
     .then((res) => {
-      console.log(res);
       return {
         message: `Managed teams found!`,
         status: 200,
@@ -847,7 +844,6 @@ export async function editUser(
       submittedData.user_id,
     ])
     .then((res) => {
-      console.log(res);
       return {
         message: "User updated!",
         status: 200,
@@ -1020,8 +1016,7 @@ export async function updatePassword(
   // query the database
   const updateResult = await db
     .query(updateSql, [hashed_new_password, submittedData.user_id])
-    .then((res) => {
-      console.log(res);
+    .then(() => {
       return {
         message: "Password successfully updated.",
         status: 200,

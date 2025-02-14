@@ -25,7 +25,6 @@ export default function UpdatePassword({
   const [confirmPasswordValue, setConfirmPasswordValue] = useState<string>("");
 
   useEffect(() => {
-    console.log(state);
     if (state?.status === 200) {
       setCurrentPasswordValue("");
       setNewPasswordValue("");
@@ -85,7 +84,7 @@ export default function UpdatePassword({
     <Card padding="l">
       <h3>Reset Password</h3>
       <p className="push-ml">
-        Click to reset user's password. They will receive an email to reset
+        Click to reset user&apos;s password. They will receive an email to reset
         their password.
       </p>
       <Button href="#" fullWidth>

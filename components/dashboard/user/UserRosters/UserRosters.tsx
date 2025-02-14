@@ -1,9 +1,9 @@
-import { getUserRosters, getUserRostersWithStats } from "@/actions/users";
-import UserRosterItem from "../UserRosterItem/UserRosterItem";
-import css from "./userRosters.module.css";
+import { getUserRostersWithStats } from "@/actions/users";
+import Icon from "@/components/ui/Icon/Icon";
 import DashboardUnit from "../../DashboardUnit/DashboardUnit";
 import DashboardUnitHeader from "../../DashboardUnitHeader/DashboardUnitHeader";
-import Icon from "@/components/ui/Icon/Icon";
+import UserRosterItem from "../UserRosterItem/UserRosterItem";
+import css from "./userRosters.module.css";
 
 interface UserRostersProps {
   user?: UserData;

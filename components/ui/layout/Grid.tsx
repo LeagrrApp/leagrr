@@ -1,6 +1,6 @@
+import { apply_classes } from "@/utils/helpers/html-attributes";
 import { CSSProperties, PropsWithChildren } from "react";
 import layout from "./layout.module.css";
-import { apply_classes } from "@/utils/helpers/html-attributes";
 
 // TODO: improve grids so that they are more easily nestable & add subgrid
 
@@ -26,6 +26,7 @@ interface GridStyles extends CSSProperties {
   "--g-cols-m"?: number;
   "--g-cols-l"?: number;
   "--g-cols-xl"?: number;
+  [key: string]: unknown;
 }
 
 export default function Grid({

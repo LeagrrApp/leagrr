@@ -1,4 +1,4 @@
-import { canEditUser, getUser, verifyUserRole } from "@/actions/users";
+import { canEditUser, getUser } from "@/actions/users";
 import UserHeader from "@/components/dashboard/user/UserHeader/UserHeader";
 import Container from "@/components/ui/Container/Container";
 import { verifySession } from "@/lib/session";
@@ -12,7 +12,7 @@ export default async function Layout({
 }: PropsWithChildren<{
   params: Promise<{ username: string }>;
 }>) {
-  const userSession = await verifySession();
+  await verifySession();
 
   const { username } = await params;
 

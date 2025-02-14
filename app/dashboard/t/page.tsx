@@ -1,12 +1,11 @@
 import DHeader from "@/components/dashboard/DHeader/DHeader";
 import CreateTeam from "@/components/dashboard/teams/CreateTeam";
+import Card from "@/components/ui/Card/Card";
 import Container from "@/components/ui/Container/Container";
-import Grid from "@/components/ui/layout/Grid";
 import { verifySession } from "@/lib/session";
 import { createMetaTitle } from "@/utils/helpers/formatting";
 import { Metadata } from "next";
 import css from "./page.module.css";
-import Card from "@/components/ui/Card/Card";
 
 export const metadata: Metadata = {
   title: createMetaTitle(["Add Team"]),

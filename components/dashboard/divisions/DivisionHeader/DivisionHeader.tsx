@@ -1,9 +1,9 @@
 "use client";
 
-import { useParams, usePathname } from "next/navigation";
 import Badge from "@/components/ui/Badge/Badge";
 import Icon from "@/components/ui/Icon/Icon";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { usePathname } from "next/navigation";
 import css from "./divisionHeader.module.css";
 
 interface DivisionHeaderProps {
@@ -17,17 +17,8 @@ export default function DivisionHeader({
 }: DivisionHeaderProps) {
   const pathname = usePathname();
 
-  const {
-    slug,
-    name,
-    description,
-    gender,
-    tier,
-    join_code,
-    status,
-    season_slug,
-    league_slug,
-  } = division;
+  const { slug, name, description, status, season_slug, league_slug } =
+    division;
 
   const editLink = createDashboardUrl(
     { l: league_slug, s: season_slug, d: slug },

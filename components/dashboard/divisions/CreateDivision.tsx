@@ -9,7 +9,7 @@ import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { gender_options, status_options } from "@/lib/definitions";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react";
 
 interface CreateDivisionProps {
   season: SeasonData;

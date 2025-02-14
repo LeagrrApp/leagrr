@@ -8,7 +8,7 @@ interface TextAreaProps extends Partial<HTMLTextAreaElement> {
   label: string;
   labelAfter?: boolean;
   labelAsPlaceholder?: boolean;
-  onChange?(e: ChangeEvent<HTMLTextAreaElement>): any;
+  onChange?(e: ChangeEvent<HTMLTextAreaElement>): unknown;
   errors?: {
     errs?: string[];
     type?: string;
