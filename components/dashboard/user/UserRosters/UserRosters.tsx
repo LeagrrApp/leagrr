@@ -15,7 +15,7 @@ export default async function UserRosters({ user }: UserRostersProps) {
   if (!userRosters) return null;
 
   return (
-    <DashboardUnit className={css.user_roster}>
+    <DashboardUnit className={css.user_roster} gridArea="teams">
       <DashboardUnitHeader>
         <h2 className="type-scale-h3">
           <Icon label="Current Teams" icon="groups" labelFirst gap="ml" />

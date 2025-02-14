@@ -1,8 +1,15 @@
 .user_grid {
   display: grid;
   gap: var(--spacer-l) var(--spacer-base);
+  grid-template-areas:
+    "nextGame"
+    "prevGame"
+    "teams";
 
   @container (width >= 60rem) {
     grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "nextGame prevGame"
+      "teams teams";
   }
 }

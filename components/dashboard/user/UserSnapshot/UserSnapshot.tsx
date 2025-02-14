@@ -20,7 +20,7 @@ export default async function UserSnapshot({ user }: UserSnapshotProps) {
 
   return (
     <>
-      <DashboardUnit>
+      <DashboardUnit gridArea="nextGame" stretch>
         <DashboardUnitHeader>
           <h2>
             <Icon label="Next Game" icon="event_upcoming" labelFirst gap="m" />
@@ -34,7 +34,7 @@ export default async function UserSnapshot({ user }: UserSnapshotProps) {
           </Card>
         )}
       </DashboardUnit>
-      <DashboardUnit>
+      <DashboardUnit gridArea="prevGame" stretch>
         <DashboardUnitHeader>
           <h2>
             <Icon label="Last Game" icon="event_available" labelFirst gap="m" />

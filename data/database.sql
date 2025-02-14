@@ -5,13 +5,6 @@
 ----------------------------------------------------------
 
 -- Create admin
-DROP TABLE IF EXISTS admin.user_roles CASCADE;
-DROP TABLE IF EXISTS admin.league_roles CASCADE;
-DROP TABLE IF EXISTS admin.season_roles CASCADE;
-DROP TABLE IF EXISTS admin.playoff_structures CASCADE;
-DROP TABLE IF EXISTS admin.team_roles CASCADE;
-DROP TABLE IF EXISTS admin.sports CASCADE;
-DROP TABLE IF EXISTS admin.genders CASCADE;
 DROP TABLE IF EXISTS admin.users CASCADE;
 DROP SCHEMA IF EXISTS admin CASCADE;
 
@@ -48,80 +41,12 @@ DROP SCHEMA IF EXISTS stats CASCADE;
 -- ADD SLUGS TO MOST TABLES!
 
 -- Create the database schemas
-CREATE SCHEMA league_management;
 CREATE SCHEMA admin;
+CREATE SCHEMA league_management;
 CREATE SCHEMA stats;
 
 -- Alter roles to view schemas and tables
 ALTER ROLE postgres SET search_path = league_management, admin;
-
--- Create admin.user_roles
--- Defines the roles assigned to all users for basic app wide permissions
--- CREATE TABLE admin.user_roles (
---   user_role_id    SERIAL NOT NULL PRIMARY KEY,
---   name            VARCHAR(50) NOT NULL,
---   description     TEXT,
---   created_on      TIMESTAMP DEFAULT NOW()
--- );
-
--- Create admin.league_roles
--- Defines the roles and permissions assignable to individual users for specific leagues
--- CREATE TABLE admin.league_roles (
---   league_role_id    SERIAL NOT NULL PRIMARY KEY,
---   name            VARCHAR(50) NOT NULL,
---   description     TEXT,
---   created_on      TIMESTAMP DEFAULT NOW()
--- );
-
--- Create admin.season_roles
--- Defines the roles and permissions assignable to individual users for specific seasons
--- CREATE TABLE admin.season_roles (
---   season_role_id    SERIAL NOT NULL PRIMARY KEY,
---   name            VARCHAR(50) NOT NULL,
---   description     TEXT,
---   created_on      TIMESTAMP DEFAULT NOW()
--- );
-
--- Create admin.playoff_structures
--- Define different types of playoff structures
--- CREATE TABLE admin.playoff_structures (
---   playoff_structure_id    SERIAL NOT NULL PRIMARY KEY,
---   name                    VARCHAR(50) NOT NULL,
---   description             TEXT,
---   created_on              TIMESTAMP DEFAULT NOW()
--- );
-
--- Create admin.team_roles
--- Defines the roles and permissions assignable to individual users for specific teams
--- CREATE TABLE admin.team_roles (
---   team_role_id    SERIAL NOT NULL PRIMARY KEY,
---   name            VARCHAR(50) NOT NULL,
---   description     TEXT,
---   created_on      TIMESTAMP DEFAULT NOW()
--- );
-
--- Create admin.sports
--- Define list of sports supported by the app
--- CREATE TABLE admin.sports (
---   sport_id        SERIAL NOT NULL PRIMARY KEY,
---   slug            VARCHAR(50) NOT NULL UNIQUE,
---   name            VARCHAR(50) NOT NULL,
---   description     TEXT,
---   status          VARCHAR(20) NOT NULL DEFAULT 'public',
---   created_on      TIMESTAMP DEFAULT NOW()
--- );
-
--- ALTER TABLE IF EXISTS admin.sports
---     ADD CONSTRAINT sport_status_enum CHECK (status IN ('draft', 'public', 'archived'));
-
--- Create admin.genders
--- List of gender options selected by users and used to restrict rosters in divisions
--- CREATE TABLE admin.genders (
---   gender_id       SERIAL NOT NULL PRIMARY KEY,
---   slug            VARCHAR(50) NOT NULL UNIQUE,
---   name            VARCHAR(50) NOT NULL,
---   created_on      TIMESTAMP DEFAULT NOW()
--- );
 
 -- Create admin.users
 -- Define user table for all user accounts
@@ -135,21 +60,18 @@ CREATE TABLE admin.users (
   pronouns        VARCHAR(50),
   user_role       INT NOT NULL DEFAULT 3,
   img             VARCHAR(100),
+  privacy         VARCHAR(20) NOT NULL DEFAULT 'public',
   password_hash   VARCHAR(100),
   status          VARCHAR(20) NOT NULL DEFAULT 'active',
   created_on      TIMESTAMP DEFAULT NOW()
 );
 
--- ALTER TABLE admin.users
--- ADD CONSTRAINT fk_users_user_role FOREIGN KEY (user_role)
---     REFERENCES admin.user_roles (user_role_id);
-
--- ALTER TABLE admin.users
--- ADD CONSTRAINT fk_users_gender_id FOREIGN KEY (gender_id)
---     REFERENCES admin.genders (gender_id);
+ALTER TABLE IF EXISTS admin.users
+    ADD CONSTRAINT user_privacy_enum CHECK (status IN ('public', 'team', 'private'));
 
 ALTER TABLE IF EXISTS admin.users
     ADD CONSTRAINT user_status_enum CHECK (status IN ('active', 'inactive', 'suspended', 'banned'));
+
 
 -- Create league_management.teams
 -- Create team that can be connected to multiple divisions in different leagues.
@@ -1073,73 +995,6 @@ ADD CONSTRAINT fk_shutouts_team_id FOREIGN KEY (team_id)
 -- INSERT DATA INTO TABLES 
 -----------------------------------
 
--- -- Default user_roles
--- INSERT INTO admin.user_roles
---   (name)
--- VALUES
---   ('Admin'),
---   ('Commissioner'),
---   ('User')
--- ;
-
--- -- Default league_roles
--- INSERT INTO admin.league_roles
---   (name)
--- VALUES
---   ('Commissioner'),
---   ('Maleager')
--- ;
-
--- -- Default season_roles
--- INSERT INTO admin.season_roles
---   (name)
--- VALUES
---   ('Maleager'),
---   ('Time Keeper'),
---   ('Referee')
--- ;
-
--- -- Default playoff_structure
--- INSERT INTO admin.playoff_structures
---   (name)
--- VALUES
---   ('Bracket'),
---   ('Round Robin + Bracket')
--- ;
-
--- -- Default team_roles
--- INSERT INTO admin.team_roles
---   (name)
--- VALUES
---   ('Maleager'),
---   ('Coach'),
---   ('Captain'),
---   ('Alternate Captain'),
---   ('Player'),
---   ('Spare')
--- ;
-
--- -- Default sports
--- INSERT INTO admin.sports
---   (slug, name)
--- VALUES
---   ('hockey', 'Hockey'),
---   ('soccer', 'Soccer'),
---   ('basketball', 'Basketball'),
---   ('pickleball', 'Pickleball'),
---   ('badminton', 'Badminton')
--- ;
-
--- -- Default genders
--- INSERT INTO admin.genders
---   (slug, name)
--- VALUES
---   ('female', 'Female'),
---   ('male', 'Male'),
---   ('non-binary-non-conforming', 'Non-binary'),
---   ('two-spirit', 'Two-spirit')
--- ;
-
 -- Default named users
 INSERT INTO admin.users
   (username, email, first_name, last_name, gender, pronouns, user_role, password_hash)
@@ -1785,54 +1640,7 @@ VALUES
   (10, 3)
 ;
 
--- List of OPH games
--- INSERT INTO league_management.games
---   (home_team_id, home_team_score, away_team_id, away_team_score, division_id, date_time, arena_id, status, has_been_published)
--- VALUES
---   (1, 3, 4, 0, 1, '2024-09-08 17:45:00', 10, 'completed', true), -- 1
---   (2, 3, 3, 4, 1, '2024-09-08 18:45:00', 10, 'completed', true), -- 2
---   (3, 0, 1, 2, 1, '2024-09-16 22:00:00', 9, 'completed', true), -- 3
---   (4, 1, 2, 4, 1, '2024-09-16 23:00:00', 9, 'completed', true), -- 4
---   (1, 4, 2, 1, 1, '2024-09-25 21:00:00', 9, 'completed', true), -- 5
---   (3, 3, 4, 4, 1, '2024-09-25 22:00:00', 9, 'completed', true), -- 6
---   (1, 2, 4, 2, 1, '2024-10-03 19:30:00', 10, 'completed', true), -- 7
---   (2, 2, 3, 1, 1, '2024-10-03 20:30:00', 10, 'completed', true), -- 8
---   (3, 3, 1, 4, 1, '2024-10-14 19:00:00', 9, 'completed', true), -- 9
---   (4, 2, 2, 3, 1, '2024-10-14 20:00:00', 9, 'completed', true), -- 10
---   (1, 1, 4, 2, 1, '2024-10-19 20:00:00', 9, 'completed', true), -- 11
---   (2, 2, 3, 0, 1, '2024-10-19 21:00:00', 9, 'completed', true), -- 12
---   (1, 2, 2, 2, 1, '2024-10-30 21:30:00', 10, 'completed', true), -- 13
---   (3, 2, 4, 4, 1, '2024-10-30 22:30:00', 10, 'completed', true), -- 14
---   (1, 0, 4, 2, 1, '2024-11-08 20:30:00', 10, 'completed', true), -- 15
---   (2, 4, 3, 0, 1, '2024-11-08 21:30:00', 10, 'completed', true), -- 16
---   (3, 3, 1, 5, 1, '2024-11-18 20:00:00', 9, 'completed', true), -- 17
---   (4, 2, 2, 5, 1, '2024-11-18 21:00:00', 9, 'completed', true), -- 18
---   (1, 2, 2, 3, 1, '2024-11-27 18:30:00', 10, 'completed', true), -- 19
---   (3, 1, 4, 2, 1, '2024-11-27 19:30:00', 10, 'completed', true), -- 20
---   (1, 1, 4, 3, 1, '2024-12-05 20:30:00', 10, 'completed', true), -- 21
---   (2, 2, 3, 1, 1, '2024-12-05 21:30:00', 10, 'completed', true), -- 22
---   (3, 2, 1, 0, 1, '2024-12-14 18:00:00', 9, 'completed', true), -- 23
---   (4, 0, 2, 4, 1, '2024-12-14 19:00:00', 9, 'completed', true), -- 24
---   (1, 1, 2, 4, 1, '2024-12-23 19:00:00', 9, 'completed', true), -- 25
---   (3, 5, 4, 6, 1, '2024-12-23 20:00:00', 9, 'completed', true), -- 26
---   (1, 5, 4, 3, 1, '2025-01-02 20:30:00', 10, 'completed', true), -- 27
---   (2, 7, 3, 2, 1, '2025-01-02 21:30:00', 10, 'completed', true), -- 28
---   -- new additions
---   (4, 0, 1, 0, 1, '2025-01-11 19:45:00', 10, 'cancelled', true), -- 29
---   (2, 0, 3, 0, 1, '2025-01-11 20:45:00', 10, 'cancelled', true), -- 30
---   (1, 1, 2, 4, 1, '2025-01-23 19:00:00', 10, 'completed', true), -- 31
---   (3, 4, 4, 1, 1, '2025-01-23 20:00:00', 10, 'completed', true), -- 32
---   (3, 0, 1, 0, 1, '2025-01-26 21:45:00', 10, 'public', true), -- 33
---   (4, 0, 2, 0, 1, '2025-01-26 22:45:00', 10, 'public', true), -- 34
---   (1, 0, 4, 0, 1, '2025-02-05 22:00:00', 9, 'public', true), -- 35
---   (2, 0, 3, 0, 1, '2025-02-05 23:00:00', 9, 'public', true), -- 36
---   (3, 0, 1, 0, 1, '2025-02-14 22:00:00', 9, 'public', true), -- 37
---   (4, 0, 2, 0, 1, '2025-02-14 23:00:00', 9, 'public', true), -- 38
---   (1, 0, 2, 0, 1, '2025-02-23 19:00:00', 9, 'public', true), -- 39
---   (3, 0, 4, 0, 1, '2025-02-23 20:00:00', 9, 'public', true), -- 40
---   (1, 0, 4, 0, 1, '2025-03-03 18:30:00', 10, 'draft', false), -- 41
---   (2, 0, 3, 0, 1, '2025-03-03 19:30:00', 10, 'draft', false) -- 42
--- ;
+-- List of games
 
 INSERT INTO league_management.games VALUES (1, 1, 3, 4, 0, 1, NULL, '2024-09-08 17:45:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
 INSERT INTO league_management.games VALUES (2, 2, 3, 3, 4, 1, NULL, '2024-09-08 18:45:00', 10, 'completed', true, '2025-01-28 15:35:00.023976');
@@ -1886,16 +1694,6 @@ INSERT INTO league_management.games VALUES (48, 6, 3, 8, 1, 4, NULL, '2025-01-31
 ALTER SEQUENCE games_game_id_seq RESTART WITH 51;
 
 -- Goal samples
--- INSERT INTO stats.goals
---   (game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net)
--- VALUES
---   (31, 3, 2, 1, '00:11:20', false, false, false),
---   (31, 10, 2, 1, '00:15:37', false, true, false),
---   (31, 6, 1, 2, '00:05:40', false, false, false),
---   (31, 3, 2, 2, '00:18:10', false, false, false),
---   (31, 28, 2, 3, '00:18:20', false, false, true)
--- ;
-
 INSERT INTO stats.goals VALUES (1, 31, 3, 2, 1, '00:11:20', false, false, false, '2025-01-28 15:35:00.023976');
 INSERT INTO stats.goals VALUES (2, 31, 10, 2, 1, '00:15:37', false, true, false, '2025-01-28 15:35:00.023976');
 INSERT INTO stats.goals VALUES (3, 31, 6, 1, 2, '00:05:40', false, false, false, '2025-01-28 15:35:00.023976');
@@ -1945,16 +1743,6 @@ INSERT INTO stats.goals VALUES (94, 49, 3, 2, 3, '00:08:21', false, false, false
 ALTER SEQUENCE stats.goals_goal_id_seq RESTART WITH 95;
 
 -- Assist samples
--- INSERT INTO stats.assists
---   (goal_id, game_id, user_id, team_id, primary_assist)
--- VALUES
---   (1, 31, 33, 2, true),
---   (1, 31, 30, 2, false),
---   (2, 31, 3, 2, true),
---   (3, 31, 16, 1, true),
---   (4, 31, 30, 2, true)
--- ;
-
 INSERT INTO stats.assists VALUES (1, 1, 31, 33, 2, true, '2025-01-28 15:35:00.023976');
 INSERT INTO stats.assists VALUES (2, 1, 31, 32, 2, false, '2025-01-28 15:35:00.023976');
 INSERT INTO stats.assists VALUES (3, 2, 31, 3, 2, true, '2025-01-28 15:35:00.023976');
@@ -2007,13 +1795,6 @@ INSERT INTO stats.assists VALUES (88, 94, 49, 37, 2, true, '2025-01-31 16:14:16.
 ALTER SEQUENCE stats.assists_assist_id_seq RESTART WITH 89;
 
 -- Penalties
--- INSERT INTO stats.penalties
---   (game_id, user_id, team_id, period, period_time, infraction, minutes)
--- VALUES
---   (31, 7, 1, 1, '00:15:02', 'Tripping', 2),
---   (31, 32, 2, 2, '00:08:22', 'Hooking', 2),
---   (31, 32, 2, 3, '00:11:31', 'Interference', 2)
--- ;
 
 INSERT INTO stats.penalties (penalty_id, game_id, user_id, team_id, period, period_time, infraction, minutes, created_on) VALUES (1, 31, 7, 1, 1, '00:15:02', 'Tripping', 2, '2025-01-28 15:35:00.023976');
 INSERT INTO stats.penalties (penalty_id, game_id, user_id, team_id, period, period_time, infraction, minutes, created_on) VALUES (2, 31, 32, 2, 2, '00:08:22', 'Hooking', 2, '2025-01-28 15:35:00.023976');
@@ -2028,27 +1809,6 @@ INSERT INTO stats.penalties (penalty_id, game_id, user_id, team_id, period, peri
 ALTER SEQUENCE stats.penalties_penalty_id_seq RESTART WITH 14;
 
 -- Shots
--- INSERT INTO stats.shots
---   (game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play)
--- VALUES 
---   (31, 3, 2, 1, '00:05:15', null, false, false),
---   (31, 6, 1, 1, '00:07:35', null, false, false),
---   (31, 31, 2, 1, '00:09:05', null, false, false),
---   (31, 18, 1, 1, '00:10:03', null, false, false),
---   (31, 3, 2, 1, '00:11:20', 1, false, false),
---   (31, 10, 2, 1, '00:15:37', 2, false, true),
---   (31, 3, 2, 1, '00:17:43', null, false, false),
---   (31, 10, 2, 2, '00:01:11', null, false, false),
---   (31, 6, 1, 2, '00:05:40', 3, false, false),
---   (31, 21, 1, 2, '00:07:15', null, false, false),
---   (31, 34, 2, 2, '00:11:15', null, false, false),
---   (31, 3, 2, 2, '00:18:10', 4, false, false),
---   (31, 27, 2, 3, '00:07:12', null, false, false),
---   (31, 22, 1, 3, '00:11:56', null, false, false),
---   (31, 36, 2, 3, '00:15:15', null, false, false),
---   (31, 28, 2, 3, '00:18:20', 5, false, false)
--- ;
-
 INSERT INTO stats.shots VALUES (1, 31, 3, 2, 1, '00:05:15', NULL, false, false, '2025-01-28 15:35:00.023976');
 INSERT INTO stats.shots VALUES (2, 31, 6, 1, 1, '00:07:35', NULL, false, false, '2025-01-28 15:35:00.023976');
 INSERT INTO stats.shots VALUES (3, 31, 31, 2, 1, '00:09:05', NULL, false, false, '2025-01-28 15:35:00.023976');
@@ -2116,21 +1876,6 @@ INSERT INTO stats.shots VALUES (139, 49, 3, 2, 3, '00:08:21', 94, false, false, 
 ALTER SEQUENCE stats.shots_shot_id_seq RESTART WITH 140;
 
 -- Saves
--- INSERT INTO stats.saves
---   (game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound)
--- VALUES 
---   (31, 26, 1, 1, 1, '00:05:15', false, false),
---   (31, 38, 2, 2, 1, '00:07:35', false, true),
---   (31, 26, 1, 3, 1, '00:09:05', false, true),
---   (31, 38, 2, 4, 1, '00:10:03', false, false),
---   (31, 26, 1, 7, 1, '00:17:43', false, true),
---   (31, 26, 1, 8, 2, '00:01:11', false, false),
---   (31, 38, 2, 10, 2, '00:07:15', false, true),
---   (31, 26, 1, 11, 2, '00:11:15', false, true),
---   (31, 26, 1, 13, 3, '00:07:12', false, true),
---   (31, 38, 2, 14, 3, '00:11:56', true, false),
---   (31, 26, 1, 15, 3, '00:15:15', false, true)
--- ;
 
 INSERT INTO stats.saves VALUES (1, 31, 26, 1, 1, 1, '00:05:15', false, false, '2025-01-28 15:35:00.023976');
 INSERT INTO stats.saves VALUES (2, 31, 38, 2, 2, 1, '00:07:35', false, true, '2025-01-28 15:35:00.023976');
