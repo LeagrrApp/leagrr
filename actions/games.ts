@@ -9,6 +9,7 @@ import { isObjectEmpty } from "@/utils/helpers/objects";
 import { redirect } from "next/navigation";
 import {
   createDashboardUrl,
+  createMetaTitle,
   createPeriodTimeString,
 } from "@/utils/helpers/formatting";
 
@@ -412,6 +413,87 @@ export async function getGameUrl(game_id: number) {
     message: "Game url created!",
     status: 200,
     data: url,
+  };
+}
+
+export async function getGameMetaInfo(game_id: number): Promise<
+  ResultProps<{
+    title: string;
+    description?: string;
+  }>
+> {
+  // check user is logged in
+  await verifySession();
+
+  const sql = `
+    SELECT
+      g.game_id,
+      (SELECT name FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team,
+      (SELECT name FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team,
+      d.name AS division,
+      s.name AS season,
+      l.name AS league
+    FROM
+      league_management.games AS g
+    JOIN
+      league_management.divisions AS d
+    ON
+      g.division_id = d.division_id
+    JOIN
+      league_management.seasons AS s
+    ON
+      d.season_id = s.season_id
+    JOIN
+      league_management.leagues AS l
+    ON
+      l.league_id = s.league_id
+    WHERE
+      g.game_id = $1
+  `;
+
+  const result: ResultProps<{
+    away_team: string;
+    home_team: string;
+    division: string;
+    season: string;
+    league: string;
+  }> = await db
+    .query(sql, [game_id])
+    .then((res) => {
+      return {
+        data: res.rows[0],
+        message: "Game meta data found.",
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  if (!result.data)
+    return {
+      message: result.message,
+      status: result.status,
+    };
+
+  const { away_team, home_team, division, season, league } = result.data;
+
+  const metaData = {
+    title: createMetaTitle([
+      `${away_team} @ ${home_team}`,
+      division,
+      season,
+      league,
+    ]),
+  };
+
+  return {
+    message: result.message,
+    status: result.status,
+    data: metaData,
   };
 }
 

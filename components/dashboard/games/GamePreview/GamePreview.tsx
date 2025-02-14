@@ -10,6 +10,8 @@ import { apply_classes_conditional } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
 import { CSSProperties } from "react";
 import css from "./gamePreview.module.css";
+import { getUserTeams } from "@/actions/users";
+import Indicator from "@/components/ui/Indicator/Indicator";
 
 interface GamePreviewProps {
   game: GameData;
@@ -80,8 +82,21 @@ export default async function GamePreview({
     "--color-away": away_team_color || "",
   };
 
-  const isHomeTeam = currentTeam === home_team_id;
-  const isAwayTeam = currentTeam === away_team_id;
+  let confirmedCurrentTeam = currentTeam;
+
+  if (!confirmedCurrentTeam) {
+    const { data: userTeams } = await getUserTeams();
+
+    if (userTeams) {
+      confirmedCurrentTeam = userTeams?.find(
+        (t) =>
+          t.team_id === game.away_team_id || t.team_id === game.home_team_id,
+      )?.team_id;
+    }
+  }
+
+  const isHomeTeam = confirmedCurrentTeam === home_team_id;
+  const isAwayTeam = confirmedCurrentTeam === away_team_id;
 
   let winner = "none";
   if (home_team_score < away_team_score) winner = "away";
@@ -89,7 +104,7 @@ export default async function GamePreview({
 
   let highlightClass = "";
   if (
-    !currentTeam ||
+    !confirmedCurrentTeam ||
     (winner === "home" && isHomeTeam) ||
     (winner === "away" && isAwayTeam)
   )
@@ -144,6 +159,7 @@ export default async function GamePreview({
                 >
                   {away_team}
                 </Link>
+                {isAwayTeam && <Indicator />}
               </h3>
               <p className={css.game_preview_sog}>
                 <span className="srt">Away team shots on goal:</span>
@@ -196,6 +212,7 @@ export default async function GamePreview({
                 >
                   {home_team}
                 </Link>
+                {isHomeTeam && <Indicator />}
               </h3>
               <p className={css.game_preview_sog}>
                 <span className="srt">Home team shots on goal:</span>

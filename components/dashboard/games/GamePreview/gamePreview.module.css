@@ -62,6 +62,8 @@
 
 .game_preview_team {
   font-size: var(--type-scale-h4);
+  display: flex;
+  gap: var(--spacer-m);
 
   & a {
     color: inherit;
@@ -98,6 +100,14 @@
 
     & .game_preview_team_wrap {
       flex-direction: row-reverse;
+    }
+
+    & .game_preview_team {
+      flex-direction: row-reverse;
+
+      & svg {
+        scale: -1;
+      }
     }
   }
 }

@@ -118,17 +118,18 @@ export default function GameFeedItem({
             {preText ? preText : "Goal"} by{" "}
             <Link href={createDashboardUrl({ u: username })}>
               {user_last_name}
-            </Link>{" "}
+            </Link>
             <span style={{ fontStyle: "italic" }}>
               {assists && assists.length > 0 ? (
                 <>
-                  assisted by{" "}
+                  {" ("}
                   {assists.map((a, i) =>
                     i === 0 ? a.user_last_name : `, ${a.user_last_name}`,
                   )}
+                  {")"}
                 </>
               ) : (
-                "Unassisted"
+                " (unassisted)"
               )}
             </span>
           </>

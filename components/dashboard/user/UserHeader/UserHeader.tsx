@@ -55,10 +55,10 @@ export default function UserHeader({
           {gender}
           {gender && pronouns ? ", " : undefined}
           {pronouns}{" "}
-          {user_role === 1 && (
-            <Badge text="Site Admin" fontSize="s" type="secondary" />
+          {user_role === 1 && <Badge text="Site Admin" fontSize="s" />}
+          {user_role === 2 && (
+            <Badge text="Commissioner" fontSize="s" type="grey" />
           )}
-          {user_role === 2 && <Badge text="Commissioner" fontSize="s" />}
         </p>
       </div>
     </DHeader>

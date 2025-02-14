@@ -1,20 +1,22 @@
 import { getUserGamePreviews } from "@/actions/users";
-import GamePreview from "../../games/GamePreview/GamePreview";
+import Card from "@/components/ui/Card/Card";
+import Icon from "@/components/ui/Icon/Icon";
 import DashboardUnit from "../../DashboardUnit/DashboardUnit";
 import DashboardUnitHeader from "../../DashboardUnitHeader/DashboardUnitHeader";
-import Icon from "@/components/ui/Icon/Icon";
-import Card from "@/components/ui/Card/Card";
+import GamePreview from "../../games/GamePreview/GamePreview";
 
 interface UserSnapshotProps {
   user: UserData;
 }
 
 export default async function UserSnapshot({ user }: UserSnapshotProps) {
+  const { user_id } = user;
+
   // get next game for any division team
-  const nextGame = await getUserGamePreviews(user.user_id);
+  const nextGame = await getUserGamePreviews(user_id);
 
   // get most recent completed game for any division team
-  const prevGame = await getUserGamePreviews(user.user_id, true);
+  const prevGame = await getUserGamePreviews(user_id, true);
 
   return (
     <>

@@ -1,15 +1,10 @@
 import { getUser } from "@/actions/users";
-import UserHeader from "@/components/dashboard/user/UserHeader/UserHeader";
 import UserSnapshot from "@/components/dashboard/user/UserSnapshot/UserSnapshot";
-import Container from "@/components/ui/Container/Container";
-import Icon from "@/components/ui/Icon/Icon";
 import { verifySession } from "@/lib/session";
-import {
-  createDashboardUrl,
-  createMetaTitle,
-} from "@/utils/helpers/formatting";
+import { createMetaTitle } from "@/utils/helpers/formatting";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
+import UserRosters from "@/components/dashboard/user/UserRosters/UserRosters";
 
 export async function generateMetadata({
   params,
@@ -56,6 +51,8 @@ export default async function Page({
   return (
     <div className={css.user_grid}>
       {isCurrentUser && <UserSnapshot user={userData} />}
+
+      <UserRosters user={userData} />
     </div>
   );
 }

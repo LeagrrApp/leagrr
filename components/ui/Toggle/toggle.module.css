@@ -1,6 +1,6 @@
 .toggle {
   margin: 0;
-  background-color: var(--color-primary-pale);
+  background-color: var(--color-primary-lightest);
   border: 0.0625rem solid var(--color-white);
   display: inline-flex;
   flex-direction: column;

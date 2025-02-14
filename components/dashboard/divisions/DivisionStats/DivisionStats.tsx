@@ -28,27 +28,26 @@ export default function DivisionStats({ statLeaders }: DivisionStatsProps) {
       </DashboardUnitHeader>
       <div className={css.stats_grid}>
         {statTypes.map((type) => {
+          let icon = "leaderboard";
+
+          switch (type) {
+            case "goals":
+              icon = "e911_emergency";
+              break;
+            case "shutouts":
+              icon = "security";
+              break;
+            case "assists":
+              icon = "handshake";
+              break;
+            default:
+              break;
+          }
           if (
             statLeaders[type].length === 1 &&
             statLeaders[type][0].count > 0
           ) {
             const { team, first_name, last_name, count } = statLeaders[type][0];
-
-            let icon = "leaderboard";
-
-            switch (type) {
-              case "goals":
-                icon = "e911_emergency";
-                break;
-              case "shutouts":
-                icon = "security";
-                break;
-              case "assists":
-                icon = "handshake";
-                break;
-              default:
-                break;
-            }
 
             return (
               <Card key={type} padding="ml" className={css.stats_card}>
@@ -71,7 +70,9 @@ export default function DivisionStats({ statLeaders }: DivisionStatsProps) {
 
           return (
             <Card key={type} padding="ml" className={css.stats_card}>
-              <h4 className={css.stats_card_title}>{capitalize(type)}</h4>
+              <h4 className={css.stats_card_title}>
+                <Icon icon={icon} label={capitalize(type)} gap="s" />
+              </h4>
               <ProfileImg label="No leader" size={150} />
               <h5 className={css.stats_card_name}>No leader</h5>
             </Card>

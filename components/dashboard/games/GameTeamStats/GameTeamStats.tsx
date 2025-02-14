@@ -10,6 +10,7 @@ import {
   nameDisplay,
 } from "@/utils/helpers/formatting";
 import { verifySession } from "@/lib/session";
+import Indicator from "@/components/ui/Indicator/Indicator";
 
 interface GameTeamStatsProps {
   game: GameData;
@@ -133,6 +134,7 @@ export default async function GameTeamStats({
                             p.last_name,
                             "first_initial",
                           )}
+                          {isUser && <Indicator />}
                         </Link>
                       </th>
                       <td>{makeAcronym(p.position || "")}</td>

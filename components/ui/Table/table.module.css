@@ -33,16 +33,21 @@
       }
 
       &:has(a:is(:hover, :focus-visible)) {
-        --tr-color: var(--color-secondary-pale);
+        --tr-color: var(--color-secondary-lightest);
       }
 
       & td {
         text-align: center;
       }
     }
+
+    & th:first-of-type:where(:not(:has(~ [data-highlight-col]))) {
+      text-align: left;
+      width: var(--h-col-width, auto);
+    }
   }
 
-  & th:first-of-type:where(:not(:has(~ [data-highlight-col]))),
+  /* & th:first-of-type:where(:not(:has(~ [data-highlight-col]))), */
   & [data-highlight-col] {
     text-align: left;
     width: var(--h-col-width, auto);
@@ -60,10 +65,16 @@
   }
 
   & tbody tr[data-highlighted="true"] {
-    & a::before {
+    & a {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacer-m);
+    }
+
+    /* & a::before {
       border: 0.125rem solid var(--color-secondary);
       border-radius: var(--spacer-s);
-    }
+    } */
   }
 
   & tbody tr th:first-child,

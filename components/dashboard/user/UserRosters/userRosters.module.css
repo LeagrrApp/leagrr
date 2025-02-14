@@ -1,0 +1,19 @@
+.user_roster {
+  grid-column: 1 / -1;
+}
+
+.user_roster_grid {
+  --cols: 1;
+
+  display: grid;
+  gap: var(--spacer-base);
+  grid-template-columns: repeat(var(--cols), 1fr);
+
+  @container (width >= 45rem) {
+    --cols: 2;
+  }
+
+  @container (width >= 60rem) {
+    --cols: 3;
+  }
+}

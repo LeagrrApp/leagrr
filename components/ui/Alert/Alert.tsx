@@ -28,7 +28,7 @@ export default function Alert({
 }: AlertProps) {
   const styles: AlertStyles = {
     "--alert-color": `var(--color-${type || "primary"})`,
-    "--alert-bg": `var(--color-${type || "primary"}-pale)`,
+    "--alert-bg": `var(--color-${type || "primary"}-lightest)`,
   };
 
   if (fontSize) {

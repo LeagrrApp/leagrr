@@ -64,7 +64,7 @@
 
 .switch_checked {
   --switch-color: var(--color-primary);
-  --switch-bg: var(--color-primary-pale);
+  --switch-bg: var(--color-primary-lightest);
 }
 
 .switch_checked .switch_toggle {

@@ -8,6 +8,8 @@ import { wait } from "@/utils/helpers/general";
 import { isObjectEmpty } from "@/utils/helpers/objects";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { getTeam } from "./teams";
+import { getDivisionStandings } from "./divisions";
 
 export async function getDashboardMenuData(): Promise<
   ResultProps<{
@@ -117,9 +119,11 @@ export async function getDashboardMenuData(): Promise<
 }
 
 export async function getUser(
-  identifier: string,
+  identifier?: number | string,
 ): Promise<ResultProps<UserData>> {
   const { user_id } = await verifySession();
+
+  const final_identifier = identifier || user_id;
 
   const sql = `
     SELECT
@@ -136,11 +140,11 @@ export async function getUser(
     FROM
       admin.users
     WHERE
-      username = $1
+      ${typeof final_identifier === "string" ? "username" : "user_id"} = $1
   `;
 
   const result: { message: string; status: number; data?: UserData } = await db
-    .query(sql, [identifier])
+    .query(sql, [final_identifier])
     .then((res) => {
       if (!res.rowCount) {
         throw new Error("Could not find requested user.");
@@ -161,8 +165,12 @@ export async function getUser(
   return result;
 }
 
-export async function getUserRole(): Promise<number> {
+export async function getUserRole(
+  identifier?: string | number,
+): Promise<number> {
   const { user_id } = await verifySession();
+
+  const final_identifier = identifier || user_id;
 
   const sql = `
     SELECT
@@ -170,11 +178,11 @@ export async function getUserRole(): Promise<number> {
     FROM
       admin.users as u
     WHERE
-      user_id = $1
+      ${typeof final_identifier === "string" ? "username" : "user_id"} = $1
   `;
 
   const result: number = await db
-    .query(sql, [user_id])
+    .query(sql, [final_identifier])
     .then((res) => {
       if (!res.rowCount) {
         throw new Error("User not found.");
@@ -190,13 +198,16 @@ export async function getUserRole(): Promise<number> {
   return result;
 }
 
-export async function verifyUserRole(roleType: number) {
-  const user_role = await getUserRole();
+export async function verifyUserRole(
+  roleType: number,
+  identifier?: string | number,
+) {
+  const user_role = await getUserRole(identifier);
 
   return user_role === roleType;
 }
 
-export async function canEditUser(user_to_edit: number | string) {
+export async function canEditUser(identifier: number | string) {
   // get logged in user_id
   const { user_id: logged_user_id } = await verifySession();
 
@@ -204,10 +215,9 @@ export async function canEditUser(user_to_edit: number | string) {
   const isAdmin = await verifyUserRole(1);
 
   // if username is provided, look up users user_id in database
-  let user_to_edit_id =
-    typeof user_to_edit === "number" ? user_to_edit : undefined;
+  let user_to_edit_id = typeof identifier === "number" ? identifier : undefined;
 
-  if (typeof user_to_edit === "string") {
+  if (typeof identifier === "string") {
     const userIdSql = `
       SELECT
         user_id
@@ -217,7 +227,7 @@ export async function canEditUser(user_to_edit: number | string) {
         username = $1
     `;
 
-    await db.query(userIdSql, [user_to_edit]).then((res) => {
+    await db.query(userIdSql, [identifier]).then((res) => {
       if (res.rowCount === 0) {
         throw new Error("User not found");
       }
@@ -234,13 +244,343 @@ export async function canEditUser(user_to_edit: number | string) {
   };
 }
 
+export async function getUserTeams(identifier?: number | string) {
+  const { user_id } = await verifySession();
+
+  const final_identifier = identifier || user_id;
+
+  const sql = `
+    SELECT
+      t.team_id,
+      t.name,
+      t.description,
+      t.slug,
+      t.color,
+      t.status,
+      tm.team_role
+    FROM
+      admin.users AS u
+    JOIN
+      league_management.team_memberships AS tm
+    ON
+      tm.user_id = u.user_id
+    JOIN
+      league_management.teams AS t
+    ON
+      tm.team_id = t.team_id
+    WHERE
+      ${typeof final_identifier === "string" ? "u.username" : "u.user_id"} = $1
+      AND
+      (
+        t.status = 'active'
+        OR
+        t.status IN ('active', 'inactive', 'suspended')
+        AND
+        tm.team_role = 1
+      )
+  `;
+
+  const result: ResultProps<TeamData[]> = await db
+    .query(sql, [final_identifier])
+    .then((res) => {
+      return {
+        message: "User teams retrieved.",
+        data: res.rows,
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  return result;
+}
+
+export async function getUserRosters(
+  identifier?: number | string,
+  period?: "current" | "past" | "future",
+) {
+  const { user_id } = await verifySession();
+
+  const final_identifier = identifier || user_id;
+
+  let sql = `
+    SELECT
+      dr.division_roster_id, 
+      tm.team_id,
+      t.name AS team_name,
+      t.slug AS team_slug,
+      t.color AS team_color,
+      d.name AS division_name,
+      d.division_id AS division_id,
+      d.slug AS division_slug,
+      s.name AS season_name,
+      s.season_id AS season_id,
+      s.slug AS season_slug,
+      l.name AS league_name,
+      l.league_id AS league_id,
+      l.slug AS league_slug
+    FROM
+      admin.users AS u
+    JOIN
+      league_management.team_memberships AS tm
+    ON
+      u.user_id = tm.user_id
+    JOIN
+      league_management.division_rosters AS dr
+    ON
+      dr.team_membership_id = tm.team_membership_id
+    JOIN
+      league_management.division_teams AS dt
+    ON
+      dt.division_team_id = dr.division_team_id
+    JOIN
+      league_management.teams AS t
+    ON
+      tm.team_id = t.team_id
+    JOIN
+      league_management.divisions AS d
+    ON
+      dt.division_id = d.division_id
+    JOIN
+      league_management.seasons AS s
+    ON 
+      d.season_id = s.season_id
+    JOIN
+      league_management.leagues AS l
+    ON
+      s.league_id = l.league_id
+    WHERE
+      ${typeof final_identifier === "string" ? "u.username" : "u.user_id"} = $1
+      AND
+      dr.roster_role IN (2, 3, 4)
+  `;
+
+  if (!period || period === "current") {
+    sql =
+      sql +
+      `
+      AND
+      s.start_date < now()
+      AND
+      s.end_date > now()`;
+  }
+
+  if (period === "future") {
+    sql =
+      sql +
+      `
+      AND
+      s.start_date > now()`;
+  }
+
+  if (period === "past") {
+    sql =
+      sql +
+      `
+      AND
+      s.end_date < now()`;
+  }
+
+  sql =
+    sql +
+    `
+    ORDER BY
+      s.end_date ASC, league_name ASC, d.tier ASC, team_name ASC
+  `;
+
+  const result: ResultProps<UserRosterData[]> = await db
+    .query(sql, [final_identifier])
+    .then((res) => {
+      return {
+        message: "User rosters retrieved.",
+        data: res.rows,
+        status: 200,
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  return result;
+}
+
+export async function getUserRostersWithStats(
+  identifier?: number | string,
+): Promise<
+  ResultProps<
+    {
+      rosterInfo: UserRosterData;
+      userDivisionStats?: UserRosterStats;
+      teamStandings?: TeamStandingsData;
+    }[]
+  >
+> {
+  const { user_id } = await verifySession();
+
+  const final_identifier = identifier || user_id;
+
+  const userRostersResult = await getUserRosters(final_identifier);
+
+  if (!userRostersResult.data)
+    return {
+      message: userRostersResult.message,
+      status: userRostersResult.status,
+    };
+
+  const rosterList: {
+    rosterInfo: UserRosterData;
+    userDivisionStats?: UserRosterStats;
+    teamStandings?: TeamStandingsData;
+  }[] = [];
+
+  for (const r of userRostersResult.data) {
+    const { data: userDivisionStats } = await getUserStatsByDivision(
+      r.division_id,
+      r.team_id,
+      final_identifier,
+    );
+
+    const { data: divisionStandings } = await getDivisionStandings(
+      r.division_id,
+    );
+
+    let teamStandingData;
+
+    divisionStandings?.forEach((t, i) => {
+      if (t.team_id === r.team_id) {
+        teamStandingData = {
+          ...t,
+          position: i + 1,
+        };
+      }
+    });
+
+    rosterList.push({
+      rosterInfo: r,
+      userDivisionStats,
+      teamStandings: teamStandingData,
+    });
+  }
+
+  return {
+    message: "User roster stats loaded",
+    status: 200,
+    data: rosterList,
+  };
+}
+
+export async function getUserStatsByDivision(
+  division_id: number,
+  team_id: number,
+  identifier?: number | string,
+) {
+  const { user_id } = await verifySession();
+
+  const final_identifier = identifier || user_id;
+
+  const sql = `
+    SELECT 
+      dr.position,
+      dr.number,
+      (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = tm.user_id AND g.game_id IN (
+        SELECT game_id FROM league_management.games WHERE (home_team_id = tm.team_id OR away_team_id = tm.team_id) AND division_id = dt.division_id AND status = 'completed'
+      ))::int AS goals,
+      (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = tm.user_id AND a.game_id IN (
+        SELECT game_id FROM league_management.games WHERE (home_team_id = tm.team_id OR away_team_id = tm.team_id) AND division_id = dt.division_id AND status = 'completed'
+      ))::int AS assists,
+      (
+        (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = tm.user_id AND g.game_id IN (
+          SELECT game_id FROM league_management.games WHERE (home_team_id = tm.team_id OR away_team_id = tm.team_id) AND division_id = dt.division_id AND status = 'completed'
+        )) +
+        (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = tm.user_id AND a.game_id IN (
+          SELECT game_id FROM league_management.games WHERE (home_team_id = tm.team_id OR away_team_id = tm.team_id) AND division_id = dt.division_id AND status = 'completed'
+        ))	
+      )::int AS points,
+      (SELECT COUNT(*) FROM stats.shots AS s WHERE s.user_id = tm.user_id AND s.game_id IN (
+        SELECT game_id FROM league_management.games WHERE (home_team_id = tm.team_id OR away_team_id = tm.team_id) AND division_id = dt.division_id AND status = 'completed'
+      ))::int AS shots,
+      (SELECT COALESCE(SUM(minutes), 0) FROM stats.penalties AS p WHERE p.user_id = tm.user_id AND p.game_id IN (
+        SELECT game_id FROM league_management.games WHERE (home_team_id = tm.team_id OR away_team_id = tm.team_id) AND division_id = dt.division_id AND status = 'completed'
+      ))::int AS penalties_in_minutes,
+      (SELECT COUNT(*) FROM stats.saves AS sa WHERE sa.user_id = tm.user_id AND sa.game_id IN (
+        SELECT game_id FROM league_management.games WHERE (home_team_id = tm.team_id OR away_team_id = tm.team_id) AND division_id = dt.division_id AND status = 'completed'
+      ))::int AS saves,
+      (SELECT COUNT(*) FROM stats.goals AS goal WHERE goal.team_id != 2 AND goal.game_id IN (
+        SELECT game_id FROM league_management.games WHERE (home_team_id = tm.team_id OR away_team_id = tm.team_id) AND division_id = dt.division_id AND status = 'completed'
+      ))::int AS goals_against,
+      (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id != 2 AND sh.game_id IN (
+        SELECT game_id FROM league_management.games WHERE (home_team_id = tm.team_id OR away_team_id = tm.team_id) AND division_id = dt.division_id AND status = 'completed'
+      ))::int AS shots_against
+    FROM
+      league_management.division_rosters AS dr
+    JOIN
+      league_management.team_memberships AS tm
+    ON
+      dr.team_membership_id = tm.team_membership_id
+    JOIN
+      league_management.division_teams AS dt
+    ON
+      dt.division_team_id = dr.division_team_id
+    JOIN
+      league_management.teams AS t
+    ON
+      tm.team_id = t.team_id
+    JOIN
+      league_management.divisions AS d
+    ON
+      dt.division_id = d.division_id
+    WHERE
+      d.division_id = $1
+      AND
+      tm.team_id = $2
+      AND
+      ${
+        typeof final_identifier === "string"
+          ? `tm.user_id = (SELECT
+          user_id
+        FROM
+          admin.users
+        WHERE
+          username = $3)`
+          : `tm.user_id = $3`
+      }
+      AND
+      dr.roster_role IN (2, 3, 4)
+  `;
+
+  const result: ResultProps<UserRosterStats> = await db
+    .query(sql, [division_id, team_id, final_identifier])
+    .then((res) => {
+      return {
+        message: `User roster stats loaded!`,
+        status: 200,
+        data: res.rows[0],
+      };
+    })
+    .catch((err) => {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    });
+
+  return result;
+}
+
 export async function getUserManagedTeams(
   user_id?: number,
 ): Promise<ResultProps<TeamData[]>> {
   // verify session
   const { user_id: logged_user_id } = await verifySession();
 
-  let id = user_id || logged_user_id;
+  const id = user_id || logged_user_id;
 
   const sql = `
     SELECT 

@@ -8,6 +8,7 @@ import {
   makeAcronym,
   nameDisplay,
 } from "@/utils/helpers/formatting";
+import Indicator from "@/components/ui/Indicator/Indicator";
 
 interface DivisionRosterProps {
   divisionRoster: PlayerStats[];
@@ -86,6 +87,7 @@ export default async function DivisionRoster({
                     <th scope="row" data-highlight-col>
                       <Link href={createDashboardUrl({ u: p.username })}>
                         {nameDisplay(p.first_name, p.last_name, "full")}
+                        {isUser && <Indicator />}
                       </Link>
                     </th>
                     <td>{makeAcronym(p.position || "")}</td>
