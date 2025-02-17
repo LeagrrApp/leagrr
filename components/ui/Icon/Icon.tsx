@@ -39,6 +39,8 @@ export default function Icon(props: IconProps) {
     classes.push(css.icon_only);
   }
 
+  const finalClasses = apply_classes(classes, className);
+
   if (size) styles["--icon-size"] = `var(--type-scale-${size})`;
   if (padding) styles["--icon-padding"] = paddingString(padding);
   if (gap) styles["--icon-gap"] = `var(--spacer-${gap})`;
@@ -48,7 +50,7 @@ export default function Icon(props: IconProps) {
       <Link
         style={styles}
         href={href}
-        className={apply_classes(classes, className)}
+        className={finalClasses}
         aria-current={props["aria-current"]}
       >
         {labelFirst && (
@@ -73,7 +75,7 @@ export default function Icon(props: IconProps) {
   }
 
   return (
-    <div style={styles} className={apply_classes(classes)}>
+    <div style={styles} className={finalClasses}>
       {labelFirst && (
         <span className={hideLabel ? `${css.icon_label} srt` : css.icon_label}>
           {label}

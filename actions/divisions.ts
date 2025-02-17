@@ -223,7 +223,9 @@ export async function getDivisionTeams(division_id: number) {
   return result;
 }
 
-export async function getDivisionStandings(division_id: number) {
+export async function getDivisionStandings(
+  division_id: number,
+): Promise<ResultProps<TeamStandingsData[]>> {
   const divisionTeamsSql = `
     SELECT
       t.team_id,
@@ -242,7 +244,7 @@ export async function getDivisionStandings(division_id: number) {
             (away_team_id = t.team_id)
           )
           AND
-          division_id = $1
+          division_id = 1
           AND
           status = 'completed'
       )::int AS games_played,
@@ -258,7 +260,7 @@ export async function getDivisionStandings(division_id: number) {
             (away_team_id = t.team_id AND away_team_score > home_team_score)
           )
           AND
-          division_id = $1
+          division_id = 1
           AND
           status = 'completed'
       )::int AS wins,
@@ -274,7 +276,7 @@ export async function getDivisionStandings(division_id: number) {
             (away_team_id = t.team_id AND away_team_score < home_team_score)
           )
           AND
-          division_id = $1
+          division_id = 1
           AND
           status = 'completed'
       )::int AS losses,
@@ -292,7 +294,7 @@ export async function getDivisionStandings(division_id: number) {
           AND
             away_team_score = home_team_score
           AND
-            division_id = $1
+            division_id = 1
           AND
             status = 'completed'
       )::int AS ties,
@@ -309,7 +311,7 @@ export async function getDivisionStandings(division_id: number) {
               (away_team_id = t.team_id AND away_team_score > home_team_score)
             )
             AND
-            division_id = $1
+            division_id = 1
             AND
             status = 'completed'
         ) * 2
@@ -328,7 +330,7 @@ export async function getDivisionStandings(division_id: number) {
             AND
               away_team_score = home_team_score
             AND
-              division_id = $1
+              division_id = 1
             AND
               status = 'completed'
         )
@@ -342,7 +344,7 @@ export async function getDivisionStandings(division_id: number) {
           WHERE
             home_team_id = t.team_id
             AND
-            division_id = $1
+            division_id = 1
             AND
             status = 'completed'
         ) + (
@@ -353,7 +355,7 @@ export async function getDivisionStandings(division_id: number) {
           WHERE
             away_team_id = t.team_id
             AND
-            division_id = $1
+            division_id = 1
             AND
             status = 'completed'
         )
@@ -367,7 +369,7 @@ export async function getDivisionStandings(division_id: number) {
           WHERE
             home_team_id = t.team_id
             AND
-            division_id = $1
+            division_id = 1
             AND
             status = 'completed'
         ) + (
@@ -378,7 +380,7 @@ export async function getDivisionStandings(division_id: number) {
           WHERE
             away_team_id = t.team_id
             AND
-            division_id = $1
+            division_id = 1
             AND
             status = 'completed'
         )
@@ -390,27 +392,31 @@ export async function getDivisionStandings(division_id: number) {
     ON
       t.team_id = dt.team_id
     WHERE
-      dt.division_id = $1
+      dt.division_id = 1
     ORDER BY points DESC, games_played ASC, wins DESC, goals_for DESC, goals_against ASC
   `;
+  try {
+    const { rows: data } = await db.query<TeamStandingsData>(divisionTeamsSql, [
+      division_id,
+    ]);
 
-  const result: ResultProps<TeamStandingsData[]> = await db
-    .query(divisionTeamsSql, [division_id])
-    .then((res) => {
-      return {
-        message: "Division teams loaded",
-        status: 200,
-        data: res.rows,
-      };
-    })
-    .catch((err) => {
+    return {
+      message: "Division teams loaded",
+      status: 200,
+      data,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
       };
-    });
-
-  return result;
+    }
+    return {
+      message: "Something went wrong",
+      status: 500,
+    };
+  }
 }
 
 export async function getDivision(
