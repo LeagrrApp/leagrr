@@ -1,5 +1,5 @@
 import { canEditLeague } from "@/actions/leagues";
-import { deleteSeason, getSeason } from "@/actions/seasons";
+import { deleteSeason, getSeason, getSeasonMetaData } from "@/actions/seasons";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
 import EditSeason from "@/components/dashboard/seasons/EditSeason";
 import BackButton from "@/components/ui/BackButton/BackButton";
@@ -7,11 +7,21 @@ import Container from "@/components/ui/Container/Container";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
 
-export default async function Page({
-  params,
-}: {
+type PageProps = {
   params: Promise<{ season: string; league: string }>;
-}) {
+};
+
+export async function generateMetadata({ params }: PageProps) {
+  const { season, league } = await params;
+
+  const { data: seasonData } = await getSeasonMetaData(season, league, {
+    prefix: "Edit",
+  });
+
+  return seasonData;
+}
+
+export default async function Page({ params }: PageProps) {
   const { season, league } = await params;
 
   const { data: seasonData } = await getSeason(season, league);

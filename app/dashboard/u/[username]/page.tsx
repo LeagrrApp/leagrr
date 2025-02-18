@@ -1,36 +1,23 @@
-import { getUser } from "@/actions/users";
+import { getUser, getUserMetaData } from "@/actions/users";
 import UserRosters from "@/components/dashboard/user/UserRosters/UserRosters";
 import UserSnapshot from "@/components/dashboard/user/UserSnapshot/UserSnapshot";
 import { verifySession } from "@/lib/session";
-import { createMetaTitle } from "@/utils/helpers/formatting";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
 
-export async function generateMetadata({
-  params,
-}: {
+type PageProps = {
   params: Promise<{ username: string }>;
-}) {
+};
+
+export async function generateMetadata({ params }: PageProps) {
   const { username } = await params;
 
-  const { data: userData } = await getUser(username);
+  const { data: userMetaData } = await getUserMetaData(username);
 
-  if (!userData) return null;
-
-  const name = `${userData.first_name} ${userData.last_name}`;
-
-  const titleArray = [name];
-
-  return {
-    title: createMetaTitle(titleArray),
-  };
+  return userMetaData;
 }
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ username: string }>;
-}) {
+export default async function Page({ params }: PageProps) {
   const { user_id: logged_user_id } = await verifySession();
 
   const { username } = await params;

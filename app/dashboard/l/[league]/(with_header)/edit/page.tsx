@@ -1,4 +1,9 @@
-import { canEditLeague, deleteLeague, getLeagueData } from "@/actions/leagues";
+import {
+  canEditLeague,
+  deleteLeague,
+  getLeagueData,
+  getLeagueMetaData,
+} from "@/actions/leagues";
 import EditLeague from "@/components/dashboard/leagues/EditLeague";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
 import Container from "@/components/ui/Container/Container";
@@ -6,11 +11,21 @@ import { verifySession } from "@/lib/session";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
 
-export default async function Page({
-  params,
-}: {
+type PageProps = {
   params: Promise<{ league: string }>;
-}) {
+};
+
+export async function generateMetadata({ params }: PageProps) {
+  const { league } = await params;
+
+  const { data: leagueMetaData } = await getLeagueMetaData(league, {
+    prefix: "Edit",
+  });
+
+  return leagueMetaData;
+}
+
+export default async function Page({ params }: PageProps) {
   await verifySession();
 
   const { league } = await params;

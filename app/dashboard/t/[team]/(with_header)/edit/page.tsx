@@ -1,41 +1,38 @@
-import { canEditTeam, deleteTeam, getTeam } from "@/actions/teams";
+import {
+  canEditTeam,
+  deleteTeam,
+  getTeam,
+  getTeamMetaData,
+} from "@/actions/teams";
 import { verifyUserRole } from "@/actions/users";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
 import EditTeam from "@/components/dashboard/teams/EditTeam";
 import TeamInvite from "@/components/dashboard/teams/TeamInvite/TeamInvite";
 import BackButton from "@/components/ui/BackButton/BackButton";
 import Col from "@/components/ui/layout/Col";
-import {
-  createDashboardUrl,
-  createMetaTitle,
-} from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
 import css from "./page.module.css";
 
-export async function generateMetadata({
-  params,
-}: {
+type PageProps = {
   params: Promise<{ team: string }>;
-}) {
+};
+
+export async function generateMetadata({ params }: PageProps) {
   const { team } = await params;
 
   const { data: teamData } = await getTeam(team);
 
   if (!teamData) return null;
 
-  const titleArray = ["Edit", teamData.name, "Teams"];
+  const { data: teamMetaData } = await getTeamMetaData(team, {
+    prefix: "Edit",
+  });
 
-  return {
-    title: createMetaTitle(titleArray),
-    description: teamData?.description,
-  };
+  return teamMetaData;
 }
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ team: string }>;
-}) {
+export default async function Page({ params }: PageProps) {
   const { team } = await params;
 
   // get team data

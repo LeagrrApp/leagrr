@@ -6,7 +6,9 @@
 }
 
 .dialog::backdrop {
-  background-color: hsla(from var(--color-grey-darker) h s calc(l - 40) / 0.75);
+  background-color: hsla(
+    from var(--color-grey-darker) h s calc(l * 0.4) / 0.75
+  );
 }
 
 .dialog h2 {

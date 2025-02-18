@@ -202,7 +202,15 @@ export function createPeriodTimeString(
   return period_time;
 }
 
-export function createMetaTitle(titles: string[]): string {
+export function createMetaTitle(
+  titles: string[],
+  options?: {
+    excludeDashboard?: boolean;
+  },
+): string {
+  if (options?.excludeDashboard) {
+    return `${titles.join(" | ")} | Leagrr`;
+  }
   return `${titles.join(" | ")} | Dashboard | Leagrr`;
 }
 

@@ -7,10 +7,13 @@ import {
   status_options,
 } from "@/lib/definitions";
 import { verifySession } from "@/lib/session";
+import {
+  createDashboardUrl,
+  createMetaTitle,
+} from "@/utils/helpers/formatting";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { verifyUserRole } from "./users";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
 
 const LeagueFormSchema = z.object({
   name: z
@@ -373,6 +376,55 @@ export async function getLeagueData(
       league_role_id: adminsResult,
     },
   };
+}
+
+export async function getLeagueMetaData(
+  league: string | number,
+  options?: {
+    prefix?: string;
+  },
+) {
+  try {
+    const sql = `
+      SELECT
+        name,
+        description
+      FROM
+        league_management.leagues
+      WHERE
+        ${typeof league === "string" ? `slug` : `league_id`} = $1
+    `;
+
+    const { rows } = await db.query<{ name: string; description: string }>(
+      sql,
+      [league],
+    );
+
+    let title = createMetaTitle([rows[0].name]);
+
+    if (options?.prefix)
+      title = createMetaTitle([options.prefix, rows[0].name]);
+
+    return {
+      message: "League metadata loaded",
+      status: 200,
+      data: {
+        title,
+        description: rows[0].description,
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error)
+      return {
+        message: err.message,
+        status: 400,
+      };
+
+    return {
+      message: "Sorry, something went wrong.",
+      status: 500,
+    };
+  }
 }
 
 export async function editLeague(

@@ -2,7 +2,11 @@
 
 import { db } from "@/db/pg";
 import { createSession, verifySession } from "@/lib/session";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import {
+  createDashboardUrl,
+  createMetaTitle,
+  nameDisplay,
+} from "@/utils/helpers/formatting";
 import { isObjectEmpty } from "@/utils/helpers/objects";
 import bcrypt from "bcrypt";
 import { redirect } from "next/navigation";
@@ -161,6 +165,54 @@ export async function getUser(
     });
 
   return result;
+}
+
+export async function getUserMetaData(
+  username: string,
+  options?: {
+    prefix?: string;
+  },
+) {
+  try {
+    const sql = `
+      SELECT
+        first_name,
+        last_name
+      FROM
+        admin.users
+      WHERE
+        username = $1
+    `;
+
+    const { rows } = await db.query(sql, [username]);
+
+    const name = nameDisplay(rows[0].first_name, rows[0].last_name, "full");
+
+    let title = createMetaTitle([name, "Users"]);
+
+    if (options?.prefix) {
+      title = createMetaTitle([options.prefix, name, "Users"]);
+    }
+
+    return {
+      message: "User meta data retrieved.",
+      status: 200,
+      data: {
+        title,
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
 }
 
 export async function getUserRole(

@@ -1,35 +1,25 @@
-import { getDivisionsByTeam, getTeam } from "@/actions/teams";
+import { getDivisionsByTeam, getTeam, getTeamMetaData } from "@/actions/teams";
 import Button from "@/components/ui/Button/Button";
-import {
-  createDashboardUrl,
-  createMetaTitle,
-} from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
 
-export async function generateMetadata({
-  params,
-}: {
+type PageProps = {
   params: Promise<{ team: string }>;
-}) {
+};
+
+export async function generateMetadata({ params }: PageProps) {
   const { team } = await params;
 
   const { data: teamData } = await getTeam(team);
 
   if (!teamData) return null;
 
-  const titleArray = [teamData.name, "Teams"];
+  const { data: teamMetaData } = await getTeamMetaData(team);
 
-  return {
-    title: createMetaTitle(titleArray),
-    description: teamData?.description,
-  };
+  return teamMetaData;
 }
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ team: string }>;
-}) {
+export default async function Page({ params }: PageProps) {
   const { team } = await params;
 
   // get team data

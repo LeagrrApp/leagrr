@@ -1,15 +1,32 @@
-import { deleteDivision, getDivision } from "@/actions/divisions";
+import {
+  deleteDivision,
+  getDivision,
+  getDivisionMetaInfo,
+} from "@/actions/divisions";
 import { canEditLeague } from "@/actions/leagues";
 import EditDivisionInfo from "@/components/dashboard/divisions/EditDivisionInfo";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
 
-export default async function Page({
-  params,
-}: {
+type PageProps = {
   params: Promise<{ division: string; season: string; league: string }>;
-}) {
+};
+
+export async function generateMetadata({ params }: PageProps) {
+  const { division, season, league } = await params;
+
+  const { data: divisionMetaData } = await getDivisionMetaInfo(
+    division,
+    season,
+    league,
+    { prefix: "Edit" },
+  );
+
+  return divisionMetaData;
+}
+
+export default async function Page({ params }: PageProps) {
   const { division, season, league } = await params;
 
   const { data: divisionData } = await getDivision(division, season, league);

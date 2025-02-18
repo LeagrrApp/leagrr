@@ -1,39 +1,36 @@
-import { canEditTeam, getAllTeamMembers, getTeam } from "@/actions/teams";
+import {
+  canEditTeam,
+  getAllTeamMembers,
+  getTeam,
+  getTeamMetaData,
+} from "@/actions/teams";
 import TeamInvite from "@/components/dashboard/teams/TeamInvite/TeamInvite";
 import TeamMembers from "@/components/dashboard/teams/TeamMembers/TeamMembers";
 import Alert from "@/components/ui/Alert/Alert";
 import BackButton from "@/components/ui/BackButton/BackButton";
-import {
-  createDashboardUrl,
-  createMetaTitle,
-} from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
 
-export async function generateMetadata({
-  params,
-}: {
+type PageProps = {
   params: Promise<{ team: string }>;
-}) {
+};
+
+export async function generateMetadata({ params }: PageProps) {
   const { team } = await params;
 
   const { data: teamData } = await getTeam(team);
 
   if (!teamData) return null;
 
-  const titleArray = ["Members", teamData.name, "Teams"];
+  const { data: teamMetaData } = await getTeamMetaData(team, {
+    prefix: "Members",
+  });
 
-  return {
-    title: createMetaTitle(titleArray),
-    description: teamData?.description,
-  };
+  return teamMetaData;
 }
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ team: string }>;
-}) {
+export default async function Page({ params }: PageProps) {
   const { team } = await params;
 
   // get team data

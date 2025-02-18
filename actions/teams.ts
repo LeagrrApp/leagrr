@@ -2,7 +2,10 @@
 import { db } from "@/db/pg";
 import { team_roles } from "@/lib/definitions";
 import { verifySession } from "@/lib/session";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import {
+  createDashboardUrl,
+  createMetaTitle,
+} from "@/utils/helpers/formatting";
 import { check_string_is_color_hex } from "@/utils/helpers/validators";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -284,6 +287,55 @@ export async function getTeam(
     });
 
   return teamResult;
+}
+
+export async function getTeamMetaData(
+  team: string,
+  options?: {
+    prefix?: string;
+  },
+) {
+  try {
+    const sql = `
+      SELECT
+        name,
+        description
+      FROM
+        league_management.teams
+      WHERE
+        slug = $1
+    `;
+
+    const { rows } = await db.query<{ name: string; description: string }>(
+      sql,
+      [team],
+    );
+
+    let title = createMetaTitle([rows[0].name, "Teams"]);
+
+    if (options?.prefix)
+      title = createMetaTitle([options.prefix, rows[0].name, "Teams"]);
+
+    return {
+      message: "Team meta data retrieved",
+      status: 200,
+      data: {
+        title,
+        description: rows[0].description,
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
 }
 
 export async function getDivisionTeamId(team_id: number, division_id: number) {

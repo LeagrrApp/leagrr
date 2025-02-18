@@ -1,14 +1,24 @@
-import { getSeason } from "@/actions/seasons";
+import { getSeason, getSeasonMetaData } from "@/actions/seasons";
 import CreateDivision from "@/components/dashboard/divisions/CreateDivision";
 import Container from "@/components/ui/Container/Container";
 import { verifySession } from "@/lib/session";
 import { notFound } from "next/navigation";
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ league: string; season: string }>;
-}) {
+type PageProps = {
+  params: Promise<{ season: string; league: string }>;
+};
+
+export async function generateMetadata({ params }: PageProps) {
+  const { season, league } = await params;
+
+  const { data: seasonData } = await getSeasonMetaData(season, league, {
+    prefix: "Create Division",
+  });
+
+  return seasonData;
+}
+
+export default async function Page({ params }: PageProps) {
   await verifySession();
 
   const { league, season } = await params;
