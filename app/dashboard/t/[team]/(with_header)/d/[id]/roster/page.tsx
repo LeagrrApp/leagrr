@@ -3,40 +3,35 @@ import {
   getDivisionTeamId,
   getTeam,
   getTeamDivisionRoster,
+  getTeamMetaData,
 } from "@/actions/teams";
 import ActiveRoster from "@/components/dashboard/teams/ActiveRoster/ActiveRoster";
 import InactiveRoster from "@/components/dashboard/teams/InactiveRoster/InactiveRoster";
 import TeamInvite from "@/components/dashboard/teams/TeamInvite/TeamInvite";
 import Alert from "@/components/ui/Alert/Alert";
 import BackButton from "@/components/ui/BackButton/BackButton";
-import {
-  createDashboardUrl,
-  createMetaTitle,
-} from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { get_unique_items_by_key } from "@/utils/helpers/objects";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
 
-type PageParams = {
+type PageProps = {
   params: Promise<{ team: string; id: string }>;
 };
 
-export async function generateMetadata({ params }: PageParams) {
+export async function generateMetadata({ params }: PageProps) {
   const { team } = await params;
 
   const { data: teamData } = await getTeam(team);
 
   if (!teamData) return null;
 
-  const titleArray = ["Manage Roster", teamData.name, "Teams"];
+  const { data: teamMetaData } = await getTeamMetaData(team);
 
-  return {
-    title: createMetaTitle(titleArray),
-    description: teamData?.description,
-  };
+  return teamMetaData;
 }
 
-export default async function Page({ params }: PageParams) {
+export default async function Page({ params }: PageProps) {
   const { team, id } = await params;
 
   const division_id = parseInt(id as string);

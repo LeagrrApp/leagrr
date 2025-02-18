@@ -4,35 +4,32 @@ import {
   getDivisionTeams,
   getLeagueTeamsNotInDivision,
 } from "@/actions/divisions";
+import DivisionInvite from "@/components/dashboard/divisions/DivisionInvite/DivisionInvite";
 import DivisionTeams from "@/components/dashboard/divisions/DivisionTeams/DivisionTeams";
 import LeagueTeams from "@/components/dashboard/divisions/LeagueTeams/LeagueTeams";
 import BackButton from "@/components/ui/BackButton/BackButton";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
-import DivisionInvite from "@/components/dashboard/divisions/DivisionInvite/DivisionInvite";
 
-export async function generateMetadata({
-  params,
-}: {
+type PageProps = {
   params: Promise<{ division: string; season: string; league: string }>;
-}) {
+};
+
+export async function generateMetadata({ params }: PageProps) {
   const { division, season, league } = await params;
 
   const { data: divisionMetaData } = await getDivisionMetaInfo(
     division,
     season,
     league,
+    { prefix: "Manage Teams" },
   );
 
   return divisionMetaData;
 }
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ division: string; season: string; league: string }>;
-}) {
+export default async function Page({ params }: PageProps) {
   const { division, season, league } = await params;
 
   const { data: divisionData } = await getDivision(division, season, league);

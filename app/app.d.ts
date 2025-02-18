@@ -139,14 +139,15 @@ type LeagueData = {
 type SeasonData = {
   season_id: number;
   slug: string;
-  name?: string;
+  name: string;
   description?: string;
-  league_id: number;
   start_date?: Date | string;
   end_date?: Date | string;
   status?: string;
   divisions?: DivisionData[];
+  league_id: number;
   league_slug?: string;
+  league: string;
 };
 
 type DivisionData = {

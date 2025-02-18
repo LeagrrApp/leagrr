@@ -1,15 +1,28 @@
-import { getDivision } from "@/actions/divisions";
+import { getDivision, getDivisionMetaInfo } from "@/actions/divisions";
 import { getLeagueInfoForGames } from "@/actions/games";
 import { canEditLeague } from "@/actions/leagues";
 import CreateGame from "@/components/dashboard/games/CreateGame";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
 
-export default async function Page({
-  params,
-}: {
+type PageProps = {
   params: Promise<{ division: string; season: string; league: string }>;
-}) {
+};
+
+export async function generateMetadata({ params }: PageProps) {
+  const { division, season, league } = await params;
+
+  const { data: divisionMetaData } = await getDivisionMetaInfo(
+    division,
+    season,
+    league,
+    { prefix: "Create Game" },
+  );
+
+  return divisionMetaData;
+}
+
+export default async function Page({ params }: PageProps) {
   const { division, season, league } = await params;
 
   const { data: divisionData } = await getDivision(division, season, league);

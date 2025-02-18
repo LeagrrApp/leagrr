@@ -16,11 +16,11 @@ import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
 
-export async function generateMetadata({
-  params,
-}: {
+type PageProps = {
   params: Promise<{ division: string; season: string; league: string }>;
-}) {
+};
+
+export async function generateMetadata({ params }: PageProps) {
   const { division, season, league } = await params;
 
   const { data: divisionMetaData } = await getDivisionMetaInfo(
@@ -32,11 +32,7 @@ export async function generateMetadata({
   return divisionMetaData;
 }
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ division: string; season: string; league: string }>;
-}) {
+export default async function Page({ params }: PageProps) {
   const { division, season, league } = await params;
 
   const { data: divisionData } = await getDivision(division, season, league);

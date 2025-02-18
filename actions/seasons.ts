@@ -2,11 +2,14 @@
 
 import { db } from "@/db/pg";
 import { verifySession } from "@/lib/session";
+import {
+  createDashboardUrl,
+  createMetaTitle,
+} from "@/utils/helpers/formatting";
 import { isObjectEmpty } from "@/utils/helpers/objects";
 import { redirect } from "next/navigation";
-import { canEditLeague, verifyLeagueAdminRole } from "./leagues";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { z } from "zod";
+import { canEditLeague } from "./leagues";
 
 const SeasonFormSchema = z.object({
   name: z
@@ -47,7 +50,7 @@ export async function createSeason(
   formData: FormData,
 ): Promise<SeasonFormState> {
   // Verify user session
-  const { user_id } = await verifySession();
+  await verifySession();
 
   // insert data from form into object to check for errors
   const submittedData = {
@@ -151,19 +154,25 @@ export async function getSeason(
   // build the select statement to get the season information
   const seasonSql = `
     SELECT
-      name,
-      description,
-      start_date,
-      end_date,
-      status,
-      season_id,
-      league_id
+      s.name,
+      s.description,
+      s.start_date,
+      s.end_date,
+      s.status,
+      s.season_id,
+      l.league_id,
+      l.slug AS league_slug,
+      l.name AS league
     FROM
       league_management.seasons AS s
+    JOIN
+      league_management.leagues AS l
+    ON
+      s.league_id = l.league_id
     WHERE
       s.slug = $1
       AND
-      (SELECT league_id FROM league_management.leagues AS l WHERE l.slug = $2) = s.league_id
+      l.slug = $2
   `;
 
   const seasonResult: ResultProps<SeasonData> = await db
@@ -189,7 +198,7 @@ export async function getSeason(
   // if the league was not found, return error
   if (!seasonResult.data) return seasonResult;
 
-  let response: ResultProps<SeasonData> = {
+  const response: ResultProps<SeasonData> = {
     ...seasonResult,
   };
 
@@ -234,6 +243,64 @@ export async function getSeason(
   }
 
   return response;
+}
+
+export async function getSeasonMetaData(
+  season: string,
+  league: string,
+  options?: {
+    prefix?: string;
+  },
+) {
+  try {
+    const sql = `
+      SELECT
+        s.name AS season,
+        s.description,
+        l.name AS league
+      FROM
+        league_management.seasons AS s
+      JOIN
+        league_management.leagues AS l
+      ON
+        s.league_id = l.league_id
+      WHERE
+        s.slug = $1
+        AND
+        l.slug = $2
+    `;
+
+    const { rows } = await db.query<{
+      season: string;
+      description: string;
+      league: string;
+    }>(sql, [season, league]);
+
+    let title = createMetaTitle([rows[0].season, rows[0].league]);
+
+    if (options?.prefix)
+      title = createMetaTitle([options.prefix, rows[0].season, rows[0].league]);
+
+    return {
+      message: "Season meta data loaded.",
+      status: 200,
+      data: {
+        title,
+        description: rows[0].description,
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong",
+      status: 500,
+    };
+  }
 }
 
 export async function editSeason(
@@ -373,7 +440,7 @@ export async function deleteSeason(state: {
   `;
 
   // query the database
-  const deleteResult = await db
+  await db
     .query(sql, [state.season_id])
     .then((res) => {
       return {

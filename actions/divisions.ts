@@ -244,7 +244,7 @@ export async function getDivisionStandings(
             (away_team_id = t.team_id)
           )
           AND
-          division_id = 1
+          division_id = $1
           AND
           status = 'completed'
       )::int AS games_played,
@@ -260,7 +260,7 @@ export async function getDivisionStandings(
             (away_team_id = t.team_id AND away_team_score > home_team_score)
           )
           AND
-          division_id = 1
+          division_id = $1
           AND
           status = 'completed'
       )::int AS wins,
@@ -276,7 +276,7 @@ export async function getDivisionStandings(
             (away_team_id = t.team_id AND away_team_score < home_team_score)
           )
           AND
-          division_id = 1
+          division_id = $1
           AND
           status = 'completed'
       )::int AS losses,
@@ -294,7 +294,7 @@ export async function getDivisionStandings(
           AND
             away_team_score = home_team_score
           AND
-            division_id = 1
+            division_id = $1
           AND
             status = 'completed'
       )::int AS ties,
@@ -311,7 +311,7 @@ export async function getDivisionStandings(
               (away_team_id = t.team_id AND away_team_score > home_team_score)
             )
             AND
-            division_id = 1
+            division_id = $1
             AND
             status = 'completed'
         ) * 2
@@ -330,7 +330,7 @@ export async function getDivisionStandings(
             AND
               away_team_score = home_team_score
             AND
-              division_id = 1
+              division_id = $1
             AND
               status = 'completed'
         )
@@ -344,7 +344,7 @@ export async function getDivisionStandings(
           WHERE
             home_team_id = t.team_id
             AND
-            division_id = 1
+            division_id = $1
             AND
             status = 'completed'
         ) + (
@@ -355,7 +355,7 @@ export async function getDivisionStandings(
           WHERE
             away_team_id = t.team_id
             AND
-            division_id = 1
+            division_id = $1
             AND
             status = 'completed'
         )
@@ -369,7 +369,7 @@ export async function getDivisionStandings(
           WHERE
             home_team_id = t.team_id
             AND
-            division_id = 1
+            division_id = $1
             AND
             status = 'completed'
         ) + (
@@ -380,7 +380,7 @@ export async function getDivisionStandings(
           WHERE
             away_team_id = t.team_id
             AND
-            division_id = 1
+            division_id = $1
             AND
             status = 'completed'
         )
@@ -392,7 +392,7 @@ export async function getDivisionStandings(
     ON
       t.team_id = dt.team_id
     WHERE
-      dt.division_id = 1
+      dt.division_id = $1
     ORDER BY points DESC, games_played ASC, wins DESC, goals_for DESC, goals_against ASC
   `;
   try {
@@ -585,107 +585,74 @@ export async function getDivisionMetaInfo(
   division_slug: string,
   season_slug: string,
   league_slug: string,
+  options?: {
+    prefix?: string;
+  },
 ): Promise<
   ResultProps<{
     title: string;
     description?: string;
   }>
 > {
-  // check user is logged in
-  await verifySession();
-
-  const sql = `
-    SELECT
-      d.name AS division_name,
-      (
-        SELECT
-        s.name
-        FROM
+  try {
+    const sql = `
+      SELECT
+        d.name AS division,
+        d.description AS description,
+        s.name AS season,
+        l.name AS league
+      FROM
+        league_management.divisions AS d
+      JOIN
         league_management.seasons AS s
-        WHERE
-        s.slug = $2
-        AND
-        league_id = (
-          SELECT
-          league_id
-          FROM
-          league_management.leagues AS l
-          WHERE
-          l.slug = $3
-        )
-      ) AS season_name,
-      (
-        SELECT
-        l.name
-        FROM
+      ON
+        d.season_id = s.season_id
+      JOIN
         league_management.leagues AS l
-        WHERE
-        l.slug = $3
-      ) AS league_name,
-      d.description
-    FROM
-      divisions AS d
-    WHERE
-      slug = $1
-      AND
-      season_id = (
-        SELECT
-        season_id
-        FROM
-        league_management.seasons AS s
-        WHERE
+      ON
+        s.league_id = l.league_id
+      WHERE
+        d.slug = $1
+        AND
         s.slug = $2
         AND
-        league_id = (
-          SELECT
-          league_id
-          FROM
-          league_management.leagues AS l
-          WHERE
-          l.slug = $3
-        )
-      )
-  `;
+        l.slug = $3
+    `;
 
-  const result: ResultProps<{
-    division_name: string;
-    season_name: string;
-    league_name: string;
-    description?: string;
-  }> = await db
-    .query(sql, [division_slug, season_slug, league_slug])
-    .then((res) => {
-      return {
-        data: res.rows[0],
-        message: "Division meta data found.",
-        status: 200,
-      };
-    })
-    .catch((err) => {
+    const { rows } = await db.query<{
+      division: string;
+      description: string;
+      season: string;
+      league: string;
+    }>(sql, [division_slug, season_slug, league_slug]);
+
+    const { division, description, season, league } = rows[0];
+
+    let title = createMetaTitle([division, season, league]);
+
+    if (options?.prefix)
+      title = createMetaTitle([options.prefix, division, season, league]);
+
+    return {
+      message: "Division meta data loaded!",
+      status: 200,
+      data: {
+        title,
+        description,
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
       };
-    });
-
-  if (!result.data)
+    }
     return {
-      message: result.message,
-      status: result.status,
+      message: "Something went wrong",
+      status: 500,
     };
-
-  const { division_name, season_name, league_name, description } = result.data;
-
-  const metaData = {
-    title: createMetaTitle([division_name, season_name, league_name]),
-    description,
-  };
-
-  return {
-    message: result.message,
-    status: result.status,
-    data: metaData,
-  };
+  }
 }
 
 export async function getDivisionUrlById(

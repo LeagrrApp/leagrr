@@ -416,85 +416,120 @@ export async function getGameUrl(game_id: number) {
   };
 }
 
-export async function getGameMetaInfo(game_id: number): Promise<
+export async function getGameMetaInfo(
+  game_id: number,
+  options?: {
+    prefix?: string;
+  },
+): Promise<
   ResultProps<{
     title: string;
     description?: string;
   }>
 > {
-  // check user is logged in
-  await verifySession();
+  try {
+    const sql = `
+      SELECT
+        at.name AS away_team,
+        ht.name AS home_team,
+        g.date_time,
+        d.name AS division,
+        s.name AS season,
+        l.name AS league
+      FROM
+        league_management.games AS g
+      LEFT JOIN
+        league_management.teams AS at
+      ON
+        at.team_id = g.away_team_id
+      LEFT JOIN
+        league_management.teams AS ht
+      ON
+        ht.team_id = g.home_team_id
+      JOIN
+        league_management.divisions AS d
+      ON
+        g.division_id = d.division_id
+      JOIN
+        league_management.seasons AS s
+      ON
+        d.season_id = s.season_id
+      JOIN
+        league_management.leagues AS l
+      ON
+        l.league_id = s.league_id
+      WHERE
+        g.game_id = $1
+    `;
 
-  const sql = `
-    SELECT
-      g.game_id,
-      (SELECT name FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team,
-      (SELECT name FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team,
-      d.name AS division,
-      s.name AS season,
-      l.name AS league
-    FROM
-      league_management.games AS g
-    JOIN
-      league_management.divisions AS d
-    ON
-      g.division_id = d.division_id
-    JOIN
-      league_management.seasons AS s
-    ON
-      d.season_id = s.season_id
-    JOIN
-      league_management.leagues AS l
-    ON
-      l.league_id = s.league_id
-    WHERE
-      g.game_id = $1
-  `;
+    const { rows } = await db.query<{
+      away_team: string;
+      home_team: string;
+      date_time: Date;
+      division: string;
+      season: string;
+      league: string;
+    }>(sql, [game_id]);
 
-  const result: ResultProps<{
-    away_team: string;
-    home_team: string;
-    division: string;
-    season: string;
-    league: string;
-  }> = await db
-    .query(sql, [game_id])
-    .then((res) => {
-      return {
-        data: res.rows[0],
-        message: "Game meta data found.",
-        status: 200,
-      };
-    })
-    .catch((err) => {
+    const { away_team, home_team, date_time, division, season, league } =
+      rows[0];
+
+    const game_date = date_time.toLocaleDateString("en-CA", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+
+    const game_time = date_time.toLocaleTimeString("en-CA", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+
+    let title = createMetaTitle([
+      `${away_team} vs ${home_team}`,
+      game_date,
+      division,
+      season,
+      league,
+    ]);
+
+    let description = `Game taking place on ${game_date} at ${game_time} between ${away_team} at ${home_team} of ${division} of the ${season} of ${league}.`;
+
+    if (options?.prefix) {
+      title = createMetaTitle([
+        options.prefix,
+        `${away_team} vs ${home_team}`,
+        game_date,
+        division,
+        season,
+        league,
+      ]);
+
+      if (options.prefix === "Edit") {
+        description = `Edit game taking place on ${game_date} at ${game_time} between ${away_team} at ${home_team} of ${division} of the ${season} of ${league}.`;
+      }
+    }
+
+    return {
+      message: "Game meta data retrieved.",
+      status: 200,
+      data: {
+        title,
+        description,
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
       };
-    });
-
-  if (!result.data)
+    }
     return {
-      message: result.message,
-      status: result.status,
+      message: "Something went wrong",
+      status: 500,
     };
-
-  const { away_team, home_team, division, season, league } = result.data;
-
-  const metaData = {
-    title: createMetaTitle([
-      `${away_team} @ ${home_team}`,
-      division,
-      season,
-      league,
-    ]),
-  };
-
-  return {
-    message: result.message,
-    status: result.status,
-    data: metaData,
-  };
+  }
 }
 
 const GameEditFormSchema = z.object({

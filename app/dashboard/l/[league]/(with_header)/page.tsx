@@ -1,8 +1,22 @@
-import { getLeagueData } from "@/actions/leagues";
+import { getLeagueData, getLeagueMetaData } from "@/actions/leagues";
 import Button from "@/components/ui/Button/Button";
 import Container from "@/components/ui/Container/Container";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ league: string }>;
+}) {
+  const { league } = await params;
+
+  const { data: leagueMetaData } = await getLeagueMetaData(league);
+
+  console.log(leagueMetaData);
+
+  if (leagueMetaData) return leagueMetaData;
+}
 
 export default async function Page({
   params,

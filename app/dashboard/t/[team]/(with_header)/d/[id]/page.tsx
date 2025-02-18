@@ -1,5 +1,10 @@
 import { getDivisionUrlById } from "@/actions/divisions";
-import { canEditTeam, getTeam, getTeamDashboardData } from "@/actions/teams";
+import {
+  canEditTeam,
+  getTeam,
+  getTeamDashboardData,
+  getTeamMetaData,
+} from "@/actions/teams";
 import DashboardUnit from "@/components/dashboard/DashboardUnit/DashboardUnit";
 import DashboardUnitHeader from "@/components/dashboard/DashboardUnitHeader/DashboardUnitHeader";
 import DivisionStandings from "@/components/dashboard/divisions/DivisionStandings/DivisionStandings";
@@ -8,33 +13,27 @@ import DivisionRoster from "@/components/dashboard/teams/DivisionRoster/Division
 import Button from "@/components/ui/Button/Button";
 import Card from "@/components/ui/Card/Card";
 import Icon from "@/components/ui/Icon/Icon";
-import {
-  createDashboardUrl,
-  createMetaTitle,
-} from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
 
-type PageParams = {
+type PageProps = {
   params: Promise<{ team: string; id: string }>;
 };
 
-export async function generateMetadata({ params }: PageParams) {
+export async function generateMetadata({ params }: PageProps) {
   const { team } = await params;
 
   const { data: teamData } = await getTeam(team);
 
   if (!teamData) return null;
 
-  const titleArray = [teamData.name, "Teams"];
+  const { data: teamMetaData } = await getTeamMetaData(team);
 
-  return {
-    title: createMetaTitle(titleArray),
-    description: teamData?.description,
-  };
+  return teamMetaData;
 }
 
-export default async function Page({ params }: PageParams) {
+export default async function Page({ params }: PageProps) {
   const { team, id } = await params;
 
   const division_id = parseInt(id as string);
