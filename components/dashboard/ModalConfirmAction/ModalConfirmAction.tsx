@@ -83,8 +83,8 @@ export default function ModalConfirmAction({
               Cancel
             </Button>
           </Grid>
-          {state?.status === 401 && (
-            <Alert alert={state.message} type="danger" marginStart="m" />
+          {state?.message && state?.status !== 200 && (
+            <Alert alert={state.message} type="danger" marginStart="base" />
           )}
         </form>
       </Dialog>

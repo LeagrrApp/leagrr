@@ -1,4 +1,4 @@
-import { getLeagueData, getLeagueMetaData } from "@/actions/leagues";
+import { getLeague, getLeagueMetaData } from "@/actions/leagues";
 import CreateSeason from "@/components/dashboard/seasons/CreateSeason";
 import Container from "@/components/ui/Container/Container";
 import { verifySession } from "@/lib/session";
@@ -23,7 +23,7 @@ export default async function Page({ params }: PageProps) {
 
   const { league: slug } = await params;
 
-  const { data: league } = await getLeagueData(slug);
+  const { data: league } = await getLeague(slug);
 
   if (!league) notFound();
 

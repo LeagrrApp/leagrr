@@ -1,6 +1,7 @@
 "use client";
 
 import { editLeague } from "@/actions/leagues";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/forms/Input";
 import Select from "@/components/ui/forms/Select";
@@ -65,6 +66,11 @@ export default function EditLeague({ league, backLink }: EditLeagueProps) {
             <Icon icon="cancel" label="Cancel" />
           </Button>
         </Col>
+        {state?.message && state.status !== 200 && (
+          <Col fullSpan>
+            <Alert alert={state.message} type="danger" />
+          </Col>
+        )}
       </Grid>
     </form>
   );

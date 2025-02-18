@@ -1,6 +1,7 @@
 "use client";
 
 import { createLeague } from "@/actions/leagues";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Card from "@/components/ui/Card/Card";
 import Container from "@/components/ui/Container/Container";
@@ -10,7 +11,7 @@ import IconSport from "@/components/ui/Icon/IconSport";
 import Grid from "@/components/ui/layout/Grid";
 import { sports_options } from "@/lib/definitions";
 import { capitalize } from "@/utils/helpers/formatting";
-import { CSSProperties, useActionState, useState } from "react";
+import { CSSProperties, useActionState, useEffect, useState } from "react";
 import css from "./createLeague.module.css";
 
 interface CreateLeagueProps {
@@ -25,6 +26,10 @@ export default function CreateLeague({ user_id }: CreateLeagueProps) {
   const [state, action, pending] = useActionState(createLeague, undefined);
   const [sport, setSport] = useState<string>("hockey");
   const [leagueName, setLeagueName] = useState<string>("");
+
+  useEffect(() => {
+    console.log(state);
+  }, [state]);
 
   const styles: BackgroundStyles = {
     "--bg-image": `url('/bg-${sport}.jpg')`,
@@ -92,6 +97,9 @@ export default function CreateLeague({ user_id }: CreateLeagueProps) {
                   label={`Create ${leagueName || "League"}`}
                 />
               </Button>
+              {state?.message && state.status !== 200 && (
+                <Alert alert={state.message} type="danger" />
+              )}
             </Grid>
           </form>
         </Card>

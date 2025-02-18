@@ -133,7 +133,6 @@ type LeagueData = {
   sport: "hockey" | "soccer" | "basketball" | "pickleball" | "badminton";
   status: string;
   seasons?: SeasonData[];
-  league_role_id?: number;
 };
 
 type SeasonData = {

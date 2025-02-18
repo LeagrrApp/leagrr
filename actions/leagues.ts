@@ -57,8 +57,6 @@ export async function createLeague(
     sport: formData.get("sport") as string,
   };
 
-  // let errors: ErrorProps = {};
-
   // Validate form fields
   const validatedFields = LeagueFormSchema.safeParse(submittedData);
 
@@ -70,94 +68,152 @@ export async function createLeague(
     };
   }
 
-  // Build insert sql statement
-  const leagueInsertSql = `
-    INSERT INTO league_management.leagues
-      (name, description, sport)
-    VALUES
-      ($1, $2, $3)
-    RETURNING league_id, slug
-  `;
+  // set redirect link holder;
+  let redirectLink: string | undefined = undefined;
 
-  // Insert new league into the database
-  const leagueInsertResult: ResultProps<LeagueData> = await db
-    .query(leagueInsertSql, [
+  // no validation errors, submit data to database
+  try {
+    // Build insert sql statement
+    const leagueInsertSql = `
+      INSERT INTO league_management.leagues
+        (name, description, sport)
+      VALUES
+        ($1, $2, $3)
+      RETURNING league_id, slug
+    `;
+
+    // Insert new league into the database
+    const { rows: leagueRows } = await db.query<{
+      league_id: number;
+      slug: string;
+    }>(leagueInsertSql, [
       submittedData.name,
       submittedData.description,
       submittedData.sport,
-    ])
-    .then((res) => {
-      return {
-        message: "League created!",
-        status: 200,
-        data: res.rows[0],
-      };
-    })
-    .catch((err) => {
+    ]);
+
+    // if no data was returned, throw an error
+    if (!leagueRows[0]) {
+      throw new Error("Sorry, there was an error creating the league.");
+    }
+
+    // get league_id and slug generated and returned by the database
+    const { league_id, slug } = leagueRows[0];
+
+    // Insert user and league into the league_admins table as Commissioner (league_role_id = 1)
+    const leagueAdminSql = `
+      INSERT INTO league_management.league_admins (league_role, league_id, user_id)
+      VALUES (1, $1, $2)
+      RETURNING
+        league_admin_id
+    `;
+
+    const { rows: adminRows } = await db.query<{ league_admin_id: number }>(
+      leagueAdminSql,
+      [league_id, user_id],
+    );
+
+    // Failed to add user as league admin, delete the league and return error
+    if (!adminRows[0]) {
+      // TODO: delete the league on this error
+
+      throw new Error("Unable to set user as league admin.");
+    }
+
+    // set redirect link
+    redirectLink = createDashboardUrl({ l: slug });
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
+        data: submittedData,
       };
-    });
-
-  // if no data was returned, there was an error, return the error
-  if (!leagueInsertResult.data) {
+    }
     return {
-      ...leagueInsertResult,
+      message: "Something went wrong.",
+      status: 500,
       data: submittedData,
     };
   }
 
-  // get league_id and slug generated and returned by the database
-  const { league_id, slug } = leagueInsertResult.data;
-
-  // Insert user and league into the league_admins table as Commissioner (league_role_id = 1)
-  const leagueAdminSql = `
-    INSERT INTO league_management.league_admins (league_role, league_id, user_id)
-    VALUES (1, $1, $2)
-  `;
-
-  const leagueAdminInsertResult = await db
-    .query(leagueAdminSql, [league_id, user_id])
-    .then(() => {
-      return {
-        message: "User added as league admin",
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  // Failed to add user as league admin, delete the league and return error
-  if (leagueAdminInsertResult.status === 400) {
-    // TODO: delete the league on this error
-
-    return {
-      ...leagueAdminInsertResult,
-      data: submittedData,
-    };
-  }
-
-  // Success route, redirect to the new league page
-  redirect(createDashboardUrl({ l: slug }));
+  // Redirect to the new league page
+  if (redirectLink) redirect(redirectLink);
 }
 
-export async function getLeagueAdminRole(
-  league: number | string,
-): Promise<number | undefined> {
+export async function getLeague(
+  identifier: string | number,
+): Promise<ResultProps<LeagueData>> {
   // Verify user session
-  const { user_id } = await verifySession();
+  await verifySession();
 
-  let league_id = league;
+  try {
+    // build league select statement
+    const leagueSql = `
+    SELECT
+      league_id,
+      slug,
+      name,
+      description,
+      sport,
+      status
+    FROM
+      league_management.leagues as l
+    WHERE
+      ${typeof identifier === "string" ? `l.slug` : `l.league_id`} = $1
+  `;
 
-  // league slug was provided, but need league_id to check role
-  if (typeof league === "string") {
-    // get league_id
-    const leagueIdSql = `
+    // make request to database for leagues
+    const { rows: leagueRows } = await db.query<LeagueData>(leagueSql, [
+      identifier,
+    ]);
+
+    // if the league was not found, throw error
+    if (!leagueRows[0]) throw new Error("League not found.");
+
+    // found league data
+    const league = leagueRows[0];
+
+    // build select statement to get all seasons for associated league
+    const seasonsSql = `
+      SELECT
+        slug,
+        name,
+        status,
+        start_date,
+        end_date
+      FROM
+        league_management.seasons
+      WHERE
+        league_id = $1
+      ORDER BY end_date DESC
+    `;
+
+    // make request to database for seasons
+    const { rows: seasons } = await db.query<SeasonData>(seasonsSql, [
+      league.league_id,
+    ]);
+
+    // combine all retrieved data into a single data object and return
+    return {
+      message: "League data found.",
+      status: 200,
+      data: {
+        ...league,
+        seasons,
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return { message: err.message, status: 400 };
+    }
+    return { message: "Something went wrong.", status: 500 };
+  }
+}
+
+export async function getLeagueIdFromSlug(slug: string) {
+  try {
+    const sql = `
       SELECT
         league_id
       FROM
@@ -166,72 +222,65 @@ export async function getLeagueAdminRole(
         slug = $1
     `;
 
-    const leagueIdResult: ResultProps<{ league_id: number }> = await db
-      .query(leagueIdSql, [league])
-      .then((res) => {
-        return {
-          message: "League ID retrieved",
-          status: 200,
-          data: res.rows[0],
-        };
-      });
+    const { rows } = await db.query<{ league_id: number }>(sql, [slug]);
 
-    // no matching league was found or there was an error
-    if (!leagueIdResult.data) {
-      // return no role
-      return undefined;
+    if (!rows[0]) throw new Error("League not found!");
+
+    return {
+      message: "League id found!",
+      status: 200,
+      data: { league_id: rows[0].league_id },
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return { message: err.message, status: 400 };
+    }
+    return { message: "Something went wrong.", status: 500 };
+  }
+}
+
+export async function getLeagueAdminRole(
+  league: number | string,
+): Promise<number | undefined> {
+  // Verify user session
+  const { user_id } = await verifySession();
+
+  try {
+    let league_id = league;
+
+    if (typeof league === "string") {
+      // league slug was provided, but need league_id to check role
+
+      // get league_id
+      const { data } = await getLeagueIdFromSlug(league);
+
+      if (data?.league_id) league_id = data?.league_id;
     }
 
-    league_id = leagueIdResult.data.league_id;
+    // Unable to find league_id, therefore short circuit out
+    if (typeof league_id === "string") return undefined;
+
+    // build sql select statement using league_id
+    const adminsSql = `
+      SELECT
+        league_role
+      FROM
+        league_management.league_admins
+      WHERE
+        league_id = $1 AND user_id = $2
+    `;
+
+    // query database for any matching both league and user
+    const { rows } = await db.query<AdminRole>(adminsSql, [league_id, user_id]);
+
+    if (!rows[0]) {
+      throw new Error("User does not have a league admin role.");
+    }
+
+    return rows[0].league_role;
+  } catch {
+    return undefined;
   }
-
-  if (typeof league_id === "string") return undefined;
-
-  // build sql select statement
-  const adminsSql = `
-    SELECT
-      league_role
-    FROM
-      league_management.league_admins
-    WHERE
-      league_id = $1 AND user_id = $2
-  `;
-
-  // query database for any matching both league and user
-  const adminsResult: ResultProps<AdminRole> = await db
-    .query(adminsSql, [league_id, user_id])
-    .then((res) => {
-      if (res.rowCount) {
-        return {
-          message: "User has league admin role",
-          data: {
-            league_role: res.rows[0].league_role,
-          },
-          status: 200,
-        };
-      }
-
-      return {
-        message: "User doest not have league admin role",
-        data: {
-          league_role: undefined,
-        },
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: `There was a problem verifying the user's admin status: ${err.message}`,
-        status: 400,
-        data: {
-          league_role: undefined,
-        },
-      };
-    });
-
-  if (adminsResult.data?.league_role) return adminsResult.data?.league_role;
-
-  return undefined;
 }
 
 export async function verifyLeagueAdminRole(
@@ -281,100 +330,6 @@ export async function canEditLeague(
   return {
     canEdit,
     role,
-  };
-}
-
-export async function getLeagueData(
-  slug: string,
-): Promise<ResultProps<LeagueData>> {
-  // Verify user session
-  await verifySession();
-
-  // build league select statement
-  const leagueSql = `
-    SELECT
-      league_id,
-      slug,
-      name,
-      description,
-      sport,
-      status
-    FROM
-      league_management.leagues as l
-    WHERE
-      l.slug = $1
-  `;
-
-  // make request to database for leagues
-  const leagueResult: ResultProps<LeagueData> = await db
-    .query(leagueSql, [slug])
-    .then((res) => {
-      if (!res.rowCount) {
-        throw new Error("League not found in database!");
-      }
-      return {
-        message: "League data retrieved",
-        data: res.rows[0],
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 404,
-      };
-    });
-
-  // if the league was not found, return error
-  if (!leagueResult.data) return leagueResult;
-
-  // build select statement to get all seasons for associated league
-  const seasonsSql = `
-    SELECT
-      slug,
-      name,
-      status,
-      start_date,
-      end_date
-    FROM
-      league_management.seasons
-    WHERE
-      league_id = $1
-    ORDER BY end_date DESC
-  `;
-
-  // make request to database for seasons
-  const seasonsResult: ResultProps<{ seasons: SeasonData[] }> = await db
-    .query(seasonsSql, [leagueResult.data.league_id])
-    .then((res) => {
-      return {
-        message: "Seasons data retrieved",
-        data: {
-          seasons: res.rows,
-        },
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-  // TODO: add short circuit if there is an error getting seasons
-
-  const adminsResult = await getLeagueAdminRole(leagueResult.data.league_id);
-  // TODO: add short circuit if there is an error getting league admins
-
-  // combine all retrieved data into a single data object and return
-  return {
-    message: "League data found.",
-    status: 200,
-    data: {
-      ...leagueResult.data,
-      ...seasonsResult.data,
-      league_role_id: adminsResult,
-    },
   };
 }
 
@@ -466,8 +421,12 @@ export async function editLeague(
     };
   }
 
-  // build sql update statement
-  const sql = `
+  // set redirect link holder;
+  let redirectLink: string | undefined = undefined;
+
+  try {
+    // build sql update statement
+    const sql = `
     UPDATE
       league_management.leagues
     SET
@@ -481,36 +440,35 @@ export async function editLeague(
       slug
   `;
 
-  // query the database
-  const updatedResult: ResultProps<LeagueData> = await db
-    .query(sql, [
+    // query the database
+    const { rows } = await db.query<LeagueData>(sql, [
       submittedData.name,
       submittedData.description,
       submittedData.sport,
       submittedData.status,
       submittedData.league_id,
-    ])
-    .then((res) => {
-      return {
-        message: "League updated",
-        status: 200,
-        data: res.rows[0],
-      };
-    })
-    .catch((err) => {
+    ]);
+
+    if (!rows[0]) throw new Error("There was a problem updating the league.");
+
+    redirectLink = createDashboardUrl({ l: rows[0].slug });
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
+        data: submittedData,
       };
-    });
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
+    };
+  }
 
-  if (updatedResult?.data?.slug)
-    redirect(createDashboardUrl({ l: updatedResult?.data?.slug }));
-
-  return {
-    ...updatedResult,
-    data: submittedData,
-  };
+  // Redirect to the new league page
+  if (redirectLink) redirect(redirectLink);
 }
 
 export async function deleteLeague(state: { league_id: number }) {
@@ -547,24 +505,24 @@ export async function deleteLeague(state: { league_id: number }) {
     WHERE league_id = $1
   `;
 
-  // query the database
-  const deleteResult = await db
-    .query(sql, [state.league_id])
-    .then(() => {
-      return {
-        message: "League deleted",
-        status: 200,
-      };
-    })
-    .catch((err) => {
+  try {
+    // query the database
+    const { rowCount } = await db.query(sql, [state.league_id]);
+
+    if (rowCount !== 1) throw new Error("There was a problem deleting league.");
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
+        ...state,
       };
-    });
-
-  if (deleteResult.status === 400) {
-    return deleteResult;
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      ...state,
+    };
   }
 
   redirect("/dashboard/");
