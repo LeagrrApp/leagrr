@@ -175,7 +175,16 @@ export default function DivisionSchedule({
                     {g.home_team}
                   </td>
                   <td title={`${g.arena} - ${g.venue}`}>
-                    {g.arena} - {g.venue}
+                    {g.arena && g.venue ? (
+                      <>
+                        {g.arena} - {g.venue}
+                      </>
+                    ) : (
+                      <>
+                        <span aria-hidden="true">TBD</span>
+                        <span className="srt">Location to be determined</span>
+                      </>
+                    )}
                   </td>
                 </tr>
               );

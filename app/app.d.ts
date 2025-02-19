@@ -154,10 +154,10 @@ type DivisionData = {
   name: string;
   description?: string;
   slug: string;
-  gender?: string;
-  tier?: number;
-  join_code?: string;
-  status?: string;
+  gender: string;
+  tier: number;
+  join_code: string;
+  status: string;
   season_slug: string;
   season_id: number;
   league_slug: string;

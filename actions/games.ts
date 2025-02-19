@@ -532,6 +532,93 @@ export async function getGameMetaInfo(
   }
 }
 
+export async function getGamesByDivisionId(
+  division_id: number,
+  league: number | string,
+) {
+  try {
+    const divisionGamesSql = `
+      SELECT
+        g.game_id,
+        g.home_team_id,
+        ht.name AS home_team,
+        g.home_team_score,
+        g.away_team_id,
+        at.name AS away_team,
+        g.away_team_score,
+        g.date_time,
+        g.arena_id,
+        a.name AS arena,
+        v.name AS venue,
+        g.status,
+        g.division_id
+      FROM
+        league_management.games AS g
+      LEFT JOIN
+        league_management.teams AS ht
+      ON
+        g.home_team_id = ht.team_id
+      LEFT JOIN
+        league_management.teams AS at
+      ON
+        g.away_team_id = at.team_id
+      LEFT JOIN
+        league_management.arenas AS a
+      ON
+        a.arena_id = g.arena_id
+      LEFT JOIN
+        league_management.venues AS v
+      ON
+        a.venue_id = v.venue_id
+      WHERE
+        division_id = $1
+      ORDER BY
+        date_time DESC
+    `;
+
+    const { rows } = await db.query<GameData>(divisionGamesSql, [division_id]);
+
+    if (!rows[0]) {
+      return {
+        message: "This division has no games.",
+        status: 200,
+        data: [],
+      };
+    }
+
+    let games = rows;
+
+    const { canEdit } = await canEditLeague(league);
+
+    if (!canEdit) {
+      games = games.filter(
+        (g) =>
+          g.status === "public" ||
+          g.status === "completed" ||
+          g.status === "postponed" ||
+          g.status === "cancelled",
+      );
+    }
+
+    return {
+      message: "Division games retrieved.",
+      status: 200,
+      data: games,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
+}
+
 const GameEditFormSchema = z.object({
   game_id: z.number().min(1),
   league_id: z.number().min(1),

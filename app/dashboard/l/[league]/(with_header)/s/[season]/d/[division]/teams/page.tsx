@@ -1,9 +1,5 @@
-import {
-  getDivision,
-  getDivisionMetaInfo,
-  getDivisionTeams,
-  getLeagueTeamsNotInDivision,
-} from "@/actions/divisions";
+import { getDivision, getDivisionMetaInfo } from "@/actions/divisions";
+import { getTeamsByDivisionId, getTeamsByLeagueId } from "@/actions/teams";
 import DivisionInvite from "@/components/dashboard/divisions/DivisionInvite/DivisionInvite";
 import DivisionTeams from "@/components/dashboard/divisions/DivisionTeams/DivisionTeams";
 import LeagueTeams from "@/components/dashboard/divisions/LeagueTeams/LeagueTeams";
@@ -38,13 +34,13 @@ export default async function Page({ params }: PageProps) {
 
   const backLink = createDashboardUrl({ l: league, s: season, d: division });
 
-  const { data: divisionTeams } = await getDivisionTeams(
+  const { data: divisionTeams } = await getTeamsByDivisionId(
     divisionData.division_id,
   );
 
-  const { data: leagueTeams } = await getLeagueTeamsNotInDivision(
-    divisionData.division_id,
+  const { data: leagueTeams } = await getTeamsByLeagueId(
     divisionData.league_id,
+    { excludeDivision: divisionData.division_id },
   );
 
   return (

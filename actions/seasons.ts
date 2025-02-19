@@ -9,6 +9,7 @@ import {
 import { isObjectEmpty } from "@/utils/helpers/objects";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { getDivisionsBySeason } from "./divisions";
 import { canEditLeague } from "./leagues";
 
 const SeasonFormSchema = z.object({
@@ -190,27 +191,10 @@ export async function getSeason(
     const season = seasonRows[0];
 
     if (options?.includeDivisions) {
-      const divisionSql = `
-        SELECT
-          division_id,
-          name,
-          description,
-          tier,
-          slug,
-          gender,
-          season_id,
-          status,
-          join_code
-        FROM league_management.divisions WHERE season_id = $1
-        ORDER BY gender, tier
-      `;
+      const { data: divisions } = await getDivisionsBySeason(season.season_id);
 
-      const { rows: divisionRows } = await db.query<DivisionData>(divisionSql, [
-        season.season_id,
-      ]);
-
-      if (divisionRows.length > 0) {
-        season.divisions = divisionRows;
+      if (divisions && divisions.length > 0) {
+        season.divisions = divisions;
       }
     }
 

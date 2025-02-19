@@ -338,6 +338,122 @@ export async function getTeamMetaData(
   }
 }
 
+export async function getTeamsByLeagueId(
+  league_id: number,
+  options?: { excludeDivision?: number },
+) {
+  try {
+    const sql = `
+      SELECT
+        t.team_id,
+        t.name,
+        t.slug,
+        t.color
+      FROM
+        league_management.leagues AS l
+      JOIN
+        league_management.seasons AS s
+      ON
+        s.league_id = l.league_id
+      JOIN
+        league_management.divisions AS d
+      ON
+        s.season_id = d.season_id
+      JOIN
+        league_management.division_teams AS dt
+      ON
+        d.division_id = dt.division_id
+      JOIN
+        league_management.teams AS t
+      ON
+        dt.team_id = t.team_id
+      WHERE
+        l.league_id = $1
+        ${
+          options?.excludeDivision
+            ? `AND
+        t.team_id NOT IN (
+          SELECT
+            team_id
+          FROM
+            league_management.division_teams
+          WHERE
+            division_id = $2
+        )`
+            : ""
+        }
+      GROUP BY t.team_id
+      ORDER BY t.name ASC
+    `;
+
+    const queryArgs = [league_id];
+
+    if (options?.excludeDivision) queryArgs.push(options.excludeDivision);
+
+    const result = await db.query<TeamData>(sql, queryArgs);
+
+    return {
+      message: "Teams loaded",
+      status: 200,
+      data: result.rows,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
+}
+
+export async function getTeamsByDivisionId(division_id: number) {
+  console.log("using getTeamsByDivisionId");
+  try {
+    const sql = `
+      SELECT
+        t.team_id,
+        t.name,
+        t.slug,
+        t.status,
+        t.color,
+        dt.division_team_id
+      FROM
+        teams as t
+      JOIN
+        division_teams as dt
+      ON
+        t.team_id = dt.team_id
+      WHERE
+        dt.division_id = $1
+      ORDER BY t.name ASC
+    `;
+
+    const { rows } = await db.query<DivisionTeamData>(sql, [division_id]);
+
+    return {
+      message: "Teams loaded.",
+      status: 200,
+      data: rows,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
+}
+
 export async function getDivisionTeamId(team_id: number, division_id: number) {
   // confirm logged in
   await verifySession();

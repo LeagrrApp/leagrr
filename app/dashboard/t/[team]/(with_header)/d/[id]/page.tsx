@@ -50,7 +50,7 @@ export default async function Page({ params }: PageProps) {
   const { nextGame, prevGame, teamMembers, divisionStandings } =
     await getTeamDashboardData(team_id, division_id);
 
-  const leagueUrl = await getDivisionUrlById(division_id);
+  const { data: leagueUrl } = await getDivisionUrlById(division_id);
 
   const { canEdit } = await canEditTeam(team);
 
