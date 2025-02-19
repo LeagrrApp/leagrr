@@ -7,7 +7,7 @@ import Dialog from "@/components/ui/Dialog/Dialog";
 import Icon from "@/components/ui/Icon/Icon";
 import Grid from "@/components/ui/layout/Grid";
 import { apply_classes } from "@/utils/helpers/html-attributes";
-import { useActionState, useRef } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import css from "./modalConfirmAction.module.css";
 
 interface ModalConfirmActionProps {
@@ -37,6 +37,10 @@ export default function ModalConfirmAction({
 }: ModalConfirmActionProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [state, action] = useActionState(actionFunction, defaultState);
+
+  useEffect(() => {
+    console.log(state);
+  }, [state]);
 
   return (
     <>

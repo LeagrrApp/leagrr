@@ -69,7 +69,7 @@ export async function createLeague(
     };
   }
 
-  // set redirect link holder;
+  // initialize redirect link
   let redirectLink: string | undefined = undefined;
 
   // no validation errors, submit data to database
@@ -458,43 +458,47 @@ export async function editLeague(
   if (redirectLink) redirect(redirectLink);
 }
 
-export async function deleteLeague(state: { league_id: number }) {
+export async function deleteLeague(state: { data: { league_id: number } }) {
   // Verify user session
   await verifySession();
 
-  // set check for whether user has permission to delete
-  let canDelete = false;
+  try {
+    if (!state.data) throw new Error("Sorry, something when wrong.");
 
-  // Check user role to see if they have admin privileges
-  const isAdmin = await verifyUserRole(1);
-  // if so, they can delete the league
-  if (isAdmin) canDelete = true;
+    // set check for whether user has permission to delete
+    let canDelete = false;
 
-  // skip league admin check if already confirmed the user is a site wide admin
-  if (!canDelete) {
-    // do a check if user is the league commissioner
-    const isCommissioner = await verifyLeagueAdminRole(state.league_id, 1);
+    // Check user role to see if they have admin privileges
+    const isAdmin = await verifyUserRole(1);
+    // if so, they can delete the league
+    if (isAdmin) canDelete = true;
 
-    if (isCommissioner) canDelete = true;
-  }
+    // skip league admin check if already confirmed the user is a site wide admin
+    if (!canDelete) {
+      // do a check if user is the league commissioner
+      const isCommissioner = await verifyLeagueAdminRole(
+        state.data.league_id,
+        1,
+      );
 
-  if (!canDelete) {
-    // failed both user role check and league role check, shortcut out
-    return {
-      message: "You do not have permission to delete this league.",
-      status: 401,
-    };
-  }
+      if (isCommissioner) canDelete = true;
+    }
 
-  // create delete sql statement
-  const sql = `
+    if (!canDelete) {
+      // failed both user role check and league role check, shortcut out
+      return {
+        message: "You do not have permission to delete this league.",
+        status: 401,
+      };
+    }
+
+    // create delete sql statement
+    const sql = `
     DELETE FROM league_management.leagues
     WHERE league_id = $1
   `;
-
-  try {
     // query the database
-    const { rowCount } = await db.query(sql, [state.league_id]);
+    const { rowCount } = await db.query(sql, [state.data.league_id]);
 
     if (rowCount !== 1) throw new Error("There was a problem deleting league.");
   } catch (err) {

@@ -52,7 +52,7 @@ export default async function Page({ params }: PageProps) {
       {canDelete && (
         <ModalConfirmAction
           defaultState={{
-            league_id: leagueData.league_id,
+            data: { league_id: leagueData.league_id },
           }}
           actionFunction={deleteLeague}
           confirmationHeading={`Are you sure you want to delete ${leagueData.name}?`}
