@@ -13,6 +13,7 @@ import {
 } from "@/utils/helpers/formatting";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { getSeasonsByLeague } from "./seasons";
 import { verifyUserRole } from "./users";
 
 const LeagueFormSchema = z.object({
@@ -143,6 +144,9 @@ export async function createLeague(
 
 export async function getLeague(
   identifier: string | number,
+  options?: {
+    includeSeasons?: boolean;
+  },
 ): Promise<ResultProps<LeagueData>> {
   // Verify user session
   await verifySession();
@@ -171,37 +175,20 @@ export async function getLeague(
     // if the league was not found, throw error
     if (!leagueRows[0]) throw new Error("League not found.");
 
-    // found league data
-    const league = leagueRows[0];
+    // data to return
+    const data = leagueRows[0];
 
-    // build select statement to get all seasons for associated league
-    const seasonsSql = `
-      SELECT
-        slug,
-        name,
-        status,
-        start_date,
-        end_date
-      FROM
-        league_management.seasons
-      WHERE
-        league_id = $1
-      ORDER BY end_date DESC
-    `;
+    if (options?.includeSeasons) {
+      const { data: seasons } = await getSeasonsByLeague(identifier);
 
-    // make request to database for seasons
-    const { rows: seasons } = await db.query<SeasonData>(seasonsSql, [
-      league.league_id,
-    ]);
+      data.seasons = seasons;
+    }
 
     // combine all retrieved data into a single data object and return
     return {
       message: "League data found.",
       status: 200,
-      data: {
-        ...league,
-        seasons,
-      },
+      data,
     };
   } catch (err) {
     if (err instanceof Error) {

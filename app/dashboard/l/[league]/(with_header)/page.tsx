@@ -19,7 +19,9 @@ export async function generateMetadata({ params }: PageProps) {
 export default async function Page({ params }: PageProps) {
   const { league } = await params;
 
-  const { data: leagueData } = await getLeague(league);
+  const { data: leagueData } = await getLeague(league, {
+    includeSeasons: true,
+  });
 
   if (!leagueData) notFound();
 

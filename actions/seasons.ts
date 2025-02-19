@@ -303,6 +303,51 @@ export async function getSeasonMetaData(
   }
 }
 
+export async function getSeasonsByLeague(
+  league: string | number,
+): Promise<ResultProps<SeasonData[]>> {
+  try {
+    // build select statement to get all seasons for associated league
+    const seasonsSql = `
+        SELECT
+          s.slug,
+          s.name,
+          s.status,
+          s.start_date,
+          s.end_date
+        FROM
+          league_management.seasons AS s
+        JOIN
+          league_management.leagues AS l
+        ON
+          s.league_id = l.league_id
+        WHERE
+          ${typeof league === "string" ? `l.slug` : `l.league_id`} = $1
+        ORDER BY s.end_date DESC
+      `;
+
+    // make request to database for seasons
+    const { rows } = await db.query<SeasonData>(seasonsSql, [league]);
+
+    return {
+      message: "Seasons retrieved",
+      status: 200,
+      data: rows,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong",
+      status: 200,
+    };
+  }
+}
+
 export async function editSeason(
   state: SeasonFormState,
   formData: FormData,

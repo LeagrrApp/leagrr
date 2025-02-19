@@ -17,7 +17,9 @@ export default async function Layout({
   const { league } = await params;
 
   // load league data
-  const { data: leagueData } = await getLeague(league);
+  const { data: leagueData } = await getLeague(league, {
+    includeSeasons: true,
+  });
 
   // if league data is unavailable, redirect to notfound
   if (!leagueData) notFound();
