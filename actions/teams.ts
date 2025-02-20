@@ -412,7 +412,6 @@ export async function getTeamsByLeagueId(
 }
 
 export async function getTeamsByDivisionId(division_id: number) {
-  console.log("using getTeamsByDivisionId");
   try {
     const sql = `
       SELECT

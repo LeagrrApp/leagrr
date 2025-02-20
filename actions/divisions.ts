@@ -7,6 +7,7 @@ import {
   createDashboardUrl,
   createMetaTitle,
 } from "@/utils/helpers/formatting";
+import { oops } from "@/utils/helpers/testers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getGamesByDivisionId } from "./games";
@@ -305,35 +306,98 @@ export async function getDivisionStandings(
         goals_for,
         goals_against,
         goals_for - goals_against as plus_minus
-      FROM (SELECT
-        t.team_id,
-        t.name,
-        t.slug,
-        t.status,
-        COUNT(*) as games_played,
-        SUM(
-          CASE WHEN 
-            (g.home_team_id = t.team_id AND g.home_team_score > g.away_team_score) OR 
-            (g.away_team_id = t.team_id AND g.away_team_score > g.home_team_score) 
-          THEN 1 ELSE 0 END) as wins,
-        SUM(
-          CASE WHEN 
-            (g.home_team_id = t.team_id AND g.home_team_score < g.away_team_score) OR 
-            (g.away_team_id = t.team_id AND g.away_team_score < g.home_team_score) 
-          THEN 1 ELSE 0 END) as losses,
-        SUM(
-          CASE WHEN 
-            (g.away_team_score = g.home_team_score) 
-          THEN 1 ELSE 0 END) as ties,
-        
-        SUM	(CASE WHEN g.home_team_id = t.team_id THEN g.home_team_score ELSE g.away_team_score END) as goals_for,
-        SUM	(CASE WHEN g.home_team_id = t.team_id THEN g.away_team_score ELSE g.home_team_score END) as goals_against
+      FROM (
+        SELECT
+          t.team_id,
+          t.name,
+          t.slug,
+          t.status,
+          SUM(
+            CASE WHEN 
+            g.status = 'completed'
+            AND
+            g.division_id = $1
+            THEN 1 ELSE 0 END
+          ) as games_played,
+          SUM(
+            CASE WHEN 
+            (
+              (g.home_team_id = t.team_id AND g.home_team_score > g.away_team_score)
+              OR 
+              (g.away_team_id = t.team_id AND g.away_team_score > g.home_team_score)
+            )
+            AND
+            g.status = 'completed'
+            AND
+            g.division_id = $1
+            THEN 1 ELSE 0 END
+          ) as wins,
+          SUM(
+            CASE WHEN 
+            (
+              (g.home_team_id = t.team_id AND g.home_team_score < g.away_team_score)
+              OR 
+              (g.away_team_id = t.team_id AND g.away_team_score < g.home_team_score) 
+            )
+            AND
+            g.status = 'completed'
+            AND
+            g.division_id = $1
+            THEN 1 ELSE 0 END) as losses,
+          SUM(
+            CASE WHEN 
+            (g.away_team_score = g.home_team_score)
+            AND
+            g.status = 'completed'
+            AND
+            g.division_id = $1
+            THEN 1 ELSE 0 END) as ties,
+          
+          SUM	(
+            CASE
+              WHEN
+                g.home_team_id = t.team_id
+                AND
+                g.status = 'completed'
+                AND
+                g.division_id = $1
+              THEN g.home_team_score
+              WHEN
+                g.away_team_id = t.team_id
+                AND
+                g.status = 'completed'
+                AND
+                g.division_id = $1
+              THEN g.away_team_score
+            ELSE 0
+            END
+          ) as goals_for,
+          SUM	(
+            CASE
+              WHEN
+                g.home_team_id = t.team_id
+                AND
+                g.status = 'completed'
+                AND
+                g.division_id = $1
+              THEN g.away_team_score
+              WHEN
+                g.away_team_id = t.team_id
+                AND
+                g.status = 'completed'
+                AND
+                g.division_id = $1
+              THEN g.home_team_score
+            ELSE 0
+            END
+          ) as goals_against
         FROM division_teams dt
         LEFT JOIN teams t ON dt.team_id = t.team_id
         LEFT JOIN games g ON (t.team_id = g.away_team_id OR t.team_id = g.home_team_id)
-        WHERE dt.division_id = $1 AND g.status = 'completed' AND g.division_id = $1
-        GROUP BY t.team_id)
-      ORDER BY points DESC;
+        WHERE dt.division_id = $1
+        GROUP BY t.team_id
+      )
+      ORDER BY points DESC, wins DESC, ties DESC, games_played ASC, goals_for DESC, goals_against ASC;
     `;
 
     const { rows: data } = await db.query<TeamStandingsData>(divisionTeamsSql, [
@@ -666,60 +730,68 @@ export async function setDivisionJoinCode(
     league_id: parseInt(formData.get("league_id") as string),
   };
 
-  const { canEdit } = await canEditLeague(submittedData.league_id);
+  try {
+    const { canEdit } = await canEditLeague(submittedData.league_id);
 
-  if (!canEdit) {
-    return {
-      message: "You do not have permission to add teams to this division.",
-      status: 401,
-      data: submittedData,
-    };
-  }
-
-  // Validate form fields
-  const validatedFields = DivisionJoinCodeSchema.safeParse(submittedData);
-
-  // If any form fields are invalid, return early
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      data: submittedData,
-    };
-  }
-
-  const sql = `
-    UPDATE league_management.divisions
-    SET
-      join_code = $1
-    WHERE
-      division_id = $2
-    RETURNING
-      join_code
-  `;
-
-  const result: ResultProps<{ join_code: string }> = await db
-    .query(sql, [submittedData.join_code, submittedData.division_id])
-    .then((res) => {
+    if (!canEdit) {
       return {
-        message: "Join code updated!",
-        status: 200,
-        data: res.rows[0],
+        message: "You do not have permission to add teams to this division.",
+        status: 401,
+        data: submittedData,
       };
-    })
-    .catch((err) => {
+    }
+
+    // Validate form fields
+    const validatedFields = DivisionJoinCodeSchema.safeParse(submittedData);
+
+    // If any form fields are invalid, return early
+    if (!validatedFields.success) {
+      return {
+        errors: validatedFields.error.flatten().fieldErrors,
+        data: submittedData,
+      };
+    }
+
+    const sql = `
+      UPDATE league_management.divisions
+      SET
+        join_code = $1
+      WHERE
+        division_id = $2
+      RETURNING
+        join_code
+    `;
+
+    const { rows } = await db.query<{ join_code: string }>(sql, [
+      submittedData.join_code,
+      submittedData.division_id,
+    ]);
+
+    if (!rows[0])
+      throw new Error("Sorry, there was a problem updating the join code.");
+
+    return {
+      message: "Join code updated!",
+      status: 200,
+      data: {
+        ...submittedData,
+        join_code: rows[0].join_code,
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
+        data: submittedData,
       };
-    });
-
-  return {
-    ...result,
-    data: {
-      ...submittedData,
-      join_code: result.data?.join_code,
-    },
-  };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
+    };
+  }
 }
 
 const DivisionTeamSchema = z.object({
@@ -754,50 +826,60 @@ export async function addTeamToDivision(
     league_id: parseInt(formData.get("league_id") as string),
   };
 
-  const { canEdit } = await canEditLeague(submittedData.league_id);
+  try {
+    const { canEdit } = await canEditLeague(submittedData.league_id);
 
-  if (!canEdit) {
-    return {
-      message: "You do not have permission to add teams to this division.",
-      status: 401,
-      data: submittedData,
-    };
-  }
+    if (!canEdit) {
+      return {
+        message: "You do not have permission to add teams to this division.",
+        status: 401,
+        data: submittedData,
+        link: state?.link,
+      };
+    }
 
-  // Validate form fields
-  const validatedFields = DivisionTeamSchema.safeParse(submittedData);
+    // Validate form fields
+    const validatedFields = DivisionTeamSchema.safeParse(submittedData);
 
-  // If any form fields are invalid, return early
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      data: submittedData,
-    };
-  }
+    // If any form fields are invalid, return early
+    if (!validatedFields.success) {
+      return {
+        errors: validatedFields.error.flatten().fieldErrors,
+        data: submittedData,
+        link: state?.link,
+      };
+    }
 
-  const sql = `
+    const sql = `
     INSERT INTO league_management.division_teams
       (division_id, team_id)
     VALUES
       ($1, $2)
   `;
 
-  const result = await db
-    .query(sql, [submittedData.division_id, submittedData.team_id])
-    .then(() => {
-      return {
-        message: "Team added to division!",
-        status: 200,
-      };
-    })
-    .catch((err) => {
+    const { rowCount } = await db.query(sql, [
+      submittedData.division_id,
+      submittedData.team_id,
+    ]);
+
+    if (rowCount === 0)
+      throw new Error("Sorry, there was a problem adding team to division.");
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
+        data: submittedData,
+        link: state?.link,
       };
-    });
-
-  if (result.status === 400) return { ...result, data: submittedData };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
+      link: state?.link,
+    };
+  }
 
   if (state?.link) redirect(state?.link);
 }
@@ -812,51 +894,64 @@ export async function removeTeamFromDivision(
     league_id: parseInt(formData.get("league_id") as string),
   };
 
-  const { canEdit } = await canEditLeague(submittedData.league_id);
+  try {
+    oops();
+    const { canEdit } = await canEditLeague(submittedData.league_id);
 
-  if (!canEdit) {
-    return {
-      message: "You do not have permission to add teams to this division.",
-      status: 401,
-      data: submittedData,
-    };
-  }
-
-  // Validate form fields
-  const validatedFields = DivisionTeamSchema.safeParse(submittedData);
-
-  // If any form fields are invalid, return early
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      data: submittedData,
-    };
-  }
-
-  const sql = `
-    DELETE FROM league_management.division_teams
-    WHERE
-      division_id = $1
-      AND
-      team_id = $2
-  `;
-
-  const result = await db
-    .query(sql, [submittedData.division_id, submittedData.team_id])
-    .then(() => {
+    if (!canEdit) {
       return {
-        message: "Team removed from division!",
-        status: 200,
+        message: "You do not have permission to add teams to this division.",
+        status: 401,
+        data: submittedData,
+        link: state?.link,
       };
-    })
-    .catch((err) => {
+    }
+
+    // Validate form fields
+    const validatedFields = DivisionTeamSchema.safeParse(submittedData);
+
+    // If any form fields are invalid, return early
+    if (!validatedFields.success) {
+      return {
+        errors: validatedFields.error.flatten().fieldErrors,
+        data: submittedData,
+        link: state?.link,
+      };
+    }
+
+    const sql = `
+      DELETE FROM league_management.division_teams
+      WHERE
+        division_id = $1
+        AND
+        team_id = $2
+    `;
+
+    const { rowCount } = await db.query(sql, [
+      submittedData.division_id,
+      submittedData.team_id,
+    ]);
+
+    if (rowCount === 0)
+      throw new Error(
+        "Sorry, there was a problem removing team from division.",
+      );
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
+        data: submittedData,
+        link: state?.link,
       };
-    });
-
-  if (result.status === 400) return { ...result, data: submittedData };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
+      link: state?.link,
+    };
+  }
 
   if (state?.link) redirect(state?.link);
 }
@@ -892,116 +987,81 @@ export async function joinDivision(
     division_id: parseInt(formData.get("division_id") as string),
   };
 
-  // Validate form fields
-  const validatedFields = JoinDivisionSchema.safeParse(submittedData);
+  let successfullyAdded = false;
 
-  // If any form fields are invalid, return early
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      link: state?.link,
-      data: submittedData,
-    };
-  }
+  try {
+    // Validate form fields
+    const validatedFields = JoinDivisionSchema.safeParse(submittedData);
 
-  // check user can edit selected team
-  const { canEdit } = await canEditTeam(submittedData.team_id);
-
-  if (!canEdit) {
-    return {
-      message:
-        "You do not have permission to join this division on behalf of this team.",
-      status: 401,
-      link: state?.link,
-      data: submittedData,
-    };
-  }
-
-  // get division join_code from database
-  const joinCodeSql = `
-    SELECT
-      join_code
-    FROM
-      league_management.divisions
-    WHERE
-      division_id = $1
-  `;
-
-  const joinCodeResult: ResultProps<{ join_code: string }> = await db
-    .query(joinCodeSql, [submittedData.division_id])
-    .then((res) => {
-      if (res.rowCount === 0) {
-        throw new Error("Division not found!");
-      }
+    // If any form fields are invalid, return early
+    if (!validatedFields.success) {
       return {
-        message: "Join code retrieved!",
-        status: 200,
-        data: res.rows[0],
+        errors: validatedFields.error.flatten().fieldErrors,
+        link: state?.link,
+        data: submittedData,
       };
-    })
-    .catch((err) => {
+    }
+
+    // check user can edit selected team
+    const { canEdit } = await canEditTeam(submittedData.team_id);
+
+    if (!canEdit) {
       return {
-        message: err.message,
-        status: 400,
+        message:
+          "You do not have permission to join this division on behalf of this team.",
+        status: 401,
+        link: state?.link,
+        data: submittedData,
       };
-    });
+    }
 
-  if (!joinCodeResult?.data) {
-    return {
-      ...joinCodeResult,
-      link: state?.link,
-      data: submittedData,
-    };
-  }
+    // get division join_code from database
+    const joinCodeSql = `
+      SELECT
+        join_code
+      FROM
+        league_management.divisions
+      WHERE
+        division_id = $1
+    `;
 
-  // check if submitted join code matches division join code
-  const joinCodesMatch =
-    joinCodeResult.data.join_code === submittedData.join_code;
+    const { rows: joinCodeRows } = await db.query<{ join_code: string }>(
+      joinCodeSql,
+      [submittedData.division_id],
+    );
 
-  // if join_codes do not match, short circuit
-  if (!joinCodesMatch)
-    return {
-      message: "Join code does not match the division's join code!",
-      status: 401,
-      link: state?.link,
-      data: submittedData,
-    };
+    if (!joinCodeRows[0])
+      throw new Error("Sorry, unable to match join code to division.");
 
-  // check if team is already in division
-  const inDivisionCheckSql = `
-    SELECT 
-      count(*)
-    FROM
-      league_management.division_teams
-    WHERE
-      team_id = $1
-      AND
-      division_id = $2
-  `;
+    // check if submitted join code matches division join code
+    const joinCodesMatch =
+      joinCodeRows[0].join_code === submittedData.join_code;
 
-  const inDivisionCheckResult = await db
-    .query(inDivisionCheckSql, [
-      submittedData.team_id,
-      submittedData.division_id,
-    ])
-    .then((res) => {
-      if (res.rows[0].count > 0) {
-        throw new Error("Team is already a member of this division!");
-      }
-      return {
-        message: "Team is not in division.",
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
+    // if join_codes do not match, short circuit
+    if (!joinCodesMatch)
+      throw new Error("Join code does not match the division's join code.");
 
-  // Team is not in division
-  if (inDivisionCheckResult.status === 200) {
+    // check if team is already in division
+    const inDivisionCheckSql = `
+      SELECT 
+        count(*)
+      FROM
+        league_management.division_teams
+      WHERE
+        team_id = $1
+        AND
+        division_id = $2
+    `;
+
+    const { rows: divisionCheckRows } = await db.query<{ count: number }>(
+      inDivisionCheckSql,
+      [submittedData.team_id, submittedData.division_id],
+    );
+
+    // If the count is above zero, the team is already in the division
+    if (divisionCheckRows[0].count > 0)
+      throw new Error("Team is already a member of this division.");
+
     // add team to division
     const insertSql = `
       INSERT INTO league_management.division_teams
@@ -1010,78 +1070,90 @@ export async function joinDivision(
         ($1, $2)
     `;
 
-    const insertResult = await db
-      .query(insertSql, [submittedData.division_id, submittedData.team_id])
-      .then(() => {
-        return {
-          message: "Membership updated!",
-          status: 200,
-        };
-      })
-      .catch((err) => {
-        return {
-          message: err.message,
-          status: 400,
-        };
-      });
+    const { rowCount } = await db.query(insertSql, [
+      submittedData.division_id,
+      submittedData.team_id,
+    ]);
 
-    if (insertResult.status === 400)
-      return { ...insertResult, data: submittedData };
+    if (!rowCount)
+      throw new Error("Sorry, there was an issue joining division.");
 
-    if (state?.link) redirect(state.link);
+    successfullyAdded = true;
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+        data: submittedData,
+        link: state?.link,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
+      link: state?.link,
+    };
   }
 
-  return {
-    ...inDivisionCheckResult,
-    link: state?.link,
-    data: submittedData,
-  };
+  if (state?.link && successfullyAdded) redirect(state.link);
 }
 
 export async function deleteDivision(state: {
-  division_id: number;
-  league_id: number;
-  backLink: string;
+  data: {
+    division_id: number;
+    league_id: number;
+  };
+  link: string;
 }) {
   // Verify user session
   await verifySession();
 
-  // set check for whether user has permission to delete
-  const { canEdit: canDelete } = await canEditLeague(state.league_id);
+  let deleteSuccessful = false;
 
-  if (!canDelete) {
-    // failed both user role check and league role check, shortcut out
-    return {
-      message: "You do not have permission to delete this division.",
-      status: 401,
-    };
-  }
+  try {
+    // set check for whether user has permission to delete
+    const { canEdit: canDelete } = await canEditLeague(state.data.league_id);
 
-  // create delete sql statement
-  const sql = `
-    DELETE FROM league_management.divisions
-    WHERE division_id = $1
-  `;
-
-  // query the database
-  const deleteResult = await db
-    .query(sql, [state.division_id])
-    .then((res) => {
+    if (!canDelete) {
+      // failed both user role check and league role check, shortcut out
       return {
-        message: "Division deleted",
-        data: res.rows[0],
-        status: 200,
+        message: "You do not have permission to delete this division.",
+        status: 401,
+        link: state?.link,
+        data: state.data,
       };
-    })
-    .catch((err) => {
+    }
+
+    // create delete sql statement
+    const sql = `
+      DELETE FROM league_management.divisions
+      WHERE division_id = $1
+    `;
+
+    // query the database
+    const { rowCount } = await db.query(sql, [state.data.division_id]);
+
+    if (rowCount === 0)
+      throw new Error("Sorry, there was an issue deleting this division.");
+
+    deleteSuccessful = true;
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
+        link: state?.link,
+        data: state.data,
       };
-    });
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      link: state?.link,
+      data: state.data,
+    };
+  }
 
-  // TODO: improve error handling if there is an issue deleting season
-  if (deleteResult.status === 400) return deleteResult;
-
-  redirect(state.backLink);
+  if (deleteSuccessful) redirect(state.link);
 }
