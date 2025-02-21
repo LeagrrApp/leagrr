@@ -1,6 +1,7 @@
 "use client";
 
 import { editGame } from "@/actions/games";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/forms/Input";
 import Select from "@/components/ui/forms/Select";
@@ -97,7 +98,9 @@ export default function EditGame({
           label="Date & Time"
           errors={{ errs: state?.errors?.date_time, type: "danger" }}
           value={
-            state?.data?.date_time ? formatDateForInput(gameData.date_time) : ""
+            state?.data?.date_time
+              ? formatDateForInput(state?.data?.date_time)
+              : formatDateForInput(gameData.date_time)
           }
           required
         />
@@ -119,6 +122,11 @@ export default function EditGame({
         </Col>
         <input type="hidden" name="game_id" value={game_id} />
         <input type="hidden" name="league_id" value={league_id} />
+        {state?.message && state.status !== 200 && (
+          <Col fullSpan>
+            <Alert alert={state.message} type="danger" />
+          </Col>
+        )}
         <Col>
           <Button type="submit" fullWidth disabled={pending}>
             <Icon icon="save" label="Save Game" />

@@ -202,8 +202,8 @@ export default async function GameTeamStats({
                               (isHome
                                 ? game.away_team_shots
                                 : game.home_team_shots)) *
-                              10000,
-                          ) / 10000}
+                              1000,
+                          ) / 1000}
                       </td>
                     </tr>
                   );

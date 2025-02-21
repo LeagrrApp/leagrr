@@ -230,7 +230,8 @@ type StatsData = {
   item_id: number;
   user_id: number;
   username: string;
-  user_last_name: string;
+  first_name: string;
+  last_name: string;
   team_id: number;
   team: string;
   period: number;

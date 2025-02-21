@@ -5,6 +5,7 @@ import {
   addNumberOrdinals,
   createDashboardUrl,
   formatTimePeriod,
+  nameDisplay,
 } from "@/utils/helpers/formatting";
 import { apply_classes } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
@@ -29,7 +30,8 @@ export default function GameFeedItem({
   const {
     period,
     period_time,
-    user_last_name,
+    first_name,
+    last_name,
     username,
     assists,
     empty_net,
@@ -108,7 +110,7 @@ export default function GameFeedItem({
         {item.type === "stats.shots" && (
           <>
             <Link href={createDashboardUrl({ u: username })}>
-              {user_last_name}
+              {nameDisplay(first_name, last_name, "first_initial")}
             </Link>{" "}
             shot on goal
           </>
@@ -117,14 +119,14 @@ export default function GameFeedItem({
           <>
             {preText ? preText : "Goal"} by{" "}
             <Link href={createDashboardUrl({ u: username })}>
-              {user_last_name}
+              {nameDisplay(first_name, last_name, "first_initial")}
             </Link>
             <span style={{ fontStyle: "italic" }}>
               {assists && assists.length > 0 ? (
                 <>
                   {" ("}
                   {assists.map((a, i) =>
-                    i === 0 ? a.user_last_name : `, ${a.user_last_name}`,
+                    i === 0 ? a.last_name : `, ${a.last_name}`,
                   )}
                   {")"}
                 </>
@@ -138,7 +140,7 @@ export default function GameFeedItem({
           <>
             Save by{" "}
             <Link href={createDashboardUrl({ u: username })}>
-              {user_last_name}
+              {nameDisplay(first_name, last_name, "first_initial")}
             </Link>
             {!rebound && ", no rebound"}
           </>
@@ -146,7 +148,7 @@ export default function GameFeedItem({
         {item.type === "stats.penalties" && (
           <>
             <Link href={createDashboardUrl({ u: username })}>
-              {user_last_name}
+              {nameDisplay(first_name, last_name, "first_initial")}
             </Link>{" "}
             penalty, {minutes} minutes for <strong>{infraction}</strong>
           </>

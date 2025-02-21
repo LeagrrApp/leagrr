@@ -18,7 +18,10 @@ import {
   getPointLeadersByDivision,
   getShutoutLeadersByDivision,
 } from "./stats";
-import { canEditTeam } from "./teams";
+import { canEditTeam, getTeamsByDivisionId } from "./teams";
+import { getVenuesByDivisionId } from "./venues";
+
+/* ---------- CREATE ---------- */
 
 const DivisionFormSchema = z.object({
   division_id: z.number().min(1).optional(),
@@ -63,7 +66,6 @@ type DivisionFormState = FormState<
     >
   >
 >;
-
 export async function createDivision(
   state: DivisionFormState,
   formData: FormData,
@@ -156,6 +158,8 @@ export async function createDivision(
 
   if (redirectLink) redirect(redirectLink);
 }
+
+/* ---------- READ ---------- */
 
 export async function getDivisionsBySeason(season_id: number) {
   // check user is logged in
@@ -284,6 +288,171 @@ export async function getDivision(
     return {
       message: "Something went wrong.",
       status: 500,
+    };
+  }
+}
+
+export async function getDivisionMetaInfo(
+  division_slug: string,
+  season_slug: string,
+  league_slug: string,
+  options?: {
+    prefix?: string;
+  },
+): Promise<
+  ResultProps<{
+    title: string;
+    description?: string;
+  }>
+> {
+  try {
+    const sql = `
+      SELECT
+        d.name AS division,
+        d.description AS description,
+        s.name AS season,
+        l.name AS league
+      FROM
+        league_management.divisions AS d
+      JOIN
+        league_management.seasons AS s
+      ON
+        d.season_id = s.season_id
+      JOIN
+        league_management.leagues AS l
+      ON
+        s.league_id = l.league_id
+      WHERE
+        d.slug = $1
+        AND
+        s.slug = $2
+        AND
+        l.slug = $3
+    `;
+
+    const { rows } = await db.query<{
+      division: string;
+      description: string;
+      season: string;
+      league: string;
+    }>(sql, [division_slug, season_slug, league_slug]);
+
+    const { division, description, season, league } = rows[0];
+
+    let title = createMetaTitle([division, season, league]);
+
+    if (options?.prefix)
+      title = createMetaTitle([options.prefix, division, season, league]);
+
+    return {
+      message: "Division meta data loaded!",
+      status: 200,
+      data: {
+        title,
+        description,
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong",
+      status: 500,
+    };
+  }
+}
+
+export async function getDivisionUrlById(
+  division_id: number,
+): Promise<ResultProps<string>> {
+  try {
+    const sql = `
+    SELECT
+      d.slug AS division_slug,
+      s.slug AS season_slug,
+      l.slug AS league_slug
+    FROM
+      league_management.divisions AS d
+    JOIN
+      league_management.seasons AS s
+    ON
+      s.season_id = d.season_id
+    JOIN
+      league_management.leagues AS l
+    ON
+      s.league_id = l.league_id
+    WHERE
+      d.division_id = $1
+  `;
+
+    const { rows } = await db.query<{
+      division_slug: string;
+      season_slug: string;
+      league_slug: string;
+    }>(sql, [division_id]);
+
+    if (!rows[0]) throw new Error("Division not found!");
+
+    return {
+      message: "Division url found",
+      status: 200,
+      data: createDashboardUrl({
+        l: rows[0].league_slug,
+        s: rows[0].season_slug,
+        d: rows[0].division_slug,
+      }),
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
+}
+
+export async function getDivisionOptionsForGames(
+  division_id: number,
+): Promise<ResultProps<AddGameData>> {
+  // This function loads the list of teams in the division and the list of venues the league uses
+
+  // check user is logged in
+  await verifySession();
+
+  try {
+    // get list of teams
+    const { data: teamsList } = await getTeamsByDivisionId(division_id);
+
+    // get list of venues
+    const { data: locationsList } = await getVenuesByDivisionId(division_id);
+
+    return {
+      message: "Game add data found",
+      status: 200,
+      data: {
+        teams: teamsList || [],
+        locations: locationsList || [],
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 400,
     };
   }
 }
@@ -423,134 +592,6 @@ export async function getDivisionStandings(
   }
 }
 
-export async function getDivisionMetaInfo(
-  division_slug: string,
-  season_slug: string,
-  league_slug: string,
-  options?: {
-    prefix?: string;
-  },
-): Promise<
-  ResultProps<{
-    title: string;
-    description?: string;
-  }>
-> {
-  try {
-    const sql = `
-      SELECT
-        d.name AS division,
-        d.description AS description,
-        s.name AS season,
-        l.name AS league
-      FROM
-        league_management.divisions AS d
-      JOIN
-        league_management.seasons AS s
-      ON
-        d.season_id = s.season_id
-      JOIN
-        league_management.leagues AS l
-      ON
-        s.league_id = l.league_id
-      WHERE
-        d.slug = $1
-        AND
-        s.slug = $2
-        AND
-        l.slug = $3
-    `;
-
-    const { rows } = await db.query<{
-      division: string;
-      description: string;
-      season: string;
-      league: string;
-    }>(sql, [division_slug, season_slug, league_slug]);
-
-    const { division, description, season, league } = rows[0];
-
-    let title = createMetaTitle([division, season, league]);
-
-    if (options?.prefix)
-      title = createMetaTitle([options.prefix, division, season, league]);
-
-    return {
-      message: "Division meta data loaded!",
-      status: 200,
-      data: {
-        title,
-        description,
-      },
-    };
-  } catch (err) {
-    if (err instanceof Error) {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    }
-    return {
-      message: "Something went wrong",
-      status: 500,
-    };
-  }
-}
-
-export async function getDivisionUrlById(
-  division_id: number,
-): Promise<ResultProps<string>> {
-  try {
-    const sql = `
-    SELECT
-      d.slug AS division_slug,
-      s.slug AS season_slug,
-      l.slug AS league_slug
-    FROM
-      league_management.divisions AS d
-    JOIN
-      league_management.seasons AS s
-    ON
-      s.season_id = d.season_id
-    JOIN
-      league_management.leagues AS l
-    ON
-      s.league_id = l.league_id
-    WHERE
-      d.division_id = $1
-  `;
-
-    const { rows } = await db.query<{
-      division_slug: string;
-      season_slug: string;
-      league_slug: string;
-    }>(sql, [division_id]);
-
-    if (!rows[0]) throw new Error("Division not found!");
-
-    return {
-      message: "Division url found",
-      status: 200,
-      data: createDashboardUrl({
-        l: rows[0].league_slug,
-        s: rows[0].season_slug,
-        d: rows[0].division_slug,
-      }),
-    };
-  } catch (err) {
-    if (err instanceof Error) {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    }
-    return {
-      message: "Something went wrong.",
-      status: 500,
-    };
-  }
-}
-
 export async function getDivisionStatLeaders(
   division_id: number,
   limit?: number,
@@ -601,6 +642,8 @@ export async function getDivisionStatLeaders(
     },
   };
 }
+
+/* ---------- UPDATE ---------- */
 
 export async function editDivision(
   state: DivisionFormState,
@@ -1098,6 +1141,8 @@ export async function joinDivision(
 
   if (state?.link && successfullyAdded) redirect(state.link);
 }
+
+/* ---------- DELETE ---------- */
 
 export async function deleteDivision(state: {
   data: {

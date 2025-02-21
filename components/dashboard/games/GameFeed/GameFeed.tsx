@@ -2,12 +2,12 @@ import endGame, { getGameFeed, getGameTeamRosters } from "@/actions/games";
 import Card from "@/components/ui/Card/Card";
 import Icon from "@/components/ui/Icon/Icon";
 import Grid from "@/components/ui/layout/Grid";
+import { addNumberOrdinals } from "@/utils/helpers/formatting";
+import { apply_classes } from "@/utils/helpers/html-attributes";
 import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
 import GameFeedAdd from "../GameFeedAdd/GameFeedAdd";
 import css from "./gameFeed.module.css";
 import GameFeedItem from "./GameFeedItem";
-import { addNumberOrdinals } from "@/utils/helpers/formatting";
-import { apply_classes } from "@/utils/helpers/html-attributes";
 
 interface GameFeedProps {
   game: GameData;
@@ -20,7 +20,10 @@ export default async function GameFeed({
   canEdit,
   backLink,
 }: GameFeedProps) {
-  const { data: gameFeed } = await getGameFeed(game.game_id);
+  // const { data: gameFeed } = await getGameFeed(game.game_id);
+  const result = await getGameFeed(game.game_id);
+
+  const { data: gameFeed } = result;
 
   const { data: teamRosters } = await getGameTeamRosters(
     game.away_team_id,
