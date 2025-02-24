@@ -36,9 +36,9 @@
     }
   }
 
-  &:is([disabled]) {
+  &:is([disabled], .button_disabled) {
     opacity: 0.5;
-    cursor: not-allowed;
+    pointer-events: none;
 
     --btn-bg-color: var(--color-grey);
     --btn-border-color: var(--color-grey-dark);

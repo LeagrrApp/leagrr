@@ -1,8 +1,8 @@
-import { ButtonHTMLAttributes, CSSProperties } from "react";
-import button from "./button.module.css";
-import Link from "next/link";
 import { apply_classes, paddingString } from "@/utils/helpers/html-attributes";
 import { Url } from "next/dist/shared/lib/router/router";
+import Link from "next/link";
+import { ButtonHTMLAttributes, CSSProperties } from "react";
+import css from "./button.module.css";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   href?: Url;
@@ -12,6 +12,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
   asSpan?: boolean;
   padding?: [SizeOptions, SizeOptions?];
+  ariaLabel?: string | undefined;
 }
 
 interface ButtonStyles extends CSSProperties {
@@ -33,19 +34,20 @@ export default function Button({
   className,
   padding,
   disabled,
+  ariaLabel,
 }: ButtonProps) {
-  const classes = [button.button];
+  const classes = [css.button];
 
   if (className) classes.push(className);
 
   const styles: ButtonStyles = { ...style };
 
   if (variant) {
-    classes.push(button[`button_${variant}`]);
+    classes.push(css[`button_${variant}`]);
   }
 
   if (outline) {
-    classes.push(button.button_outline);
+    classes.push(css.button_outline);
   }
 
   if (size) {
@@ -53,14 +55,23 @@ export default function Button({
   }
 
   if (fullWidth) {
-    classes.push(button.button_full_width);
+    classes.push(css.button_full_width);
+  }
+
+  if (disabled) {
+    classes.push(css.button_disabled);
   }
 
   if (padding) styles["--btn-padding"] = paddingString(padding);
 
   if (href)
     return (
-      <Link style={styles} className={apply_classes(classes)} href={href}>
+      <Link
+        style={styles}
+        className={apply_classes(classes)}
+        href={href}
+        aria-label={ariaLabel}
+      >
         {children}
       </Link>
     );
@@ -78,6 +89,7 @@ export default function Button({
       className={apply_classes(classes)}
       type={type}
       onClick={onClick}
+      aria-label={ariaLabel}
       disabled={disabled}
     >
       {children}

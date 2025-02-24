@@ -89,7 +89,7 @@ export default async function GameTeamStats({
     { title: "Goals Against", shorthand: "GA" },
     { title: "Save Percentage", shorthand: "SV%" },
   ];
-  const goalieHColWidth = 55;
+  const goalieHColWidth = 45;
   const goalieColWidth = `${
     (100 - goalieHColWidth) / goalieHeadings.length - 1
   }%`;
@@ -175,7 +175,7 @@ export default async function GameTeamStats({
             </thead>
             <tbody>
               {goalies.map((p) => {
-                if (p.position === "Goalie")
+                if (p.position === "Goalie") {
                   return (
                     <tr key={p.user_id}>
                       <td>{p.number}</td>
@@ -196,17 +196,19 @@ export default async function GameTeamStats({
                         {isHome ? game.away_team_score : game.home_team_score}
                       </td>
                       <td>
-                        {p.saves &&
-                          Math.round(
-                            (p.saves /
-                              (isHome
-                                ? game.away_team_shots
-                                : game.home_team_shots)) *
-                              1000,
-                          ) / 1000}
+                        {p.saves
+                          ? Math.round(
+                              (p.saves /
+                                (isHome
+                                  ? game.away_team_shots
+                                  : game.home_team_shots)) *
+                                1000,
+                            ) / 1000
+                          : `-`}
                       </td>
                     </tr>
                   );
+                }
                 return null;
               })}
             </tbody>

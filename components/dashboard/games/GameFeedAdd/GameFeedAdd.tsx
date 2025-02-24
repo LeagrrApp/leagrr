@@ -42,6 +42,10 @@ export default function GameFeedAdd({
     data: {},
   });
 
+  useEffect(() => {
+    console.log(state);
+  }, [state]);
+
   const away_players: Choice[] = useMemo(
     () => [
       ...teamRosters?.away_roster.map((p) => {
@@ -223,8 +227,10 @@ export default function GameFeedAdd({
           }
         />
         <input type="hidden" name="goalie_id" value={goalie} />
-        {state?.message && state?.status === 400 && (
-          <Alert alert={state.message} type="danger" />
+        {state?.message && state?.status !== 200 && (
+          <Col fullSpan>
+            <Alert alert={state.message} type="danger" />
+          </Col>
         )}
         <Col fullSpan>
           <Grid cols={2} gap="base">
