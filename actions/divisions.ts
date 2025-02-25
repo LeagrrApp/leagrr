@@ -161,50 +161,6 @@ export async function createDivision(
 
 /* ---------- READ ---------- */
 
-export async function getDivisionsBySeason(season_id: number) {
-  // check user is logged in
-  await verifySession();
-
-  try {
-    // build sql select statement
-    const divisionSql = `
-      SELECT
-        division_id,
-        name,
-        description,
-        tier,
-        slug,
-        gender,
-        season_id,
-        status,
-        join_code
-      FROM league_management.divisions WHERE season_id = $1
-      ORDER BY gender, tier
-    `;
-
-    const { rows: divisionRows } = await db.query<DivisionData>(divisionSql, [
-      season_id,
-    ]);
-
-    return {
-      message: "Divisions found.",
-      status: 200,
-      data: divisionRows,
-    };
-  } catch (err) {
-    if (err instanceof Error) {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    }
-    return {
-      message: "Something went wrong.",
-      status: 500,
-    };
-  }
-}
-
 export async function getDivision(
   division_slug: string,
   season_slug: string,
@@ -643,6 +599,50 @@ export async function getDivisionStatLeaders(
   };
 }
 
+export async function getDivisionsBySeason(season_id: number) {
+  // check user is logged in
+  await verifySession();
+
+  try {
+    // build sql select statement
+    const divisionSql = `
+      SELECT
+        division_id,
+        name,
+        description,
+        tier,
+        slug,
+        gender,
+        season_id,
+        status,
+        join_code
+      FROM league_management.divisions WHERE season_id = $1
+      ORDER BY gender, tier
+    `;
+
+    const { rows: divisionRows } = await db.query<DivisionData>(divisionSql, [
+      season_id,
+    ]);
+
+    return {
+      message: "Divisions found.",
+      status: 200,
+      data: divisionRows,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
+}
+
 /* ---------- UPDATE ---------- */
 
 export async function editDivision(
@@ -927,78 +927,6 @@ export async function addTeamToDivision(
   if (state?.link) redirect(state?.link);
 }
 
-export async function removeTeamFromDivision(
-  state: DivisionTeamFormState,
-  formData: FormData,
-): Promise<DivisionTeamFormState> {
-  const submittedData = {
-    team_id: parseInt(formData.get("team_id") as string),
-    division_id: parseInt(formData.get("division_id") as string),
-    league_id: parseInt(formData.get("league_id") as string),
-  };
-
-  try {
-    oops();
-    const { canEdit } = await canEditLeague(submittedData.league_id);
-
-    if (!canEdit) {
-      return {
-        message: "You do not have permission to add teams to this division.",
-        status: 401,
-        data: submittedData,
-        link: state?.link,
-      };
-    }
-
-    // Validate form fields
-    const validatedFields = DivisionTeamSchema.safeParse(submittedData);
-
-    // If any form fields are invalid, return early
-    if (!validatedFields.success) {
-      return {
-        errors: validatedFields.error.flatten().fieldErrors,
-        data: submittedData,
-        link: state?.link,
-      };
-    }
-
-    const sql = `
-      DELETE FROM league_management.division_teams
-      WHERE
-        division_id = $1
-        AND
-        team_id = $2
-    `;
-
-    const { rowCount } = await db.query(sql, [
-      submittedData.division_id,
-      submittedData.team_id,
-    ]);
-
-    if (rowCount === 0)
-      throw new Error(
-        "Sorry, there was a problem removing team from division.",
-      );
-  } catch (err) {
-    if (err instanceof Error) {
-      return {
-        message: err.message,
-        status: 400,
-        data: submittedData,
-        link: state?.link,
-      };
-    }
-    return {
-      message: "Something went wrong.",
-      status: 500,
-      data: submittedData,
-      link: state?.link,
-    };
-  }
-
-  if (state?.link) redirect(state?.link);
-}
-
 const JoinDivisionSchema = z.object({
   join_code: z.string(),
   team_id: z.number().min(1),
@@ -1201,4 +1129,76 @@ export async function deleteDivision(state: {
   }
 
   if (deleteSuccessful) redirect(state.link);
+}
+
+export async function removeTeamFromDivision(
+  state: DivisionTeamFormState,
+  formData: FormData,
+): Promise<DivisionTeamFormState> {
+  const submittedData = {
+    team_id: parseInt(formData.get("team_id") as string),
+    division_id: parseInt(formData.get("division_id") as string),
+    league_id: parseInt(formData.get("league_id") as string),
+  };
+
+  try {
+    oops();
+    const { canEdit } = await canEditLeague(submittedData.league_id);
+
+    if (!canEdit) {
+      return {
+        message: "You do not have permission to add teams to this division.",
+        status: 401,
+        data: submittedData,
+        link: state?.link,
+      };
+    }
+
+    // Validate form fields
+    const validatedFields = DivisionTeamSchema.safeParse(submittedData);
+
+    // If any form fields are invalid, return early
+    if (!validatedFields.success) {
+      return {
+        errors: validatedFields.error.flatten().fieldErrors,
+        data: submittedData,
+        link: state?.link,
+      };
+    }
+
+    const sql = `
+      DELETE FROM league_management.division_teams
+      WHERE
+        division_id = $1
+        AND
+        team_id = $2
+    `;
+
+    const { rowCount } = await db.query(sql, [
+      submittedData.division_id,
+      submittedData.team_id,
+    ]);
+
+    if (rowCount === 0)
+      throw new Error(
+        "Sorry, there was a problem removing team from division.",
+      );
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+        data: submittedData,
+        link: state?.link,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
+      link: state?.link,
+    };
+  }
+
+  if (state?.link) redirect(state?.link);
 }

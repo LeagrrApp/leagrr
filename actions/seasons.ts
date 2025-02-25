@@ -12,6 +12,8 @@ import { z } from "zod";
 import { getDivisionsBySeason } from "./divisions";
 import { canEditLeague } from "./leagues";
 
+/* ---------- CREATE ---------- */
+
 const SeasonFormSchema = z.object({
   name: z
     .string()
@@ -146,6 +148,8 @@ export async function createSeason(
   // Redirect to the new season page
   if (redirectLink) redirect(redirectLink);
 }
+
+/* ---------- READ ---------- */
 
 export async function getSeason(
   season_slug: string,
@@ -320,6 +324,8 @@ export async function getSeasonsByLeague(
   }
 }
 
+/* ---------- UPDATE ---------- */
+
 export async function editSeason(
   state: SeasonFormState,
   formData: FormData,
@@ -430,6 +436,8 @@ export async function editSeason(
   // Redirect to the season page
   if (redirectLink) redirect(redirectLink);
 }
+
+/* ---------- DELETE ---------- */
 
 export async function deleteSeason(state: {
   data: {

@@ -16,6 +16,8 @@ import { z } from "zod";
 import { getSeasonsByLeague } from "./seasons";
 import { verifyUserRole } from "./users";
 
+/* ---------- CREATE ---------- */
+
 const LeagueFormSchema = z.object({
   name: z
     .string()
@@ -142,6 +144,8 @@ export async function createLeague(
   if (redirectLink) redirect(redirectLink);
 }
 
+/* ---------- READ ---------- */
+
 export async function getLeague(
   identifier: string | number,
   options?: {
@@ -195,6 +199,55 @@ export async function getLeague(
       return { message: err.message, status: 400 };
     }
     return { message: "Something went wrong.", status: 500 };
+  }
+}
+
+export async function getLeagueMetaData(
+  league: string | number,
+  options?: {
+    prefix?: string;
+  },
+) {
+  try {
+    const sql = `
+      SELECT
+        name,
+        description
+      FROM
+        league_management.leagues
+      WHERE
+        ${typeof league === "string" ? `slug` : `league_id`} = $1
+    `;
+
+    const { rows } = await db.query<{ name: string; description: string }>(
+      sql,
+      [league],
+    );
+
+    let title = createMetaTitle([rows[0].name]);
+
+    if (options?.prefix)
+      title = createMetaTitle([options.prefix, rows[0].name]);
+
+    return {
+      message: "League metadata loaded",
+      status: 200,
+      data: {
+        title,
+        description: rows[0].description,
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error)
+      return {
+        message: err.message,
+        status: 400,
+      };
+
+    return {
+      message: "Sorry, something went wrong.",
+      status: 500,
+    };
   }
 }
 
@@ -320,54 +373,7 @@ export async function canEditLeague(
   };
 }
 
-export async function getLeagueMetaData(
-  league: string | number,
-  options?: {
-    prefix?: string;
-  },
-) {
-  try {
-    const sql = `
-      SELECT
-        name,
-        description
-      FROM
-        league_management.leagues
-      WHERE
-        ${typeof league === "string" ? `slug` : `league_id`} = $1
-    `;
-
-    const { rows } = await db.query<{ name: string; description: string }>(
-      sql,
-      [league],
-    );
-
-    let title = createMetaTitle([rows[0].name]);
-
-    if (options?.prefix)
-      title = createMetaTitle([options.prefix, rows[0].name]);
-
-    return {
-      message: "League metadata loaded",
-      status: 200,
-      data: {
-        title,
-        description: rows[0].description,
-      },
-    };
-  } catch (err) {
-    if (err instanceof Error)
-      return {
-        message: err.message,
-        status: 400,
-      };
-
-    return {
-      message: "Sorry, something went wrong.",
-      status: 500,
-    };
-  }
-}
+/* ---------- UPDATE ---------- */
 
 export async function editLeague(
   state: LeagueFormState,
@@ -457,6 +463,8 @@ export async function editLeague(
   // Redirect to the new league page
   if (redirectLink) redirect(redirectLink);
 }
+
+/* ---------- DELETE ---------- */
 
 export async function deleteLeague(state: { data: { league_id: number } }) {
   // Verify user session

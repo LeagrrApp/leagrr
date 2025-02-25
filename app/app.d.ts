@@ -200,7 +200,7 @@ type GameData = {
     | "cancelled"
     | "postponed"
     | "archived";
-  has_been_published: boolean;
+  has_been_published?: boolean;
 };
 
 type AddGameData = {

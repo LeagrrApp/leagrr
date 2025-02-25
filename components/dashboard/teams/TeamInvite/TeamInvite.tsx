@@ -1,6 +1,7 @@
 "use client";
 
 import { setTeamJoinCode } from "@/actions/teams";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Card from "@/components/ui/Card/Card";
 import Input from "@/components/ui/forms/Input";
@@ -29,7 +30,8 @@ export default function TeamInvite({ team, division_id }: TeamInviteProps) {
 
   useEffect(() => {
     if (state?.data?.join_code) setJoinCodeValue(state?.data?.join_code);
-    setUpdating(false);
+
+    if (state?.status === 200) setUpdating(false);
   }, [state]);
 
   function copyCodeLink() {
@@ -118,6 +120,11 @@ export default function TeamInvite({ team, division_id }: TeamInviteProps) {
               />
             </Col>
             <input type="hidden" name="team_id" value={team.team_id} />
+            {state?.message && state?.status !== 200 && (
+              <Col fullSpan>
+                <Alert alert={state.message} type="danger" />
+              </Col>
+            )}
             <Button
               onClick={() => dialogRef?.current?.showModal()}
               disabled={pending}

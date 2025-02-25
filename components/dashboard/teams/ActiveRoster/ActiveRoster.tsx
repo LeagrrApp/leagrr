@@ -3,7 +3,7 @@
 import {
   editPlayerOnDivisionTeam,
   removePlayerFromDivisionTeam,
-} from "@/actions/teams";
+} from "@/actions/teamMemberships";
 import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
@@ -369,6 +369,11 @@ export default function ActiveRoster({
                     />
                   </>
                 )}
+                {editState?.message && editState?.status !== 200 && (
+                  <Col fullSpan>
+                    <Alert alert={editState.message} type="danger" />
+                  </Col>
+                )}
                 <Button type="submit" disabled={editPending}>
                   <Icon icon="save" label="Save" />
                 </Button>
@@ -393,8 +398,10 @@ export default function ActiveRoster({
                   name="division_roster_id"
                   value={teamMemberToEdit.division_roster_id}
                 />
-                {removeState?.message && removeState?.status === 400 && (
-                  <Alert alert={removeState.message} type="danger" />
+                {removeState?.message && removeState?.status !== 200 && (
+                  <Col fullSpan>
+                    <Alert alert={removeState.message} type="danger" />
+                  </Col>
                 )}
                 <Button type="submit" disabled={removePending} variant="danger">
                   <Icon icon="delete" label="Confirm" />

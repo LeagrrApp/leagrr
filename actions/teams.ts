@@ -12,6 +12,8 @@ import { z } from "zod";
 import { getDivisionStandings } from "./divisions";
 import { verifyUserRole } from "./users";
 
+/* ---------- CREATE ---------- */
+
 const CreateTeamSchema = z.object({
   user_id: z.number().min(1),
   name: z
@@ -45,7 +47,7 @@ export async function createTeam(
   await verifySession();
 
   // get data from form
-  const teamData = {
+  const submittedData = {
     user_id: parseInt(formData.get("user_id") as string),
     name: formData.get("name") as string,
     description: formData.get("description") as string,
@@ -53,18 +55,22 @@ export async function createTeam(
     custom_color: (formData.get("custom_color") as string) || "#000",
   };
 
-  const validatedFields = CreateTeamSchema.safeParse(teamData);
+  const validatedFields = CreateTeamSchema.safeParse(submittedData);
 
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
     return {
-      data: teamData,
+      data: submittedData,
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
 
-  // create insert statement
-  const teamInsertSql = `
+  // initialize redirect link
+  let redirectLink: string | undefined = undefined;
+
+  try {
+    // create insert statement
+    const teamInsertSql = `
     INSERT INTO league_management.teams
       (name, description, color)
     VALUES
@@ -73,178 +79,72 @@ export async function createTeam(
       slug, team_id
   `;
 
-  // Value clean up to insure they are null in database not empty strings
-  let color: string | null =
-    teamData.color !== "custom" ? teamData.color : teamData.custom_color;
-  if (color === "") color = null;
+    // Value clean up to insure they are null in database not empty strings
+    let color: string | null =
+      submittedData.color !== "custom"
+        ? submittedData.color
+        : submittedData.custom_color;
+    if (color === "") color = null;
 
-  // query database
-  const teamInsertResult: ResultProps<{ slug: string; team_id: number }> =
-    await db
-      .query(teamInsertSql, [teamData.name, teamData.description, color])
-      .then((res) => {
-        return {
-          message: `${teamData.name} successfully created!`,
-          status: 200,
-          data: res.rows[0],
-        };
-      })
-      .catch((err) => {
-        return {
-          message: err.message,
-          status: 400,
-        };
-      });
+    // query database
+    const { rows: teamRows } = await db.query<{
+      slug: string;
+      team_id: number;
+    }>(teamInsertSql, [submittedData.name, submittedData.description, color]);
 
-  if (!teamInsertResult.data) {
-    return {
-      ...teamInsertResult,
-      data: teamData,
-    };
-  }
-  // add user to team as manager (1)
-  const teamMembershipSql = `
-    INSERT INTO league_management.team_memberships
-      (user_id, team_id, team_role)
-    VALUES
-      ($1, $2, 1)
-  `;
+    if (!teamRows[0])
+      throw new Error("Sorry, there was a problem creating team.");
 
-  const teamMembershipInsertResult = await db
-    .query(teamMembershipSql, [teamData.user_id, teamInsertResult.data.team_id])
-    .then((res) => {
-      if (res.rowCount === 0) {
-        throw new Error("Unable to add user as team manager.");
-      }
+    const { team_id, slug } = teamRows[0];
 
-      return {
-        message: `Team member added!`,
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  // Failed to add user as team admin, delete the team and return error
-  if (teamMembershipInsertResult.status === 400) {
-    // TODO: delete the league on this error
-
-    const deleteSql = `
-      DELETE FROM league_management.teams
-      WHERE team_id = $1
+    // add user to team as manager (1)
+    const teamMembershipSql = `
+      INSERT INTO league_management.team_memberships
+        (user_id, team_id, team_role)
+      VALUES
+        ($1, $2, 1)
     `;
 
-    await db.query(deleteSql, [teamInsertResult.data.team_id]);
+    const { rowCount: tmRowCount } = await db.query(teamMembershipSql, [
+      submittedData.user_id,
+      team_id,
+    ]);
 
-    return { ...teamMembershipInsertResult, data: teamData };
+    if (tmRowCount === 0) {
+      // Failed to add user as team admin, delete the team and return error
 
-    // return {
-    //   message: "There was an error creating team. Try again.",
-    //   status: 400,
-    // };
-  }
+      // delete the team
+      const deleteSql = `
+        DELETE FROM league_management.teams
+        WHERE team_id = $1
+      `;
 
-  // Success route, redirect to the new league page
-  redirect(createDashboardUrl({ t: teamInsertResult.data.slug }));
-}
+      await db.query(deleteSql, [team_id]);
 
-export async function getTeamRole(team: string | number) {
-  // verify logged in and get user_id
-  const { user_id } = await verifySession();
+      throw new Error("Unable to add user as team manager.");
+    }
 
-  const sql = `
-    SELECT 
-      team_role,
-      t.team_id
-    FROM
-      league_management.team_memberships AS tm
-    JOIN
-      league_management.teams AS T
-    ON
-      t.team_id = tm.team_id
-    WHERE
-      tm.user_id = $1
-      AND
-      ${typeof team === "string" ? "t.slug" : "t.team_id"} = $2
-  `;
-
-  const result: ResultProps<{ team_role: number }> = await db
-    .query(sql, [user_id, team])
-    .then((res) => {
-      if (res.rowCount === 0) {
-        return {
-          message: "User does not have a role on this team.",
-          status: 401,
-        };
-      }
-      return {
-        message: "User role found!",
-        status: 200,
-        data: res.rows[0],
-      };
-    })
-    .catch((err) => {
+    // Success route, set redirectLink to the new team page
+    redirectLink = createDashboardUrl({ t: slug });
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
+        data: submittedData,
       };
-    });
-
-  return result?.data?.team_role;
-}
-
-export async function verifyTeamRoleLevel(
-  team: string | number,
-  roleLevel: number,
-) {
-  const teamRole = await getTeamRole(team);
-
-  if (!teamRole) return false;
-
-  return teamRole <= roleLevel;
-}
-
-export async function canEditTeam(team: string | number): Promise<{
-  canEdit: boolean;
-  role: RoleData | undefined;
-}> {
-  // check if they are a site wide admin
-  const isAdmin = await verifyUserRole(1);
-
-  // set the role data if site wide admin
-  let role: RoleData | undefined = isAdmin
-    ? {
-        role: 1,
-        title: "Site Admin",
-      }
-    : undefined;
-
-  // set initial canEdit to whether or not user is site wide admin
-  let canEdit = isAdmin;
-
-  // skip additional database query if we already know user has permission
-  if (!canEdit) {
-    // check for league admin privileges
-    const teamRole = await getTeamRole(team);
-
-    // verify which role the user has
-    if (teamRole) {
-      // set canEdit based on whether it is a commissionerOnly check or not
-      canEdit = teamRole === 1;
-      // set name of role
-      role = team_roles.get(teamRole);
     }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
+    };
   }
 
-  return {
-    canEdit,
-    role,
-  };
+  if (redirectLink) redirect(redirectLink);
 }
+
+/* ---------- READ ---------- */
 
 export async function getTeam(
   slug: string,
@@ -252,7 +152,8 @@ export async function getTeam(
   // verify logged in
   await verifySession();
 
-  const teamSql = `
+  try {
+    const teamSql = `
     SELECT
       team_id,
       slug,
@@ -266,27 +167,25 @@ export async function getTeam(
     WHERE slug = $1
   `;
 
-  const teamResult = await db
-    .query(teamSql, [slug])
-    .then((res) => {
-      if (res.rowCount === 0) {
-        throw new Error("Team not found!");
-      }
+    const { rows } = await db.query(teamSql, [slug]);
 
-      return {
-        message: `Team data found!`,
-        status: 200,
-        data: res.rows[0],
-      };
-    })
-    .catch((err) => {
+    return {
+      message: `Team data found!`,
+      status: 200,
+      data: rows[0],
+    };
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
       };
-    });
-
-  return teamResult;
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
 }
 
 export async function getTeamMetaData(
@@ -336,6 +235,107 @@ export async function getTeamMetaData(
       status: 500,
     };
   }
+}
+
+export async function getTeamRole(team: string | number, user_id?: number) {
+  // verify logged in and get user_id
+  const { user_id: logged_user_id } = await verifySession();
+
+  const final_user_id = user_id || logged_user_id;
+
+  try {
+    const sql = `
+    SELECT 
+      team_role,
+      t.team_id
+    FROM
+      league_management.team_memberships AS tm
+    JOIN
+      league_management.teams AS T
+    ON
+      t.team_id = tm.team_id
+    WHERE
+      tm.user_id = $1
+      AND
+      ${typeof team === "string" ? "t.slug" : "t.team_id"} = $2
+  `;
+
+    const { rows } = await db.query<{ team_role: number }>(sql, [
+      final_user_id,
+      team,
+    ]);
+
+    if (!rows) throw new Error("User does not have a role on this team.");
+
+    return {
+      message: "User role found!",
+      status: 200,
+      data: rows[0],
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
+}
+
+export async function verifyTeamRoleLevel(
+  team: string | number,
+  roleLevel: number,
+  user_id?: number,
+) {
+  const { data } = await getTeamRole(team, user_id);
+
+  if (!data?.team_role) return false;
+
+  return data.team_role <= roleLevel;
+}
+
+export async function canEditTeam(
+  team: string | number,
+  user_id?: number,
+): Promise<{
+  canEdit: boolean;
+  role: RoleData | undefined;
+}> {
+  // check if they are a site wide admin
+  const isAdmin = await verifyUserRole(1);
+
+  // set the role data if site wide admin
+  let role: RoleData | undefined = isAdmin
+    ? {
+        role: 1,
+        title: "Site Admin",
+      }
+    : undefined;
+
+  // set initial canEdit to whether or not user is site wide admin
+  let canEdit = isAdmin;
+
+  // skip additional database query if we already know user has permission
+  if (!canEdit) {
+    // check for league admin privileges
+    const { data } = await getTeamRole(team, user_id);
+    // verify which role the user has
+    if (data) {
+      // set canEdit based on whether it is a commissionerOnly check or not
+      canEdit = data.team_role === 1;
+      // set name of role
+      role = team_roles.get(data.team_role);
+    }
+  }
+
+  return {
+    canEdit,
+    role,
+  };
 }
 
 export async function getTeamsByLeagueId(
@@ -457,140 +457,37 @@ export async function getDivisionTeamId(team_id: number, division_id: number) {
   // confirm logged in
   await verifySession();
 
-  const sql = `
-    SELECT
-      division_team_id
-    FROM
-      league_management.division_teams AS dt
-    WHERE
-      team_id = $1 AND division_id = $2
-  `;
+  try {
+    const sql = `
+      SELECT
+        division_team_id
+      FROM
+        league_management.division_teams AS dt
+      WHERE
+        team_id = $1 AND division_id = $2
+    `;
 
-  const result: ResultProps<number> = await db
-    .query(sql, [team_id, division_id])
-    .then((res) => {
-      return {
-        message: "Team list found",
-        status: 200,
-        data: res.rows[0].division_team_id,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  return result;
-}
-
-export async function getAllTeamMembers(team_id: number) {
-  // confirm logged in
-  await verifySession();
-
-  const sql = `
-    SELECT
-      u.user_id,
-      u.first_name,
-      u.last_name,
-      u.username,
-      u.email,
-      u.pronouns,
-      u.gender,
-      tm.team_membership_id,
-      tm.created_on AS joined,
-      tm.team_role
-    FROM
-      league_management.team_memberships AS tm
-    JOIN
-      admin.users AS u
-    ON
-      tm.user_id = u.user_id
-    WHERE
-      tm.team_id = $1
-    ORDER BY
-      u.last_name, u.first_name
-  `;
-
-  const result: ResultProps<TeamUserData[]> = await db
-    .query(sql, [team_id])
-    .then((res) => {
-      return {
-        message: "Team list found",
-        status: 200,
-        data: res.rows,
-      };
-    })
-    .catch((err) => {
+    const { rows } = await db.query<{ division_team_id: number }>(sql, [
+      team_id,
+      division_id,
+    ]);
+    return {
+      message: "Team list found",
+      status: 200,
+      data: rows[0].division_team_id,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
       };
-    });
-
-  return result;
-}
-
-export async function getTeamDivisionRoster(
-  team_id: number,
-  division_id: number,
-) {
-  // confirm logged in
-  await verifySession();
-
-  const sql = `
-    SELECT
-      u.user_id,
-      u.first_name,
-      u.last_name,
-      u.username,
-      u.email,
-      u.pronouns,
-      u.gender,
-      dr.number,
-      dr.position,
-      dr.roster_role,
-      tm.team_membership_id,
-      dt.division_team_id,
-      dr.division_roster_id
-    FROM
-      league_management.division_rosters AS dr
-    JOIN
-      league_management.team_memberships AS tm
-    ON
-      dr.team_membership_id = tm.team_membership_id
-    JOIN
-      admin.users AS u
-    ON
-      tm.user_id = u.user_id
-    JOIN
-      league_management.division_teams AS dt
-    ON
-      dt.division_team_id = dr.division_team_id
-    WHERE
-      dt.team_id = $1 AND dt.division_id = $2
-    ORDER BY
-      tm.team_id, u.last_name, u.first_name
-  `;
-
-  const result: ResultProps<TeamUserData[]> = await db
-    .query(sql, [team_id, division_id])
-    .then((res) => {
-      return {
-        message: "Division roster found",
-        status: 200,
-        data: res.rows,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  return result;
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
 }
 
 export async function getDivisionsByTeam(
@@ -599,59 +496,60 @@ export async function getDivisionsByTeam(
   // verify signed in
   await verifySession();
 
-  const sql = `
-    SELECT
-      d.name AS division,
-      d.division_id AS division_id,
-      d.slug AS division_slug,
-      s.name AS season,
-      s.slug AS season_slug,
-      s.start_date AS start_date,
-      s.end_date AS end_date,
-      l.name AS league,
-      l.slug AS league_slug
-    FROM
-      league_management.division_teams AS dt
-    JOIN
-      league_management.divisions AS d
-    ON
-      dt.division_id = d.division_id
-    JOIN
-      league_management.seasons AS s
-    ON
-      s.season_id = d.season_id
-    JOIN
-      league_management.leagues AS l
-    ON
-      s.league_id = l.league_id
-    WHERE
-      dt.team_id = $1
-      AND
-      d.status = 'public'
-      AND
-      s.status = 'public'
-      AND
-      l.status = 'public'
-  `;
+  try {
+    const sql = `
+      SELECT
+        d.name AS division,
+        d.division_id AS division_id,
+        d.slug AS division_slug,
+        s.name AS season,
+        s.slug AS season_slug,
+        s.start_date AS start_date,
+        s.end_date AS end_date,
+        l.name AS league,
+        l.slug AS league_slug
+      FROM
+        league_management.division_teams AS dt
+      JOIN
+        league_management.divisions AS d
+      ON
+        dt.division_id = d.division_id
+      JOIN
+        league_management.seasons AS s
+      ON
+        s.season_id = d.season_id
+      JOIN
+        league_management.leagues AS l
+      ON
+        s.league_id = l.league_id
+      WHERE
+        dt.team_id = $1
+        AND
+        d.status = 'public'
+        AND
+        s.status = 'public'
+        AND
+        l.status = 'public'
+    `;
 
-  const result = await db
-    .query(sql, [team_id])
-    .then((res) => {
-      return {
-        message: `Divisions found!`,
-        status: 200,
-        data: res.rows,
-      };
-    })
-    .catch((err) => {
+    const { rows } = await db.query<TeamDivisionsData>(sql, [team_id]);
+    return {
+      message: `Divisions found!`,
+      status: 200,
+      data: rows,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
-        data: [],
       };
-    });
-
-  return result;
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
 }
 
 export async function getTeamGamePreviews(
@@ -660,67 +558,103 @@ export async function getTeamGamePreviews(
   pastGames = false,
   limit = 1,
 ) {
-  const sql = `
-    SELECT
-      division_id,
-      game_id,
-      home_team_id,
-      (SELECT name FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team,
-      (SELECT slug FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team_slug,
-      (SELECT color FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team_color,
-      (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id = g.home_team_id AND sh.game_id = g.game_id)::int AS home_team_shots,
-      home_team_score,
-      away_team_id,
-      (SELECT name FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team,
-      (SELECT slug FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team_slug,
-      (SELECT color FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team_color,
-      (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id = g.away_team_id AND sh.game_id = g.game_id)::int AS away_team_shots,
-      away_team_score,
-      date_time,
-      arena_id,
-      (SELECT name FROM league_management.arenas WHERE arena_id = g.arena_id) AS arena,
-      (SELECT name FROM league_management.venues WHERE venue_id = (
-        SELECT venue_id FROM league_management.arenas WHERE arena_id = g.arena_id
-      )) AS venue,
-      status
-    FROM
-      league_management.games AS g
-    WHERE
-      status = ${pastGames ? "'completed'" : "'public'"}
-      AND
-      (
-        home_team_id = $1
-        OR
-        away_team_id = $1
-      )
-      AND
-      date_time ${pastGames ? "<" : ">"} now()
-      AND
-      division_id = $2
-    ORDER BY
-      date_time ${pastGames ? "DESC" : "ASC"}
-    LIMIT $3
-  `;
+  try {
+    const sql = `
+      SELECT
+        g.division_id,
+        g.game_id,
+        g.home_team_id,
+        ht.name AS home_team,
+        ht.color AS home_team_color,
+        ht.slug AS home_team_slug,
+        sum(
+          CASE
+            WHEN s.team_id = ht.team_id THEN 1
+            ELSE 0
+          END
+        ) AS home_team_shots,
+        g.home_team_score,
+        g.away_team_id,
+        at.name AS away_team,
+        at.color AS away_team_color,
+        at.slug AS away_team_slug,
+        sum(
+          CASE
+            WHEN s.team_id = at.team_id THEN 1
+            ELSE 0
+          END
+        ) AS away_team_shots,
+        g.away_team_score,
+        g.date_time,
+        g.arena_id,
+        a.name AS arena,
+        v.name AS venue,
+        g.status
+      FROM
+        league_management.games AS g
+      LEFT JOIN
+        league_management.teams AS ht
+      ON
+        g.home_team_id = ht.team_id
+      LEFT JOIN
+        league_management.teams AS at
+      ON
+        g.away_team_id = at.team_id
+      LEFT JOIN
+        league_management.arenas AS a
+      ON
+        g.arena_id = a.arena_id
+      LEFT JOIN
+        league_management.venues AS v
+      ON
+        a.venue_id = v.venue_id
+      LEFT JOIN
+        stats.shots AS s
+      ON
+        g.game_id = s.game_id
+      WHERE
+        g.status = ${pastGames ? "'completed'" : "'public'"}
+        AND
+        (
+          home_team_id = $1
+          OR
+          away_team_id = $1
+        )
+        AND
+        g.date_time ${pastGames ? "<" : ">"} now()
+        AND
+        g.division_id = $2
+      GROUP BY g.game_id, ht.name, ht.color, ht.slug, at.name, at.color, at.slug, a.name, v.name
+      ORDER BY
+        date_time ${pastGames ? "DESC" : "ASC"}
+      LIMIT $3
+    `;
 
-  const result = await db
-    .query(sql, [team_id, division_id, limit])
-    .then((res) => {
-      return {
-        message: `Games found!`,
-        status: 200,
-        data: res.rows,
-      };
-    })
-    .catch((err) => {
+    const { rows } = await db.query<GameData>(sql, [
+      team_id,
+      division_id,
+      limit,
+    ]);
+
+    return {
+      message: `Game(s) loaded.`,
+      status: 200,
+      data: rows,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
         data: [],
       };
-    });
-
-  // TODO: add better error handling
-  return result;
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      data: [],
+    };
+  }
 }
 
 export async function getTeamDivisionRosterStats(
@@ -730,9 +664,10 @@ export async function getTeamDivisionRosterStats(
   // confirm logged in
   await verifySession();
 
-  // new version, references team members of the specific division's roster, not all team members
-  const sql = `
-    SELECT 
+  try {
+    // TODO: improve query
+    const sql = `
+    SELECT
       tm.team_id,
       u.user_id,
       u.first_name,
@@ -755,7 +690,7 @@ export async function getTeamDivisionRosterStats(
       )) +
         (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = tm.user_id AND a.game_id IN (
         SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
-      ))	
+      ))
       )::int AS points,
       (SELECT COUNT(*) FROM stats.shots AS s WHERE s.user_id = tm.user_id AND s.game_id IN (
         SELECT game_id FROM league_management.games WHERE (home_team_id = $1 OR away_team_id = $1) AND division_id = $2
@@ -795,25 +730,94 @@ export async function getTeamDivisionRosterStats(
     ORDER BY points DESC, goals DESC, assists DESC, shots DESC, last_name ASC, first_name ASC
   `;
 
-  const result = await db
-    .query(sql, [team_id, division_id])
-    .then((res) => {
-      return {
-        message: `Games found!`,
-        status: 200,
-        data: res.rows,
-      };
-    })
-    .catch((err) => {
+    // const sql = `
+    //   SELECT
+    //       user_id,
+    //       username,
+    //       first_name,
+    //       last_name,
+    //       position,
+    //       number,
+    //       goals,
+    //       assists,
+    //       shots,
+    //       saves,
+    //       penalties_in_minutes,
+    //       (goals + assists) AS points
+    //     FROM
+    //     (
+    //       SELECT
+    //         u.user_id,
+    //         u.username,
+    //         u.first_name,
+    //         u.last_name,
+    //         dr.position,
+    //         dr.number,
+    //         COUNT(DISTINCT g.goal_id)::int AS goals,
+    //         COUNT(DISTINCT a.assist_id)::int AS assists,
+    //         COUNT(DISTINCT s.shot_id)::int AS shots,
+    //         COUNT(DISTINCT sa.shot_id)::int AS saves,
+    //         (SELECT COALESCE(SUM(minutes), 0) FROM stats.penalties AS p WHERE p.user_id = u.user_id AND p.game_id IN (SELECT game_id FROM league_management.games WHERE division_id = $2))::int as penalties_in_minutes
+    //       FROM
+    //         league_management.division_rosters AS dr
+    //       JOIN
+    //         league_management.team_memberships AS tm
+    //       ON
+    //         dr.team_membership_id = tm.team_membership_id
+    //       JOIN
+    //         admin.users AS u
+    //       ON
+    //         tm.user_id = u.user_id
+    //       JOIN
+    //         league_management.division_teams AS dt
+    //       ON
+    //         dt.division_team_id = dr.division_team_id
+    //       LEFT JOIN
+    //         stats.goals AS g
+    //       ON
+    //         g.user_id = u.user_id AND g.game_id IN (SELECT game_id FROM league_management.games WHERE division_id = $2)
+    //       LEFT JOIN
+    //         stats.assists AS a
+    //       ON
+    //         a.user_id = u.user_id AND a.game_id IN (SELECT game_id FROM league_management.games WHERE division_id = $2)
+    //       LEFT JOIN
+    //         stats.shots AS s
+    //       ON
+    //         s.user_id = u.user_id AND s.game_id IN (SELECT game_id FROM league_management.games WHERE division_id = $2)
+    //       LEFT JOIN
+    //         stats.saves AS sa
+    //       ON
+    //         sa.user_id = u.user_id AND sa.game_id IN (SELECT game_id FROM league_management.games WHERE division_id = $2)
+    //       WHERE
+    //         dt.team_id = $1
+    //         AND
+    //         dt.division_id = $2
+    //         AND
+    //         dr.roster_role IN (2, 3, 4)
+    //       GROUP BY (u.username, u.user_id, u.first_name, u.last_name, dr.position, dr.number)
+    //     )
+    //   ORDER BY points DESC, goals DESC, assists DESC, shots DESC, last_name ASC, first_name ASC
+    // `;
+
+    const { rows } = await db.query<PlayerStats>(sql, [team_id, division_id]);
+
+    return {
+      message: `Games found!`,
+      status: 200,
+      data: rows,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
-        data: [],
       };
-    });
-
-  // TODO: add better error handling
-  return result;
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
 }
 
 export async function getTeamDashboardData(
@@ -850,6 +854,8 @@ export async function getTeamDashboardData(
   };
 }
 
+/* ---------- UPDATE ---------- */
+
 const EditTeamSchema = z.object({
   team_id: z.number().min(1),
   name: z
@@ -868,7 +874,7 @@ export async function editTeam(
   formData: FormData,
 ): Promise<TeamFormState> {
   // get data from form
-  const teamData = {
+  const submittedData = {
     team_id: parseInt(formData.get("team_id") as string),
     name: formData.get("name") as string,
     description: formData.get("description") as string,
@@ -877,65 +883,78 @@ export async function editTeam(
   };
 
   // Validate data
-  const validatedFields = EditTeamSchema.safeParse(teamData);
+  const validatedFields = EditTeamSchema.safeParse(submittedData);
 
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
     return {
-      data: teamData,
+      data: submittedData,
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
 
-  // Check if user can edit
-  const { canEdit } = await canEditTeam(teamData.team_id);
+  // set initial status code
+  let status = 400;
 
-  if (!canEdit) {
-    // failed role check, shortcut out
+  // initialize redirectLink
+  let redirectLink: string | undefined = undefined;
+
+  try {
+    // Check if user can edit
+    const { canEdit } = await canEditTeam(submittedData.team_id);
+
+    if (!canEdit) {
+      // failed role check, shortcut out
+      status = 401;
+      throw new Error("You do not have permission to edit this team.");
+    }
+
+    let color: string | null =
+      submittedData.color !== "custom"
+        ? submittedData.color
+        : submittedData.custom_color;
+    if (color === "") color = null;
+
+    const sql = `
+      UPDATE league_management.teams
+      SET
+        name = $1,
+        description = $2,
+        color = $3
+      WHERE
+        team_id = $4
+      RETURNING
+        slug
+    `;
+
+    // query database
+    const { rows } = await db.query<{ slug: string }>(sql, [
+      submittedData.name,
+      submittedData.description,
+      color,
+      submittedData.team_id,
+    ]);
+
+    if (!rows[0])
+      throw new Error("Sorry, there was a problem editing the team.");
+
+    redirectLink = createDashboardUrl({ t: rows[0].slug });
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: status,
+        data: submittedData,
+      };
+    }
     return {
-      message: "You do not have permission to edit this team.",
-      status: 401,
-      data: teamData,
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
     };
   }
 
-  let color: string | null =
-    teamData.color !== "custom" ? teamData.color : teamData.custom_color;
-  if (color === "") color = null;
-
-  const sql = `
-    UPDATE league_management.teams
-    SET
-      name = $1,
-      description = $2,
-      color = $3
-    WHERE
-      team_id = $4
-    RETURNING
-      slug
-  `;
-
-  // query database
-  const result: ResultProps<{ slug: string }> = await db
-    .query(sql, [teamData.name, teamData.description, color, teamData.team_id])
-    .then((res) => {
-      return {
-        message: `${teamData.name} successfully created!`,
-        status: 200,
-        data: res.rows[0],
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  if (result?.data?.slug)
-    redirect(createDashboardUrl({ t: result?.data?.slug }));
-
-  return { ...result, data: teamData };
+  if (redirectLink) redirect(redirectLink);
 }
 
 const TeamJoinCodeSchema = z.object({
@@ -950,754 +969,116 @@ export async function setTeamJoinCode(
   state: TeamFormState,
   formData: FormData,
 ): Promise<TeamFormState> {
-  const teamData = {
-    join_code: formData.get("join_code") as string,
-    team_id: parseInt(formData.get("team_id") as string),
-  };
-
-  // Validate data
-  const validatedFields = TeamJoinCodeSchema.safeParse(teamData);
-
-  // If any form fields are invalid, return early
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      data: teamData,
-    };
-  }
-
-  // Check if user can edit
-  const { canEdit } = await canEditTeam(teamData.team_id);
-
-  if (!canEdit) {
-    // failed role check, shortcut out
-    return {
-      message: "You do not have permission to edit this team.",
-      status: 401,
-      data: teamData,
-    };
-  }
-
-  const sql = `
-    UPDATE league_management.teams
-    SET
-      join_code = $1
-    WHERE
-      team_id = $2
-    RETURNING
-      join_code
-  `;
-
-  // query database
-  const result: ResultProps<{ join_code: string }> = await db
-    .query(sql, [teamData.join_code, teamData.team_id])
-    .then((res) => {
-      return {
-        message: `Join code updated!`,
-        status: 200,
-        data: res.rows[0],
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  return { ...result, data: teamData };
-}
-
-type TeamMembershipErrorProps = {
-  team_id?: string[] | undefined;
-  join_code?: string[] | undefined;
-  division_id?: string[] | undefined;
-  number?: string[] | undefined;
-  position?: string[] | undefined;
-  team_role?: string[] | undefined;
-  team_membership_id?: string[] | undefined;
-};
-
-type TeamMembershipFormState = FormState<
-  TeamMembershipErrorProps,
-  {
-    team_id?: number;
-    join_code?: string;
-    division_id?: number;
-    number?: number;
-    position?: string;
-    team_role?: number;
-    team_membership_id?: number;
-  }
->;
-
-const JoinTeamSchema = z.object({
-  team_id: z.number().min(1),
-  join_code: z.string().trim(),
-  division_id: z.number().optional(),
-  number: z.number().optional(),
-  position: z.string().optional(),
-});
-
-export async function joinTeam(
-  state: TeamMembershipFormState,
-  formData: FormData,
-): Promise<TeamMembershipFormState> {
-  // check user is logged in and get their user_id
-  const { user_id } = await verifySession();
-
   const submittedData = {
-    team_id: parseInt(formData.get("team_id") as string),
     join_code: formData.get("join_code") as string,
-    division_id: formData.get("division_id")
-      ? parseInt(formData.get("division_id") as string)
-      : undefined,
-    number: formData.get("number")
-      ? parseInt(formData.get("number") as string)
-      : undefined,
-    position: formData.get("position")
-      ? (formData.get("position") as string)
-      : undefined,
+    team_id: parseInt(formData.get("team_id") as string),
   };
 
   // Validate data
-  const validatedFields = JoinTeamSchema.safeParse(submittedData);
+  const validatedFields = TeamJoinCodeSchema.safeParse(submittedData);
 
   // If any form fields are invalid, return early
   if (!validatedFields.success) {
     return {
-      data: submittedData,
       errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
-  // get team join_code from database
-  const teamDataSql = `
-    SELECT
-      join_code,
-      slug
-    FROM
-      league_management.teams
-    WHERE
-      team_id = $1
-  `;
-
-  const teamDataResult: ResultProps<{ join_code: string; slug: string }> =
-    await db
-      .query(teamDataSql, [submittedData.team_id])
-      .then((res) => {
-        if (res.rowCount === 0) {
-          throw new Error("Team not found!");
-        }
-        return {
-          message: "Join code retrieved!",
-          status: 200,
-          data: res.rows[0],
-        };
-      })
-      .catch((err) => {
-        return {
-          message: err.message,
-          status: 400,
-        };
-      });
-
-  if (!teamDataResult?.data) {
-    return { ...teamDataResult, data: submittedData };
-  }
-
-  // compare submitted join_code
-  const joinCodesMatch =
-    teamDataResult.data.join_code === submittedData.join_code;
-
-  // if join_codes do not match, short circuit
-  if (!joinCodesMatch)
-    return {
-      message: "Join code does not match team's join code!",
-      status: 401,
       data: submittedData,
     };
-
-  // check if they are already a team member
-  const membershipCheckSql = `
-    SELECT
-      count(*)
-    FROM
-      league_management.team_memberships 
-    WHERE
-      user_id = $1 AND team_id = $2
-  `;
-
-  const membershipCheckResult = await db
-    .query(membershipCheckSql, [user_id, submittedData.team_id])
-    .then((res) => {
-      if (res.rows[0].count > 0) {
-        throw new Error("You are already a member of this team!");
-      }
-      return {
-        message: "User is not a team member.",
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  // User is not already a team member
-  if (membershipCheckResult.status === 200) {
-    // add user to team
-    const teamSql = `
-    INSERT INTO league_management.team_memberships
-      (user_id, team_id, team_role)
-    VALUES
-      ($1, $2, 2)
-  `;
-
-    const teamResult = await db
-      .query(teamSql, [user_id, submittedData.team_id])
-      .then(() => {
-        return {
-          message: "Membership updated!",
-          status: 200,
-        };
-      })
-      .catch((err) => {
-        return {
-          message: err.message,
-          status: 400,
-        };
-      });
-
-    if (teamResult.status === 400)
-      return { ...teamResult, data: submittedData };
   }
 
-  // if division_id is provided, also add user to team division roster
-  if (submittedData.division_id) {
-    // check if they are already a member of the division roster
-    const rosterCheckSql = `
-      SELECT
-        count(*)
-      FROM
-        league_management.division_rosters
+  try {
+    // Check if user can edit
+    const { canEdit } = await canEditTeam(submittedData.team_id);
+
+    if (!canEdit) {
+      // failed role check, shortcut out
+      return {
+        message: "You do not have permission to edit this team.",
+        status: 401,
+        data: submittedData,
+      };
+    }
+
+    const sql = `
+      UPDATE league_management.teams
+      SET
+        join_code = $1
       WHERE
-        team_membership_id = (SELECT team_membership_id FROM league_management.team_memberships WHERE user_id = $1 AND team_id = $2)
-        AND
-        division_team_id = (SELECT division_team_id FROM league_management.division_teams WHERE team_id = $2 AND division_id = $3)
+        team_id = $2
+      RETURNING
+        join_code
     `;
 
-    const rosterCheckResult = await db
-      .query(rosterCheckSql, [
-        user_id,
-        submittedData.team_id,
-        submittedData.division_id,
-      ])
-      .then((res) => {
-        if (res.rows[0].count > 0) {
-          throw new Error("You are already a member of this roster!");
-        }
-        return {
-          message: "User is not a roster member.",
-          status: 200,
-        };
-      })
-      .catch((err) => {
-        return {
-          message: err.message,
-          status: 400,
-        };
-      });
+    // query database
+    const { rows } = await db.query<{ join_code: string }>(sql, [
+      submittedData.join_code,
+      submittedData.team_id,
+    ]);
 
-    if (rosterCheckResult.status === 200) {
-      // add user to roster
-      const rosterAddSql = `
-        INSERT INTO league_management.division_rosters
-          (team_membership_id, division_team_id, number, position)
-        VALUES
-          (
-            (SELECT team_membership_id FROM league_management.team_memberships WHERE user_id = $1 AND team_id = $2),
-            (SELECT division_team_id FROM league_management.division_teams WHERE team_id = $2 AND division_id = $3),
-            $4,
-            $5
-          )
-      `;
+    return {
+      message: `Join code updated!`,
+      status: 200,
+      data: rows[0],
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+        data: submittedData,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
+    };
+  }
+}
 
-      const rosterAddResult = await db
-        .query(rosterAddSql, [
-          user_id,
-          submittedData.team_id,
-          submittedData.division_id,
-          submittedData.number,
-          submittedData.position,
-        ])
-        .then(() => {
-          return {
-            message: "Membership updated!",
-            status: 200,
-          };
-        })
-        .catch((err) => {
-          return {
-            message: err.message,
-            status: 400,
-          };
-        });
+/* ---------- DELETE ---------- */
 
-      if (rosterAddResult.status === 400)
-        return { ...rosterAddResult, data: submittedData };
+export async function deleteTeam(state: { team_id: number }) {
+  // initialize success check
+  let success = false;
 
-      // redirect to specific division if division_id provide
-      redirect(
-        createDashboardUrl({
-          t: teamDataResult.data.slug,
-          d: submittedData.division_id,
-        }),
+  // initialize response status code
+  let status = 400;
+
+  try {
+    // Check if user can delete
+    const siteAdmin = await verifyUserRole(1);
+    // if not, short circuit
+    if (!siteAdmin) {
+      status = 401;
+      throw new Error(
+        "Only site admins are permitted to delete teams. Contact support for assistance.",
       );
     }
 
-    // user was already on the roster
-    return { ...rosterCheckResult, data: submittedData };
-  }
+    const sql = `
+      DELETE FROM league_management.teams
+      WHERE team_id = $1
+    `;
 
-  // if user was already a member of the team and
-  // did not need to be added to a division roster
-  if (membershipCheckResult.status === 400)
-    return { ...membershipCheckResult, data: submittedData };
+    const { rowCount } = await db.query(sql, [state.team_id]);
 
-  // else redirect to team page
-  if (teamDataResult.data.slug)
-    redirect(createDashboardUrl({ t: teamDataResult.data.slug }));
-}
+    if (rowCount !== 1) {
+      throw new Error("Sorry, there was a problem deleting team.");
+    }
 
-const EditTeamMembershipSchema = z.object({
-  team_role: z.number().min(1).max(2),
-  team_membership_id: z.number().min(1),
-});
-
-export async function editTeamMembership(
-  state: TeamMembershipFormState,
-  formData: FormData,
-): Promise<TeamMembershipFormState> {
-  const submittedData = {
-    team_role: parseInt(formData.get("team_role") as string),
-    team_membership_id: parseInt(formData.get("team_membership_id") as string),
-    team_id: parseInt(formData.get("team_id") as string),
-  };
-
-  // Validate data
-  const validatedFields = EditTeamMembershipSchema.safeParse(submittedData);
-
-  // If any form fields are invalid, return early
-  if (!validatedFields.success) {
-    return {
-      data: submittedData,
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
-  // Check if user can edit
-  const { canEdit } = await canEditTeam(submittedData.team_id);
-
-  if (!canEdit) {
-    // failed role check, shortcut out
-    return {
-      message:
-        "You do not have permission to modify memberships for this team.",
-      status: 401,
-      data: submittedData,
-    };
-  }
-
-  const sql = `
-    UPDATE league_management.team_memberships
-    SET
-      team_role = $1
-    WHERE
-      team_membership_id = $2
-  `;
-
-  const result = await db
-    .query(sql, [submittedData.team_role, submittedData.team_membership_id])
-    .then(() => {
-      return {
-        message: "Membership updated!",
-        status: 200,
-      };
-    })
-    .catch((err) => {
+    success = true;
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
-        status: 400,
+        status,
       };
-    });
-
-  if (result.status === 200) {
-    if (state?.link) redirect(state.link);
-  }
-
-  return state;
-}
-
-const RemoveTeamMembershipSchema = z.object({
-  team_membership_id: z.number().min(1),
-});
-
-export async function removeTeamMembership(
-  state: TeamMembershipFormState,
-  formData: FormData,
-): Promise<TeamMembershipFormState> {
-  const submittedData = {
-    team_id: parseInt(formData.get("team_id") as string),
-    team_membership_id: parseInt(formData.get("team_membership_id") as string),
-  };
-
-  // Validate data
-  const validatedFields = RemoveTeamMembershipSchema.safeParse(submittedData);
-
-  // If any form fields are invalid, return early
-  if (!validatedFields.success) {
+    }
     return {
-      data: submittedData,
-      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Something went wrong.",
+      status: 500,
     };
   }
 
-  // Check if user can edit
-  const { canEdit } = await canEditTeam(submittedData.team_id);
-
-  if (!canEdit) {
-    // failed role check, shortcut out
-    return {
-      message:
-        "You do not have permission to modify memberships for this team.",
-      status: 401,
-      data: submittedData,
-    };
-  }
-
-  // TODO: add a check to see if the user who is being removed is a manager
-  //       if so, make sure there is at least one other manager before removing
-
-  const sql = `
-    DELETE FROM league_management.team_memberships
-    WHERE team_membership_id = $1
-  `;
-
-  const result = await db
-    .query(sql, [submittedData.team_membership_id])
-    .then(() => {
-      return {
-        message: "Player removed from team!",
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  if (result.status === 200) {
-    if (state?.link) redirect(state.link);
-  }
-
-  return { ...result, data: submittedData };
-}
-
-type DivisionTeamErrorProps = {
-  division_roster_id?: string[] | undefined;
-  division_team_id?: string[] | undefined;
-  team_membership_id?: string[] | undefined;
-  number?: string[] | undefined;
-  position?: string[] | undefined;
-  roster_role?: string[] | undefined;
-};
-
-type DivisionTeamFormState = FormState<
-  DivisionTeamErrorProps,
-  {
-    team_id?: number;
-    division_team_id?: number;
-    team_membership_id?: number;
-    number?: number;
-    position?: string;
-    roster_role?: number;
-  }
->;
-
-const AddPlayerToDivisionTeamSchema = z.object({
-  division_team_id: z.number().min(1),
-  team_membership_id: z.number().min(1),
-  number: z.number().min(1).max(98).optional(),
-  position: z.string().optional(),
-  roster_role: z.number().min(1).max(5),
-});
-
-export async function addPlayerToDivisionTeam(
-  state: DivisionTeamFormState,
-  formData: FormData,
-): Promise<DivisionTeamFormState> {
-  const submittedData = {
-    team_id: parseInt(formData.get("team_id") as string),
-    division_team_id: parseInt(formData.get("division_team_id") as string),
-    team_membership_id: parseInt(formData.get("team_membership_id") as string),
-    number: formData.get("number")
-      ? parseInt(formData.get("number") as string)
-      : undefined,
-    position: (formData.get("position") as string) || undefined,
-    roster_role: formData.get("roster_role")
-      ? parseInt(formData.get("roster_role") as string)
-      : undefined,
-  };
-
-  // Validate data
-  const validatedFields =
-    AddPlayerToDivisionTeamSchema.safeParse(submittedData);
-
-  // If any form fields are invalid, return early
-  if (!validatedFields.success) {
-    return {
-      data: submittedData,
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
-  // Check if user can edit
-  const { canEdit } = await canEditTeam(submittedData.team_id);
-
-  if (!canEdit) {
-    // failed role check, shortcut out
-    return {
-      message: "You do not have permission to modify rosters for this team.",
-      status: 401,
-      data: submittedData,
-    };
-  }
-
-  const sql = `
-    INSERT INTO league_management.division_rosters
-      (division_team_id, team_membership_id, number, position, roster_role)
-    VALUES
-      ($1, $2, $3, $4, $5)
-  `;
-
-  const result = await db
-    .query(sql, [
-      submittedData.division_team_id,
-      submittedData.team_membership_id,
-      submittedData.number,
-      submittedData.position,
-      submittedData.roster_role,
-    ])
-    .then(() => {
-      return {
-        message: "Player added to division team!",
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  if (result.status === 200) {
-    if (state?.link) redirect(state.link);
-  }
-
-  return state;
-}
-
-const EditPlayerOnDivisionTeamSchema = z.object({
-  division_roster_id: z.number().min(1),
-  number: z.number().min(1).max(98).optional(),
-  position: z.string().optional(),
-  roster_role: z.number().min(1).max(5),
-});
-
-export async function editPlayerOnDivisionTeam(
-  state: DivisionTeamFormState,
-  formData: FormData,
-): Promise<DivisionTeamFormState> {
-  const submittedData = {
-    team_id: parseInt(formData.get("team_id") as string),
-    division_roster_id: parseInt(formData.get("division_roster_id") as string),
-    number: formData.get("number")
-      ? parseInt(formData.get("number") as string)
-      : undefined,
-    position: (formData.get("position") as string) || undefined,
-    roster_role: formData.get("roster_role")
-      ? parseInt(formData.get("roster_role") as string)
-      : undefined,
-  };
-
-  // Validate data
-  const validatedFields =
-    EditPlayerOnDivisionTeamSchema.safeParse(submittedData);
-
-  // If any form fields are invalid, return early
-  if (!validatedFields.success) {
-    return {
-      data: submittedData,
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
-  // Check if user can edit
-  const { canEdit } = await canEditTeam(submittedData.team_id);
-
-  if (!canEdit) {
-    // failed role check, shortcut out
-    return {
-      message: "You do not have permission to modify rosters for this team.",
-      status: 401,
-      data: submittedData,
-    };
-  }
-
-  const sql = `
-    UPDATE league_management.division_rosters
-    SET 
-      number = $1,
-      position = $2,
-      roster_role = $3
-    WHERE
-      division_roster_id = $4
-  `;
-
-  const result = await db
-    .query(sql, [
-      submittedData.number,
-      submittedData.position,
-      submittedData.roster_role,
-      submittedData.division_roster_id,
-    ])
-    .then(() => {
-      return {
-        message: "Player information updated!",
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  if (result.status === 200) {
-    if (state?.link) redirect(state.link);
-  }
-
-  return state;
-}
-
-const RemovePlayerFromDivisionTeamSchema = z.object({
-  division_roster_id: z.number().min(1),
-});
-
-export async function removePlayerFromDivisionTeam(
-  state: DivisionTeamFormState,
-  formData: FormData,
-): Promise<DivisionTeamFormState> {
-  const submittedData = {
-    team_id: parseInt(formData.get("team_id") as string),
-    division_roster_id: parseInt(formData.get("division_roster_id") as string),
-  };
-
-  // Validate data
-  const validatedFields =
-    RemovePlayerFromDivisionTeamSchema.safeParse(submittedData);
-
-  // If any form fields are invalid, return early
-  if (!validatedFields.success) {
-    return {
-      data: submittedData,
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
-  // Check if user can edit
-  const { canEdit } = await canEditTeam(submittedData.team_id);
-
-  if (!canEdit) {
-    // failed role check, shortcut out
-    return {
-      message: "You do not have permission to modify rosters for this team.",
-      status: 401,
-      data: submittedData,
-    };
-  }
-
-  const sql = `
-    DELETE FROM league_management.division_rosters
-    WHERE division_roster_id = $1
-  `;
-
-  const result = await db
-    .query(sql, [submittedData.division_roster_id])
-    .then(() => {
-      return {
-        message: "Player removed from team!",
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  if (result.status === 200) {
-    if (state?.link) redirect(state.link);
-  }
-
-  return state;
-}
-
-export async function deleteTeam(state: { team_id: number }) {
-  // Check if user can delete
-  const siteAdmin = await verifyUserRole(1);
-
-  // if not, short circuit
-  if (!siteAdmin)
-    return {
-      state: {
-        team_id: state.team_id,
-        message: "You do not have permission to delete this team",
-        status: 401,
-      },
-    };
-
-  const sql = `
-    DELETE FROM league_management.teams
-    WHERE team_id = $1
-  `;
-
-  const result = await db
-    .query(sql, [state.team_id])
-    .then(() => {
-      return {
-        message: "League deleted",
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  if (result.status === 400) {
-    return result;
-  }
-
-  redirect("/dashboard/t");
+  if (success) redirect("/dashboard/t");
 }

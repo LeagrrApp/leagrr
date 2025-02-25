@@ -1,6 +1,6 @@
 "use client";
 
-import { joinTeam } from "@/actions/teams";
+import { joinTeam } from "@/actions/teamMemberships";
 import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Card from "@/components/ui/Card/Card";

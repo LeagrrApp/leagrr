@@ -581,30 +581,10 @@ export async function getTeamGameStats(
           u.last_name,
           dr.position,
           dr.number,
-          COUNT(DISTINCT (
-            CASE
-              WHEN g.game_id = $1 THEN g.goal_id
-              ELSE null
-            END
-          ))::int AS goals,
-          COUNT(DISTINCT (
-            CASE
-              WHEN a.game_id = $1 THEN a.assist_id
-              ELSE null
-            END
-          ))::int AS assists,
-          COUNT(DISTINCT (
-            CASE
-              WHEN s.game_id = $1 THEN s.shot_id
-              ELSE null
-            END
-          ))::int AS shots,
-          COUNT(DISTINCT (
-            CASE
-              WHEN sa.game_id = $1 THEN sa.shot_id
-              ELSE null
-            END
-          ))::int AS saves,
+          COUNT(DISTINCT g.goal_id)::int AS goals,
+          COUNT(DISTINCT a.assist_id)::int AS assists,
+          COUNT(DISTINCT s.shot_id)::int AS shots,
+          COUNT(DISTINCT sa.shot_id)::int AS saves,
           (SELECT COALESCE(SUM(minutes), 0) FROM stats.penalties AS p WHERE p.user_id = u.user_id AND p.game_id = $1)::int as penalties_in_minutes
         FROM
           league_management.division_rosters AS dr
@@ -623,19 +603,19 @@ export async function getTeamGameStats(
         LEFT JOIN
           stats.goals AS g
         ON
-          g.user_id = u.user_id
+          g.user_id = u.user_id AND g.game_id = $1
         LEFT JOIN
           stats.assists AS a
         ON
-          a.user_id = u.user_id
+          a.user_id = u.user_id AND a.game_id = $1
         LEFT JOIN
           stats.shots AS s
         ON
-          s.user_id = u.user_id
+          s.user_id = u.user_id AND s.game_id = $1
         LEFT JOIN
           stats.saves AS sa
         ON
-          sa.user_id = u.user_id
+          sa.user_id = u.user_id AND sa.game_id = $1
         WHERE
           dt.team_id = $2
           AND
@@ -647,16 +627,18 @@ export async function getTeamGameStats(
       ORDER BY points DESC, goals DESC, assists DESC, shots DESC, last_name ASC, first_name ASC
     `;
 
-    const { rows } = await db.query<PlayerStats>(sql, [
+    const result = await db.query<PlayerStats>(sql, [
       game_id,
       team_id,
       division_id,
     ]);
 
+    console.log(result);
+
     return {
       message: "Team game stats loaded",
       status: 200,
-      data: rows,
+      data: result.rows,
     };
   } catch (err) {
     if (err instanceof Error) {
