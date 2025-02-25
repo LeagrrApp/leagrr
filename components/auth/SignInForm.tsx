@@ -21,6 +21,11 @@ export default function SignInForm() {
         </Grid>
         <Input name="identifier" label="Username or Email" required />
         <Input name="password" label="Password" type="password" required />
+        {state?.message && state?.status !== 200 && (
+          <Col fullSpan>
+            <Alert alert={state.message} type="danger" />
+          </Col>
+        )}
         <Col fullSpan>
           <Flex alignItems="center" gap="base">
             <Button type="submit" disabled={pending}>
@@ -31,7 +36,6 @@ export default function SignInForm() {
             </p>
           </Flex>
         </Col>
-        {state?.message && <Alert alert={state.message} type="danger" />}
       </Grid>
     </form>
   );
