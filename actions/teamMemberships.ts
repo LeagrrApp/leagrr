@@ -519,11 +519,9 @@ export async function editTeamMembership(
     }
 
     // Check if they are a team manager
-    const isManager = await verifyTeamRoleLevel(
-      submittedData.team_id,
-      1,
-      submittedData.user_id,
-    );
+    const isManager = await verifyTeamRoleLevel(submittedData.team_id, 1, {
+      user_id: submittedData.user_id,
+    });
 
     // if manager, confirm there is one other manager before removing the user from team
     if (isManager) {
@@ -726,11 +724,9 @@ export async function removeTeamMembership(
     }
 
     // Check if they are a team manager
-    const isManager = await verifyTeamRoleLevel(
-      submittedData.team_id,
-      1,
-      submittedData.user_id,
-    );
+    const isManager = await verifyTeamRoleLevel(submittedData.team_id, 1, {
+      user_id: submittedData.user_id,
+    });
 
     // if manager, confirm there is one other manager before removing the user from team
     if (isManager) {

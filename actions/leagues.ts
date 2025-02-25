@@ -53,6 +53,8 @@ export async function createLeague(
   // Verify user session
   const { user_id } = await verifySession();
 
+  // TODO: add user role permission check
+
   // insert data from form into object that can be checked for errors
   const submittedData = {
     name: formData.get("name") as string,
@@ -281,11 +283,19 @@ export async function getLeagueIdFromSlug(slug: string) {
 
 export async function getLeagueAdminRole(
   league: number | string,
-): Promise<number | undefined> {
+  options?: {
+    user_id?: number;
+  },
+): Promise<ResultProps<AdminRole>> {
   // Verify user session
-  const { user_id } = await verifySession();
+  const { user_id: logged_user_id } = await verifySession();
+
+  // initialize status
+  let status = 400;
 
   try {
+    const final_user_id = options?.user_id || logged_user_id;
+
     let league_id = league;
 
     if (typeof league === "string") {
@@ -298,7 +308,8 @@ export async function getLeagueAdminRole(
     }
 
     // Unable to find league_id, therefore short circuit out
-    if (typeof league_id === "string") return undefined;
+    if (typeof league_id === "string")
+      throw new Error("Unable to verify user\'s admin role status.");
 
     // build sql select statement using league_id
     const adminsSql = `
@@ -311,30 +322,55 @@ export async function getLeagueAdminRole(
     `;
 
     // query database for any matching both league and user
-    const { rows } = await db.query<AdminRole>(adminsSql, [league_id, user_id]);
+    const { rows } = await db.query<AdminRole>(adminsSql, [
+      league_id,
+      final_user_id,
+    ]);
 
     if (!rows[0]) {
+      status = 401;
       throw new Error("User does not have a league admin role.");
     }
 
-    return rows[0].league_role;
-  } catch {
-    return undefined;
+    return {
+      message: "User league admin role found.",
+      status: 200,
+      data: rows[0],
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
   }
 }
 
 export async function verifyLeagueAdminRole(
   league: number | string,
   roleType: number,
+  options?: {
+    user_id?: number;
+  },
 ): Promise<boolean> {
-  const league_role = await getLeagueAdminRole(league);
+  const { data } = await getLeagueAdminRole(league, options);
 
-  return league_role === roleType;
+  if (!data?.league_role) return false;
+
+  return data.league_role === roleType;
 }
 
 export async function canEditLeague(
   league: number | string,
-  commissionerOnly?: boolean,
+  options?: {
+    user_id?: number;
+    commissionerOnly?: boolean;
+  },
 ): Promise<{ canEdit: boolean; role: RoleData | undefined }> {
   // check if they are a site wide admin
   const isAdmin = await verifyUserRole(1);
@@ -353,17 +389,16 @@ export async function canEditLeague(
   // skip additional database query if we already know user has permission
   if (!canEdit) {
     // check for league admin privileges
-    const leagueAdminResult: number | undefined =
-      await getLeagueAdminRole(league);
+    const { data } = await getLeagueAdminRole(league);
 
     // verify which role the user has
-    if (leagueAdminResult) {
+    if (data?.league_role) {
       // set canEdit based on whether it is a commissionerOnly check or not
-      canEdit = commissionerOnly
-        ? leagueAdminResult === 1
-        : leagueAdminResult === 1 || leagueAdminResult === 2;
+      canEdit = options?.commissionerOnly
+        ? data.league_role === 1
+        : data.league_role === 1 || data.league_role === 2;
       // set name of role
-      role = league_roles.get(leagueAdminResult);
+      role = league_roles.get(data.league_role);
     }
   }
 

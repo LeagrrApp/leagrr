@@ -418,7 +418,12 @@ export async function getGameMetaInfo(
   }
 }
 
-export async function canEditGame(game_id: number) {
+export async function canEditGame(
+  game_id: number,
+  options?: {
+    user_id?: number;
+  },
+) {
   try {
     const sql = `
       SELECT
@@ -443,7 +448,7 @@ export async function canEditGame(game_id: number) {
 
     const { league_id } = rows[0];
 
-    const canEditLeagueResult = await canEditLeague(league_id);
+    const canEditLeagueResult = await canEditLeague(league_id, options);
 
     return canEditLeagueResult;
   } catch (err) {

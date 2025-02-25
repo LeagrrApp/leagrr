@@ -1,4 +1,4 @@
-export function isObjectEmpty<T extends {}>(objectName: T): boolean {
+export function isObjectEmpty<T extends object>(objectName: T): boolean {
   return (
     Object.keys(objectName).length === 0 && objectName.constructor === Object
   );
@@ -14,7 +14,7 @@ export function get_unique_items<T>(a: T[], b: T[]): T[] {
   return [...uniqueA, ...uniqueB];
 }
 
-export function get_unique_items_by_key<T extends { [key: string]: any }>(
+export function get_unique_items_by_key<T extends { [key: string]: unknown }>(
   a: T[],
   b: T[],
   key: string,

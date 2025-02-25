@@ -237,11 +237,16 @@ export async function getTeamMetaData(
   }
 }
 
-export async function getTeamRole(team: string | number, user_id?: number) {
+export async function getTeamRole(
+  team: string | number,
+  options?: {
+    user_id?: number;
+  },
+) {
   // verify logged in and get user_id
   const { user_id: logged_user_id } = await verifySession();
 
-  const final_user_id = user_id || logged_user_id;
+  const final_user_id = options?.user_id || logged_user_id;
 
   try {
     const sql = `
@@ -289,9 +294,11 @@ export async function getTeamRole(team: string | number, user_id?: number) {
 export async function verifyTeamRoleLevel(
   team: string | number,
   roleLevel: number,
-  user_id?: number,
+  options?: {
+    user_id?: number;
+  },
 ) {
-  const { data } = await getTeamRole(team, user_id);
+  const { data } = await getTeamRole(team, options);
 
   if (!data?.team_role) return false;
 
@@ -300,7 +307,9 @@ export async function verifyTeamRoleLevel(
 
 export async function canEditTeam(
   team: string | number,
-  user_id?: number,
+  options?: {
+    user_id?: number;
+  },
 ): Promise<{
   canEdit: boolean;
   role: RoleData | undefined;
@@ -322,7 +331,7 @@ export async function canEditTeam(
   // skip additional database query if we already know user has permission
   if (!canEdit) {
     // check for league admin privileges
-    const { data } = await getTeamRole(team, user_id);
+    const { data } = await getTeamRole(team, options);
     // verify which role the user has
     if (data) {
       // set canEdit based on whether it is a commissionerOnly check or not

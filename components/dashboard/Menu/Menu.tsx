@@ -28,6 +28,8 @@ export default function Menu({ userData, menuData }: MenuProps) {
 
   const { teams, leagues } = menuData;
 
+  const showLeaguesList = leagues.length > 0 || user_role <= 2;
+
   return (
     <header id="menu" className={css.menu}>
       <Link className={css.menu_logo} href="/dashboard">
@@ -109,7 +111,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
           </li>
         </ul>
 
-        {(leagues.length > 0 || user_role === (1 || 2)) && (
+        {showLeaguesList && (
           <>
             <h2 className={css.menu_heading}>Leagues</h2>
             <ul className={css.menu_list}>
@@ -139,7 +141,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
                   </Link>
                 </li>
               ))}
-              {user_role === (1 || 2) && (
+              {user_role <= 2 && (
                 <li>
                   <Icon
                     className={css.menu_item}
