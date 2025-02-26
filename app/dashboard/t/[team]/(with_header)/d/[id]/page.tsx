@@ -104,7 +104,13 @@ export default async function Page({ params }: PageProps) {
             </Button>
           )}
         </DashboardUnitHeader>
-        <DivisionRoster divisionRoster={teamMembers} />
+        {teamMembers ? (
+          <DivisionRoster divisionRoster={teamMembers} />
+        ) : (
+          <Card padding="ml">
+            <p>There are no players in this roster.</p>
+          </Card>
+        )}
       </DashboardUnit>
 
       <DashboardUnit gridArea="leagues">

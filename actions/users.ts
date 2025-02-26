@@ -221,11 +221,17 @@ export async function canEditUser(identifier: number | string) {
       return {
         message: err.message,
         status,
+        canEdit: false,
+        isAdmin: false,
+        isCurrentUser: false,
       };
     }
     return {
       message: "Something went wrong.",
       status: 500,
+      canEdit: false,
+      isAdmin: false,
+      isCurrentUser: false,
     };
   }
 }

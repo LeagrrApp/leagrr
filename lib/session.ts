@@ -24,6 +24,7 @@ export async function decrypt(session: string | undefined = "") {
     const { payload } = await jwtVerify(session, encodedKey, {
       algorithms: ["HS256"],
     });
+
     return payload;
   } catch (error) {
     // TODO: set up proper decrypt error validation
@@ -32,14 +33,13 @@ export async function decrypt(session: string | undefined = "") {
 }
 
 export async function createSession(userData: UserSessionData) {
-  // const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // One week
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // One day
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // One week
   const session = await encrypt({ userData, expiresAt });
   const cookieStore = await cookies();
 
   cookieStore.set("session", session, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.IS_PRODUCTION === "true",
     expires: expiresAt,
     sameSite: "lax",
     path: "/",
