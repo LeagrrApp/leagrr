@@ -11,6 +11,7 @@ interface IconProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   padding?: [SizeOptions, SizeOptions?];
   labelFirst?: boolean;
   gap?: SizeOptions;
+  onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 }
 
 interface IconStyles extends CSSProperties {
@@ -30,6 +31,7 @@ export default function Icon(props: IconProps) {
     padding,
     labelFirst,
     gap,
+    onClick,
   } = props;
 
   const styles: IconStyles = {};
@@ -52,6 +54,7 @@ export default function Icon(props: IconProps) {
         href={href}
         className={finalClasses}
         aria-current={props["aria-current"]}
+        onClick={onClick}
       >
         {labelFirst && (
           <span

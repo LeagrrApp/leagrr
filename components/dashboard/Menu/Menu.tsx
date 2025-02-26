@@ -9,7 +9,7 @@ import { apply_classes } from "@/utils/helpers/html-attributes";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import css from "./menu.module.css";
 
 interface MenuProps {
@@ -23,6 +23,11 @@ interface MenuProps {
 export default function Menu({ userData, menuData }: MenuProps) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    console.log("closing nav because of page change");
+    setMenuOpen(false);
+  }, [pathname]);
 
   const { username, first_name, last_name, user_role, img } = userData;
 
@@ -40,6 +45,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
         className={css.menu_item}
         href={createDashboardUrl({ u: username })}
         aria-current={pathname.includes(createDashboardUrl({ u: username }))}
+        // onClick={() => setMenuOpen(false)}
       >
         {img ? (
           <Image
@@ -82,6 +88,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
                 aria-current={pathname.includes(
                   createDashboardUrl({ t: team.slug }),
                 )}
+                // onClick={() => setMenuOpen(false)}
               >
                 {team.img ? (
                   <Image
@@ -107,6 +114,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
               label="Add a team"
               href="/dashboard/t/"
               aria-current={pathname === `/dashboard/t`}
+              // onClick={() => setMenuOpen(false)}
             />
           </li>
         </ul>
@@ -123,6 +131,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
                     aria-current={pathname.includes(
                       createDashboardUrl({ l: league.slug }),
                     )}
+                    // onClick={() => setMenuOpen(false)}
                   >
                     {league.img ? (
                       <Image
@@ -149,6 +158,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
                     label="Create a league"
                     href="/dashboard/l/"
                     aria-current={pathname === `/dashboard/l`}
+                    // onClick={() => setMenuOpen(false)}
                   />
                 </li>
               )}
@@ -165,6 +175,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
                 label="Admin"
                 icon="admin_panel_settings"
                 aria-current={pathname === `/dashboard/admin`}
+                // onClick={() => setMenuOpen(false)}
               />
             </li>
           )}
@@ -175,6 +186,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
               label="Settings"
               icon="settings"
               aria-current={pathname === `/dashboard/settings`}
+              onClick={() => setMenuOpen(false)}
             />
           </li>
           <li>
