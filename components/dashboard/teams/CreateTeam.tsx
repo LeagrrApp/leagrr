@@ -1,6 +1,7 @@
 "use client";
 
 import { createTeam } from "@/actions/teams";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/forms/Input";
 import Select from "@/components/ui/forms/Select";
@@ -60,6 +61,9 @@ export default function CreateTeam({ user_id }: CreateTeamProps) {
           )}
         </div>
         <input type="hidden" name="user_id" value={user_id} />
+        {state?.message && state?.status !== 200 && (
+          <Alert alert={state.message} type="danger" />
+        )}
         <Button type="submit" disabled={pending}>
           <Icon icon="add_circle" label="Create Team" />
         </Button>

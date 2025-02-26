@@ -1,7 +1,8 @@
-import { getLeagueData, getLeagueMetaData } from "@/actions/leagues";
+import { getLeagueIdFromSlug, getLeagueMetaData } from "@/actions/leagues";
 import CreateSeason from "@/components/dashboard/seasons/CreateSeason";
 import Container from "@/components/ui/Container/Container";
 import { verifySession } from "@/lib/session";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound } from "next/navigation";
 
 type PageProps = {
@@ -21,16 +22,18 @@ export async function generateMetadata({ params }: PageProps) {
 export default async function Page({ params }: PageProps) {
   await verifySession();
 
-  const { league: slug } = await params;
+  const { league } = await params;
 
-  const { data: league } = await getLeagueData(slug);
+  const { data } = await getLeagueIdFromSlug(league);
 
-  if (!league) notFound();
+  if (!data) notFound();
+
+  const backLink = createDashboardUrl({ l: league });
 
   return (
     <Container>
       <h2 className="push">New Season</h2>
-      <CreateSeason league_id={league.league_id} />
+      <CreateSeason league_id={data.league_id} backLink={backLink} />
     </Container>
   );
 }

@@ -42,75 +42,64 @@ export async function signUp(state: UserFormState, formData: FormData) {
     password: formData.get("password") as string,
   };
 
+  // initialize errors
   let errors: UserErrorProps = {};
 
-  // Validate form fields
-  const validatedFields = SignupFormSchema.safeParse(submittedData);
+  // initialize success check
+  let success = false;
 
-  // If any form fields are invalid, add errors to list
-  if (!validatedFields.success) {
-    errors = validatedFields.error.flatten().fieldErrors;
-  }
+  try {
+    // Validate form fields
+    const validatedFields = SignupFormSchema.safeParse(submittedData);
 
-  // check if passwords match
-  if (submittedData.password !== formData.get("password_confirm")) {
-    errors.password_confirm = ["Passwords must match!"];
-  }
+    // If any form fields are invalid, add errors to list
+    if (!validatedFields.success) {
+      errors = validatedFields.error.flatten().fieldErrors;
+    }
 
-  // If there are any errors, return the errors
-  if (!isObjectEmpty(errors)) {
-    return {
-      errors,
-      data: submittedData,
-    };
-  }
+    // check if passwords match
+    if (submittedData.password !== formData.get("password_confirm")) {
+      errors.password_confirm = ["Passwords must match!"];
+    }
 
-  // hash password with bcrypt
-  const password_hash = await bcrypt.hash(submittedData.password, 10);
+    // If there are any errors, return the errors
+    if (!isObjectEmpty(errors)) {
+      throw new Error("There were problems with submitted data.");
+    }
 
-  // create PostgreSQL insert statement
-  const insertSql: string = `
-    INSERT INTO
-    admin.users (username, email, first_name, last_name, password_hash)
-    VALUES
-    ($1, $2, $3, $4, $5)
-    RETURNING
-      user_id,
-      user_role,
-      username,
-      first_name,
-      last_name,
-      img
-    `;
+    // hash password with bcrypt
+    const password_hash = await bcrypt.hash(submittedData.password, 10);
 
-  // run PostgreSql query with pg
-  const insertResult: ResultProps<UserData> = await db
-    .query(insertSql, [
+    // create PostgreSQL insert statement
+    const insertSql: string = `
+      INSERT INTO
+        admin.users (username, email, first_name, last_name, password_hash)
+      VALUES
+        ($1, $2, $3, $4, $5)
+      RETURNING
+        user_id,
+        user_role,
+        username,
+        first_name,
+        last_name,
+        img
+      `;
+
+    // run PostgreSql query with pg
+    const { rows: insertRows } = await db.query<UserData>(insertSql, [
       submittedData.username,
       submittedData.email,
       submittedData.first_name,
       submittedData.last_name,
       password_hash,
-    ])
-    .then((res) => {
-      return { message: `Sign up successful!`, status: 200, data: res.rows[0] };
-    })
-    .catch((err) => {
-      console.log(err);
+    ]);
 
-      // TODO: add proper error handling function based on PostgreSQL error codes
-      // handle user creation errors
+    if (!insertRows[0])
+      throw new Error("There was a problem creating new user, try again.");
 
-      return {
-        message: "There was a problem creating new user, try again.",
-        status: 400,
-      };
-    });
-
-  // If insert was a success, it will return data
-  if (insertResult.data) {
+    // If insert was a success, it will return data
     const { user_id, user_role, username, first_name, last_name, img } =
-      insertResult.data;
+      insertRows[0];
 
     // create user session
     await createSession({
@@ -122,15 +111,27 @@ export async function signUp(state: UserFormState, formData: FormData) {
       img,
     });
 
-    // redirect user
-    redirect(`/dashboard/`);
+    success = true;
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+        errors,
+        data: submittedData,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      errors,
+      data: submittedData,
+    };
   }
 
-  // if it failed, return message and status
-  return {
-    ...insertResult,
-    data: submittedData,
-  };
+  if (success)
+    // redirect user
+    redirect(`/dashboard/`);
 }
 
 type UserSignInData = UserSessionData & {
@@ -151,8 +152,15 @@ export async function signIn(
 
   if (!identifier || !password) return;
 
-  // Get user data from database based on identifier, select user_id, user_role, and password_hash
-  const selectSql = `
+  // initialize result status code
+  let status = 400;
+
+  // initialize success check
+  let success = false;
+
+  try {
+    // Get user data from database based on identifier, select user_id, user_role, and password_hash
+    const selectSql = `
     SELECT
       user_id,
       user_role,
@@ -167,27 +175,13 @@ export async function signIn(
       username=$1 OR email=$1
   `;
 
-  const selectResult: ResultProps<UserSignInData> = await db
-    .query(selectSql, [identifier])
-    .then((res) => {
-      if (!res.rowCount) {
-        throw new Error("Username or password was incorrect.");
-      }
-      return {
-        message: "User data for session retrieved.",
-        data: res.rows[0],
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
+    const { rows } = await db.query<UserSignInData>(selectSql, [identifier]);
 
-  // If user was found, continue sign in steps
-  if (selectResult.data) {
+    if (!rows[0]) {
+      status = 401;
+      throw new Error("Username or password was incorrect.");
+    }
+
     const {
       user_id,
       user_role,
@@ -196,30 +190,21 @@ export async function signIn(
       last_name,
       password_hash,
       img,
-    } = selectResult.data;
+    } = rows[0];
 
     if (!password_hash) {
-      return {
-        message: "Username or password was incorrect",
-        status: 401,
-        data: {
-          identifier,
-        },
-      };
+      status = 401;
+      throw new Error("Username or password was incorrect");
     }
 
     // compare provided password with password_hash from db
     const passwordsMatch = await bcrypt.compare(password, password_hash);
 
     // if passwords don't match, return result for front end alert
-    if (!passwordsMatch)
-      return {
-        message: "Username or password was incorrect",
-        status: 401,
-        data: {
-          identifier,
-        },
-      };
+    if (!passwordsMatch) {
+      status = 401;
+      throw new Error("Username or password was incorrect");
+    }
 
     // create user session
     await createSession({
@@ -231,17 +216,31 @@ export async function signIn(
       img,
     });
 
-    // redirect user
-    redirect(`/dashboard/`);
+    success = true;
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        ...state,
+        message: err.message,
+        status,
+        data: {
+          identifier,
+          password,
+        },
+      };
+    }
+    return {
+      ...state,
+      message: "Something went wrong.",
+      status: 500,
+      data: {
+        identifier,
+        password,
+      },
+    };
   }
-
-  // user not found, return result for front end alerts
-  return {
-    ...selectResult,
-    data: {
-      identifier,
-    },
-  };
+  // redirect user
+  if (success) redirect(`/dashboard/`);
 }
 
 export async function logOut() {

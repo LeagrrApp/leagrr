@@ -1,8 +1,11 @@
 import {
   getAllTeamMembers,
+  getTeamDivisionRoster,
+} from "@/actions/teamMemberships";
+import {
+  canEditTeam,
   getDivisionTeamId,
   getTeam,
-  getTeamDivisionRoster,
   getTeamMetaData,
 } from "@/actions/teams";
 import ActiveRoster from "@/components/dashboard/teams/ActiveRoster/ActiveRoster";
@@ -12,7 +15,7 @@ import Alert from "@/components/ui/Alert/Alert";
 import BackButton from "@/components/ui/BackButton/BackButton";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { get_unique_items_by_key } from "@/utils/helpers/objects";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import css from "./page.module.css";
 
 type PageProps = {
@@ -43,6 +46,10 @@ export default async function Page({ params }: PageProps) {
   if (!teamData) notFound();
 
   const backLink = createDashboardUrl({ t: team, d: id });
+
+  const { canEdit } = await canEditTeam(team);
+
+  if (!canEdit) redirect(backLink);
 
   const { team_id } = teamData;
 

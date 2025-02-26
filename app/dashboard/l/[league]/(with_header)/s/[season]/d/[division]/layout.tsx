@@ -21,7 +21,9 @@ export default async function Layout({
 }>) {
   const { division, season, league } = await params;
 
-  const { data: seasonData } = await getSeason(season, league, true);
+  const { data: seasonData } = await getSeason(season, league, {
+    includeDivisions: true,
+  });
   const { data: divisionData } = await getDivision(division, season, league);
 
   if (!seasonData || !divisionData) notFound();

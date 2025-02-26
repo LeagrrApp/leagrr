@@ -1,6 +1,9 @@
 "use client";
 
-import { editTeamMembership, removeTeamMembership } from "@/actions/teams";
+import {
+  editTeamMembership,
+  removeTeamMembership,
+} from "@/actions/teamMemberships";
 import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
@@ -165,6 +168,11 @@ export default function TeamMembers({
                   name="team_membership_id"
                   value={teamMemberToEdit.team_membership_id}
                 />
+                <input
+                  type="hidden"
+                  name="user_id"
+                  value={teamMemberToEdit.user_id}
+                />
                 <Col fullSpan>
                   <Select
                     name="team_role"
@@ -180,6 +188,11 @@ export default function TeamMembers({
                     selected={teamMemberToEdit.team_role}
                   />
                 </Col>
+                {editState?.message && editState?.status !== 200 && (
+                  <Col fullSpan>
+                    <Alert alert={editState.message} type="danger" />
+                  </Col>
+                )}
                 <Button type="submit" disabled={editPending}>
                   <Icon icon="save" label="Save" />
                 </Button>
@@ -204,8 +217,15 @@ export default function TeamMembers({
                   name="team_membership_id"
                   value={teamMemberToEdit.team_membership_id}
                 />
+                <input
+                  type="hidden"
+                  name="user_id"
+                  value={teamMemberToEdit.user_id}
+                />
                 {removeState?.message && removeState?.status === 400 && (
-                  <Alert alert={removeState.message} type="danger" />
+                  <Col fullSpan>
+                    <Alert alert={removeState.message} type="danger" />
+                  </Col>
                 )}
                 <Button type="submit" disabled={removePending} variant="danger">
                   <Icon icon="delete" label="Confirm" />

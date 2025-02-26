@@ -13,154 +13,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { canEditLeague } from "./leagues";
 
-// TODO: Rename this function to something clearer
-export async function getLeagueInfoForGames(
-  division_slug: string,
-  season_slug: string,
-  league_slug: string,
-): Promise<ResultProps<AddGameData>> {
-  // check user is logged in
-  await verifySession();
-
-  // Check to see if the user is allowed to create a season for this league
-  const { canEdit } = await canEditLeague(league_slug);
-
-  if (!canEdit) {
-    return {
-      message: "You do not have permission to a game for this division",
-      status: 400,
-    };
-  }
-
-  // get list of teams
-  const teamsSql = `
-    SELECT
-      t.team_id,
-      t.name
-    FROM
-      league_management.division_teams AS dt
-    JOIN
-        league_management.teams AS t
-    ON
-        t.team_id = dt.team_id
-    JOIN
-      league_management.divisions AS d
-    ON
-      d.division_id = dt.division_id
-    WHERE
-      d.slug = $1
-      AND
-      d.season_id = (
-        SELECT
-          s.season_id
-        FROM
-          league_management.seasons AS s
-        WHERE
-          s.slug = $2
-          AND
-          s.league_id = (
-            SELECT
-              l.league_id
-            FROM
-              league_management.leagues AS l
-            WHERE
-              l.slug = $3
-          )
-      )
-  `;
-
-  const teamsResult: ResultProps<QuickTeam[]> = await db
-    .query(teamsSql, [division_slug, season_slug, league_slug])
-    .then((res) => {
-      if (res.rowCount === 0) {
-        throw new Error("There are no teams in this division!");
-      }
-      return {
-        message: "Division teams found",
-        status: 200,
-        data: res.rows,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 404,
-      };
-    });
-
-  if (!teamsResult.data) {
-    return {
-      message: teamsResult.message,
-      status: teamsResult.status,
-    };
-  }
-
-  // get list of arenas and venues
-  const locationsSql = `
-    SELECT 
-      v.slug AS venue_slug,
-      v.name AS venue,
-      a.name AS arena,
-      CONCAT(a.name, ' - ', v.name) AS location,
-      a.arena_id AS arena_id
-    FROM
-      league_management.league_venues AS lv
-    JOIN
-      league_management.venues AS v
-    ON
-      lv.venue_id = v.venue_id
-    JOIN
-      league_management.arenas AS a
-    ON
-      a.venue_id = v.venue_id
-    WHERE
-      league_id = (
-        SELECT
-          l.league_id
-        FROM
-          league_management.leagues AS L
-        WHERE 
-          l.slug = $1
-      )
-    ORDER BY
-      venue, arena
-  `;
-
-  const locationsResult: ResultProps<LocationData[]> = await db
-    .query(locationsSql, [league_slug])
-    .then((res) => {
-      if (res.rowCount === 0) {
-        throw new Error("This league does not have any assigned venues.");
-      }
-      return {
-        message: "league venues found",
-        status: 200,
-        data: res.rows,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 404,
-      };
-    });
-
-  if (!locationsResult.data) {
-    return {
-      message: locationsResult.message,
-      status: locationsResult.status,
-    };
-  }
-
-  return {
-    message: "Game add data found",
-    status: 200,
-    data: {
-      teams: teamsResult.data,
-      locations: locationsResult.data,
-    },
-  };
-}
+/* ---------- CREATE ---------- */
 
 const GameCreateFormSchema = z.object({
   division_id: z.number().min(1),
@@ -210,150 +63,189 @@ export async function createGame(
     status: formData.get("status") as string,
   };
 
-  // Check to see if the user is allowed to create a season for this league
-  const { canEdit } = await canEditLeague(submittedData.league_id);
+  let createGameSuccessful = false;
 
-  if (!canEdit) {
-    return {
-      message: "You do not have permission to create games for this division",
-      status: 400,
-      data: submittedData,
-    };
-  }
+  try {
+    // Check to see if the user is allowed to create a season for this league
+    const { canEdit } = await canEditLeague(submittedData.league_id);
 
-  let errors: GameErrorProps = {};
-
-  // Validate form fields
-  const validatedFields = GameCreateFormSchema.safeParse(submittedData);
-
-  // If any form fields are invalid, return early
-  if (!validatedFields.success) {
-    errors = validatedFields.error.flatten().fieldErrors;
-  }
-
-  if (submittedData.home_team_id === submittedData.away_team_id) {
-    if (errors.away_team_id) {
-      errors.away_team_id.push("Home and away teams must be different!");
-    } else {
-      errors.away_team_id = ["Home and away teams must be different!"];
+    if (!canEdit) {
+      return {
+        message: "You do not have permission to create games for this division",
+        status: 400,
+        link: state?.link,
+        data: submittedData,
+      };
     }
-  }
 
-  // if there are any validation errors, return errors
-  if (!isObjectEmpty(errors))
-    return {
-      link: state?.link,
-      errors,
-      data: {
-        home_team_id: submittedData.home_team_id,
-        away_team_id: submittedData.away_team_id,
-        arena_id: submittedData.arena_id,
-        date_time: formData.get("date_time") as string,
-        status: submittedData.status,
-      },
-    };
+    let errors: GameErrorProps = {};
 
-  const insertSql = `
-    INSERT INTO league_management.games
-      (home_team_id, away_team_id, division_id, date_time, arena_id, status)
-    VALUES
-      ($1, $2, $3, $4, $5, $6)
-    RETURNING game_id
-  `;
+    // Validate form fields
+    const validatedFields = GameCreateFormSchema.safeParse(submittedData);
 
-  const insertResult: ResultProps<{ game_id: number }> = await db
-    .query(insertSql, [
+    // If any form fields are invalid, return early
+    if (!validatedFields.success) {
+      errors = validatedFields.error.flatten().fieldErrors;
+    }
+
+    if (submittedData.home_team_id === submittedData.away_team_id) {
+      if (errors.away_team_id) {
+        errors.away_team_id.push("Home and away teams must be different!");
+      } else {
+        errors.away_team_id = ["Home and away teams must be different!"];
+      }
+    }
+
+    // if there are any validation errors, return errors
+    if (!isObjectEmpty(errors))
+      return {
+        link: state?.link,
+        errors,
+        data: {
+          home_team_id: submittedData.home_team_id,
+          away_team_id: submittedData.away_team_id,
+          arena_id: submittedData.arena_id,
+          date_time: formData.get("date_time") as string,
+          status: submittedData.status,
+        },
+      };
+
+    const insertSql = `
+      INSERT INTO league_management.games
+        (home_team_id, away_team_id, division_id, date_time, arena_id, status)
+      VALUES
+        ($1, $2, $3, $4, $5, $6)
+      RETURNING game_id
+    `;
+
+    const { rows } = await db.query<{ game_id: number }>(insertSql, [
       submittedData.home_team_id,
       submittedData.away_team_id,
       submittedData.division_id,
       submittedData.date_time,
       submittedData.arena_id,
       submittedData.status,
-    ])
-    .then((res) => {
-      return {
-        message: "Game created!",
-        status: 200,
-        data: res.rows[0],
-      };
-    })
-    .catch((err) => {
+    ]);
+
+    if (!rows[0]) throw new Error("Sorry, unable to create game.");
+
+    createGameSuccessful = true;
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
+        link: state?.link,
+        data: submittedData,
       };
-    });
-
-  if (!insertResult.data) {
+    }
     return {
-      message: insertResult.message,
-      status: insertResult.status,
+      message: "Something went wrong.",
+      status: 500,
+      link: state?.link,
       data: submittedData,
     };
   }
 
-  // TODO: handle if there link isn't working
-
-  if (state?.link) redirect(state?.link);
+  if (state?.link && createGameSuccessful) redirect(state?.link);
 }
+
+/* ---------- READ ---------- */
 
 export async function getGame(game_id: number) {
   // verify user is signed in
   await verifySession();
 
-  const sql = `
-    SELECT
-      game_id,
-      home_team_id,
-      (SELECT name FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team,
-      (SELECT color FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team_color,
-      (SELECT slug FROM league_management.teams WHERE team_id = g.home_team_id) AS home_team_slug,
-      home_team_score,
-      (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id = g.home_team_id AND sh.game_id = $1)::int AS home_team_shots,
-      away_team_id,
-      (SELECT name FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team,
-      (SELECT color FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team_color,
-      (SELECT slug FROM league_management.teams WHERE team_id = g.away_team_id) AS away_team_slug,
-      away_team_score,
-      (SELECT COUNT(*) FROM stats.shots AS sh WHERE sh.team_id = g.away_team_id AND sh.game_id = $1)::int AS away_team_shots,
-      division_id,
-      date_time,
-      arena_id,
-      (SELECT name FROM league_management.arenas WHERE arena_id = g.arena_id) AS arena,
-      (SELECT name FROM league_management.venues WHERE venue_id = (
-        SELECT venue_id FROM league_management.arenas WHERE arena_id = g.arena_id
-      )) AS venue,
-      status,
-      has_been_published
-    FROM league_management.games AS g
-    WHERE
-      game_id = $1
-  `;
+  try {
+    const sql = `
+      SELECT
+        g.game_id,
+        g.home_team_id,
+        g.home_team_score,
+        ht.name AS home_team,
+        ht.color AS home_team_color,
+        ht.slug AS home_team_slug,
+        sum(
+          CASE
+            WHEN s.team_id = ht.team_id THEN 1
+            ELSE 0
+          END
+        ) AS home_team_shots,
+        g.away_team_id,
+        g.away_team_score,
+        at.name AS away_team,
+        at.color AS away_team_color,
+        at.slug AS away_team_slug,
+        sum(
+          CASE
+            WHEN s.team_id = at.team_id THEN 1
+            ELSE 0
+          END
+        ) AS away_team_shots,
+        g.division_id,
+        g.date_time,
+        g.arena_id,
+        a.name AS arena,
+        v.name AS venue,
+        g.status,
+        g.has_been_published
+      FROM
+        league_management.games AS g
+      LEFT JOIN
+        league_management.teams AS ht
+      ON
+        g.home_team_id = ht.team_id
+      LEFT JOIN
+        league_management.teams AS at
+      ON
+        g.away_team_id = at.team_id
+      LEFT JOIN
+        league_management.arenas AS a
+      ON
+        g.arena_id = a.arena_id
+      LEFT JOIN
+        league_management.venues AS v
+      ON
+        a.venue_id = v.venue_id
+      LEFT JOIN
+        stats.shots AS s
+      ON
+        g.game_id = s.game_id
+      WHERE
+        g.game_id = $1
+      GROUP BY g.game_id, ht.name, ht.color, ht.slug, at.name, at.color, at.slug, a.name, v.name
+    `;
 
-  const gameResult: ResultProps<GameData> = await db
-    .query(sql, [game_id])
-    .then((res) => {
-      return {
-        message: "Game data loaded",
-        status: 200,
-        data: res.rows[0],
-      };
-    })
-    .catch((err) => {
+    const { rows } = await db.query<GameData>(sql, [game_id]);
+
+    if (!rows[0])
+      throw new Error("Sorry, there was a problem loading the game data.");
+
+    return {
+      message: "Game data retrieved.",
+      status: 200,
+      data: rows[0],
+    };
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
       };
-    });
-
-  return gameResult;
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
 }
 
 export async function getGameUrl(game_id: number) {
   // verify user is signed in
   await verifySession();
 
-  const sql = `
+  try {
+    const sql = `
     SELECT
       g.game_id,
       d.slug AS division_slug,
@@ -377,43 +269,37 @@ export async function getGameUrl(game_id: number) {
       game_id = $1
   `;
 
-  const result: ResultProps<{
-    game_id: number;
-    league_slug: string;
-    division_slug: string;
-    season_slug: string;
-  }> = await db
-    .query(sql, [game_id])
-    .then((res) => {
-      return {
-        message: "Game data found!",
-        status: 200,
-        data: res.rows[0],
-      };
-    })
-    .catch((err) => {
+    const { rows } = await db.query<{
+      game_id: number;
+      league_slug: string;
+      division_slug: string;
+      season_slug: string;
+    }>(sql, [game_id]);
+
+    if (!rows[0]) throw new Error("Sorry, unable to load game URL.");
+
+    return {
+      message: "Game url created!",
+      status: 200,
+      data: createDashboardUrl({
+        l: rows[0].league_slug,
+        s: rows[0].season_slug,
+        d: rows[0].division_slug,
+        g: rows[0].game_id,
+      }),
+    };
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
       };
-    });
-
-  if (!result.data) return result;
-
-  const urlParts = result.data;
-
-  const url = createDashboardUrl({
-    l: urlParts.league_slug,
-    s: urlParts.season_slug,
-    d: urlParts.division_slug,
-    g: urlParts.game_id,
-  });
-
-  return {
-    message: "Game url created!",
-    status: 200,
-    data: url,
-  };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
 }
 
 export async function getGameMetaInfo(
@@ -532,6 +418,558 @@ export async function getGameMetaInfo(
   }
 }
 
+export async function canEditGame(
+  game_id: number,
+  options?: {
+    user_id?: number;
+  },
+) {
+  try {
+    const sql = `
+      SELECT
+        s.league_id
+      FROM
+        league_management.games AS g
+      JOIN
+        league_management.divisions AS d
+      ON
+        g.division_id = d.division_id
+      JOIN
+        league_management.seasons AS s
+      ON
+        d.season_id = s.season_id
+      WHERE
+      game_id = $1
+    `;
+
+    const { rows } = await db.query<{ league_id: string }>(sql, [game_id]);
+
+    if (!rows[0]) throw new Error("Game not found.");
+
+    const { league_id } = rows[0];
+
+    const canEditLeagueResult = await canEditLeague(league_id, options);
+
+    return canEditLeagueResult;
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+        canEdit: false,
+      };
+    }
+    return {
+      message: "Something went wrong",
+      status: 500,
+      canEdit: false,
+    };
+  }
+}
+
+export async function getGamesByDivisionId(
+  division_id: number,
+  league: number | string,
+) {
+  try {
+    const divisionGamesSql = `
+      SELECT
+        g.game_id,
+        g.home_team_id,
+        ht.name AS home_team,
+        g.home_team_score,
+        g.away_team_id,
+        at.name AS away_team,
+        g.away_team_score,
+        g.date_time,
+        g.arena_id,
+        a.name AS arena,
+        v.name AS venue,
+        g.status,
+        g.division_id
+      FROM
+        league_management.games AS g
+      LEFT JOIN
+        league_management.teams AS ht
+      ON
+        g.home_team_id = ht.team_id
+      LEFT JOIN
+        league_management.teams AS at
+      ON
+        g.away_team_id = at.team_id
+      LEFT JOIN
+        league_management.arenas AS a
+      ON
+        a.arena_id = g.arena_id
+      LEFT JOIN
+        league_management.venues AS v
+      ON
+        a.venue_id = v.venue_id
+      WHERE
+        division_id = $1
+      ORDER BY
+        date_time DESC
+    `;
+
+    const { rows } = await db.query<GameData>(divisionGamesSql, [division_id]);
+
+    if (!rows[0]) {
+      return {
+        message: "This division has no games.",
+        status: 200,
+        data: [],
+      };
+    }
+
+    let games = rows;
+
+    const { canEdit } = await canEditLeague(league);
+
+    if (!canEdit) {
+      games = games.filter(
+        (g) =>
+          g.status === "public" ||
+          g.status === "completed" ||
+          g.status === "postponed" ||
+          g.status === "cancelled",
+      );
+    }
+
+    return {
+      message: "Division games retrieved.",
+      status: 200,
+      data: games,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
+}
+
+export async function getTeamGameStats(
+  game_id: number,
+  team_id: number,
+  division_id: number,
+) {
+  // verify user is signed in
+  await verifySession();
+
+  try {
+    const sql = `
+      SELECT
+        user_id,
+        username,
+        first_name,
+        last_name,
+        position,
+        number,
+        goals,
+        assists,
+        shots,
+        saves,
+        penalties_in_minutes,
+        (goals + assists) AS points
+      FROM
+      (
+        SELECT
+          u.user_id,
+          u.username,
+          u.first_name,
+          u.last_name,
+          dr.position,
+          dr.number,
+          COUNT(DISTINCT g.goal_id)::int AS goals,
+          COUNT(DISTINCT a.assist_id)::int AS assists,
+          COUNT(DISTINCT s.shot_id)::int AS shots,
+          COUNT(DISTINCT sa.shot_id)::int AS saves,
+          (SELECT COALESCE(SUM(minutes), 0) FROM stats.penalties AS p WHERE p.user_id = u.user_id AND p.game_id = $1)::int as penalties_in_minutes
+        FROM
+          league_management.division_rosters AS dr
+        JOIN
+          league_management.team_memberships AS tm
+        ON
+          dr.team_membership_id = tm.team_membership_id
+        JOIN
+          admin.users AS u
+        ON
+          tm.user_id = u.user_id
+        JOIN
+          league_management.division_teams AS dt
+        ON
+          dt.division_team_id = dr.division_team_id
+        LEFT JOIN
+          stats.goals AS g
+        ON
+          g.user_id = u.user_id AND g.game_id = $1
+        LEFT JOIN
+          stats.assists AS a
+        ON
+          a.user_id = u.user_id AND a.game_id = $1
+        LEFT JOIN
+          stats.shots AS s
+        ON
+          s.user_id = u.user_id AND s.game_id = $1
+        LEFT JOIN
+          stats.saves AS sa
+        ON
+          sa.user_id = u.user_id AND sa.game_id = $1
+        WHERE
+          dt.team_id = $2
+          AND
+          dt.division_id = $3
+          AND
+          dr.roster_role IN (2, 3, 4)
+        GROUP BY (u.username, u.user_id, u.first_name, u.last_name, dr.position, dr.number)
+      )
+      ORDER BY points DESC, goals DESC, assists DESC, shots DESC, last_name ASC, first_name ASC
+    `;
+
+    const result = await db.query<PlayerStats>(sql, [
+      game_id,
+      team_id,
+      division_id,
+    ]);
+
+    console.log(result);
+
+    return {
+      message: "Team game stats loaded",
+      status: 200,
+      data: result.rows,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
+}
+
+export async function getGameFeed(game_id: number): Promise<
+  ResultProps<{
+    period1: StatsData[];
+    period2: StatsData[];
+    period3: StatsData[];
+    [key: string]: StatsData[];
+  }>
+> {
+  // verify user is signed in
+  await verifySession();
+
+  try {
+    // get all shots
+    const shotsSql = `
+      SELECT
+        s.tableoid::regclass AS type,
+        s.shot_id AS item_id,
+        u.username,
+        u.first_name,
+        u.last_name,
+        s.user_id,
+        s.team_id,
+        t.name AS team,
+        s.period,
+        s.period_time
+      FROM
+        stats.shots AS s
+      JOIN
+        admin.users AS u
+      ON
+        s.user_id = u.user_id
+      JOIN
+        league_management.teams AS t
+      ON
+        s.team_id = t.team_id
+      WHERE
+        game_id = $1
+      ORDER BY
+        period ASC, period_time ASC
+    `;
+
+    const { rows: shots } = await db.query<StatsData>(shotsSql, [game_id]);
+
+    // get all goals
+    const goalsSql = `
+      SELECT
+        g.tableoid::regclass AS type,
+        g.goal_id AS item_id,
+        g.user_id,
+        u.username,
+        u.first_name,
+        u.last_name,
+        g.team_id,
+        t.name AS team,
+        g.period,
+        g.period_time,
+        g.shorthanded,
+        g.power_play,
+        g.empty_net
+      FROM
+        stats.goals AS g
+      JOIN
+          admin.users AS u
+        ON
+          g.user_id = u.user_id
+      JOIN
+        league_management.teams AS t
+      ON
+        g.team_id = t.team_id
+      WHERE
+        game_id = $1
+      ORDER BY
+        period ASC, period_time ASC
+    `;
+
+    const { rows: goals } = await db.query<StatsData>(goalsSql, [game_id]);
+
+    // get all assists
+    const assistsSql = `
+      SELECT
+        a.tableoid::regclass AS type,
+        a.assist_id AS item_id,
+        a.goal_id,
+        a.user_id,
+        u.username,
+        u.first_name,
+        u.last_name,
+        a.team_id,
+        t.name AS team,
+        a.primary_assist
+      FROM
+        stats.assists AS a
+      JOIN
+          admin.users AS u
+        ON
+          a.user_id = u.user_id
+      JOIN
+        league_management.teams AS t
+      ON
+        a.team_id = t.team_id
+      WHERE
+        game_id = $1
+      ORDER BY
+        goal_id ASC, primary_assist DESC
+    `;
+
+    const { rows: assists } = await db.query<StatsData>(assistsSql, [game_id]);
+
+    // get all saves
+    const savesSql = `
+      SELECT
+        s.tableoid::regclass AS type,
+        s.save_id AS item_id,
+        s.user_id,
+        u.username,
+        u.first_name,
+        u.last_name,
+        s.team_id,
+        t.name AS team,
+        s.period,
+        s.period_time,
+        s.penalty_kill,
+        s.rebound
+      FROM
+        stats.saves AS s
+      JOIN
+          admin.users AS u
+      ON
+        s.user_id = u.user_id
+      JOIN
+        league_management.teams AS t
+      ON
+        s.team_id = t.team_id
+      WHERE
+        game_id = $1
+      ORDER BY
+        period ASC, period_time ASC
+    `;
+
+    const { rows: saves } = await db.query<StatsData>(savesSql, [game_id]);
+
+    // get all penalties
+    const penaltiesSql = `
+      SELECT
+        p.tableoid::regclass AS type,
+        p.penalty_id AS item_id,
+        p.user_id,
+        u.username,
+        u.first_name,
+        u.last_name,
+        p.team_id,
+        t.name AS team,
+        p.period,
+        p.period_time,
+        p.infraction,
+        p.minutes
+      FROM
+        stats.penalties AS p
+      JOIN
+          admin.users AS u
+      ON
+        p.user_id = u.user_id
+      JOIN
+        league_management.teams AS t
+      ON
+        p.team_id = t.team_id
+      WHERE
+        game_id = $1
+      ORDER BY
+        period ASC, period_time ASC
+    `;
+
+    const { rows: penalties } = await db.query<StatsData>(penaltiesSql, [
+      game_id,
+    ]);
+
+    // attach assists to goals
+    const goalsWithAssists: StatsData[] = [];
+
+    goals.forEach((g) => {
+      goalsWithAssists.push({
+        ...g,
+        assists: assists.filter((a) => a.goal_id === g.item_id),
+      });
+    });
+
+    // Object used as reference to order feed items
+    const typeOrder: {
+      [key: string]: number;
+    } = {
+      "stats.shots": 1,
+      "stats.goals": 2,
+      "stats.save": 3,
+      "stats.penalties": 4,
+      default: Number.MAX_VALUE,
+    };
+
+    // combine into single array, order by period & time
+    // when multiple different types share same period & time,
+    // put in this order: shot, goal, save, penalty
+    const gameFeedItems = [
+      ...shots,
+      ...goalsWithAssists,
+      ...saves,
+      ...penalties,
+    ].sort(
+      (a, b) =>
+        a.period - b.period ||
+        (a.period_time.minutes || 0) * 60 +
+          (a.period_time.seconds || 0) -
+          ((b.period_time.minutes || 0) * 60 + (b.period_time.seconds || 0)) ||
+        (typeOrder[a.type] || typeOrder.default) -
+          (typeOrder[b.type] || typeOrder.default),
+    );
+
+    const gameFeed: {
+      period1: StatsData[];
+      period2: StatsData[];
+      period3: StatsData[];
+      [key: string]: StatsData[];
+    } = {
+      period1: gameFeedItems.filter((g) => g.period === 1),
+      period2: gameFeedItems.filter((g) => g.period === 2),
+      period3: gameFeedItems.filter((g) => g.period === 3),
+    };
+
+    return {
+      message: "Game feed data loaded!",
+      status: 200,
+      data: gameFeed,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
+}
+
+export async function getGameTeamRosters(
+  away_team_id: number,
+  home_team_id: number,
+  division_id: number,
+) {
+  // verify user is signed in
+  await verifySession();
+
+  try {
+    const rostersSql = `
+      SELECT
+        tm.team_id,
+        u.user_id,
+        u.first_name,
+        u.last_name,
+        dr.position
+      FROM
+        league_management.division_rosters AS dr
+      JOIN
+        league_management.team_memberships AS tm
+      ON
+        dr.team_membership_id = tm.team_membership_id
+      JOIN
+        admin.users AS u
+      ON
+        tm.user_id = u.user_id
+      JOIN
+        league_management.division_teams AS dt
+      ON
+        dt.division_team_id = dr.division_team_id
+      WHERE
+        dt.team_id IN ($1, $2) AND dt.division_id = $3
+      ORDER BY
+        tm.team_id, u.last_name, u.first_name
+    `;
+
+    const { rows } = await db.query<TeamRosterItem>(rostersSql, [
+      away_team_id,
+      home_team_id,
+      division_id,
+    ]);
+
+    return {
+      message: "Game team rosters loaded!",
+      status: 200,
+      data: {
+        away_roster: rows.filter((p) => p.team_id === away_team_id),
+        home_roster: rows.filter((p) => p.team_id === home_team_id),
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
+}
+
+/* ---------- UPDATE ---------- */
+
 const GameEditFormSchema = z.object({
   game_id: z.number().min(1),
   league_id: z.number().min(1),
@@ -559,95 +997,98 @@ export async function editGame(
     status: formData.get("status") as string,
   };
 
-  // Check to see if the user is allowed to create a season for this league
-  const { canEdit } = await canEditLeague(submittedData.league_id);
+  // initialize success check
+  let editSuccessful = false;
 
-  if (!canEdit) {
-    return {
-      message: "You do not have permission to edit this game.",
-      status: 400,
-      data: submittedData,
-    };
-  }
+  // create returnable state data object that is compatible with form fields
+  const returnableStateData = {
+    home_team_id: submittedData.home_team_id,
+    away_team_id: submittedData.away_team_id,
+    arena_id: submittedData.arena_id,
+    date_time: formData.get("date_time") as string,
+    status: submittedData.status,
+  };
 
-  let errors: GameErrorProps = {};
+  try {
+    // Check to see if the user is allowed to create a season for this league
+    const { canEdit } = await canEditLeague(submittedData.league_id);
 
-  // Validate form fields
-  const validatedFields = GameEditFormSchema.safeParse(submittedData);
-
-  // If any form fields are invalid, return early
-  if (!validatedFields.success) {
-    errors = validatedFields.error.flatten().fieldErrors;
-  }
-
-  if (submittedData.home_team_id === submittedData.away_team_id) {
-    if (errors.away_team_id) {
-      errors.away_team_id.push("Home and away teams must be different!");
-    } else {
-      errors.away_team_id = ["Home and away teams must be different!"];
+    if (!canEdit) {
+      return {
+        message: "You do not have permission to edit this game.",
+        status: 400,
+        data: returnableStateData,
+      };
     }
-  }
 
-  // if there are any validation errors, return errors
-  if (!isObjectEmpty(errors))
-    return {
-      link: state?.link,
-      errors,
-      data: {
-        home_team_id: submittedData.home_team_id,
-        away_team_id: submittedData.away_team_id,
-        arena_id: submittedData.arena_id,
-        date_time: formData.get("date_time") as string,
-        status: submittedData.status,
-      },
-    };
+    let errors: GameErrorProps = {};
 
-  const updateSql = `
-    UPDATE
-      league_management.games
-    SET
-      home_team_id = $1,
-      away_team_id = $2,
-      arena_id = $3,
-      date_time = $4,
-      status = $5
-    WHERE
-      game_id = $6
-  `;
+    // Validate form fields
+    const validatedFields = GameEditFormSchema.safeParse(submittedData);
 
-  const updateResult: ResultProps<{ game_id: number }> = await db
-    .query(updateSql, [
+    // If any form fields are invalid, return early
+    if (!validatedFields.success) {
+      errors = validatedFields.error.flatten().fieldErrors;
+    }
+
+    if (submittedData.home_team_id === submittedData.away_team_id) {
+      if (errors.away_team_id) {
+        errors.away_team_id.push("Home and away teams must be different!");
+      } else {
+        errors.away_team_id = ["Home and away teams must be different!"];
+      }
+    }
+
+    // if there are any validation errors, return errors
+    if (!isObjectEmpty(errors))
+      return {
+        link: state?.link,
+        errors,
+        data: returnableStateData,
+      };
+
+    const updateSql = `
+      UPDATE
+        league_management.games
+      SET
+        home_team_id = $1,
+        away_team_id = $2,
+        arena_id = $3,
+        date_time = $4,
+        status = $5
+      WHERE
+        game_id = $6
+    `;
+
+    const { rowCount } = await db.query(updateSql, [
       submittedData.home_team_id,
       submittedData.away_team_id,
       submittedData.arena_id,
       submittedData.date_time,
       submittedData.status,
       submittedData.game_id,
-    ])
-    .then((res) => {
-      return {
-        message: "Game updated!",
-        status: 200,
-        data: res.rows[0],
-      };
-    })
-    .catch((err) => {
+    ]);
+
+    if (rowCount === 0)
+      throw new Error("Sorry, there was an issue updating the game.");
+
+    editSuccessful = true;
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
+        data: returnableStateData,
       };
-    });
-
-  if (updateResult.status === 400) {
+    }
     return {
-      ...updateResult,
-      data: submittedData,
+      message: "Something went wrong.",
+      status: 500,
+      data: returnableStateData,
     };
   }
 
-  // TODO: handle if there link isn't working
-
-  if (state?.link) redirect(state?.link);
+  if (state?.link && editSuccessful) redirect(state?.link);
 }
 
 const GameScoreSchema = z.object({
@@ -673,521 +1114,111 @@ export async function setGameScore(
   state: GameScoreState,
   formData: FormData,
 ): Promise<GameScoreState> {
-  if (
-    !state ||
-    !state.data ||
-    !state.data.game ||
-    !state.data.league ||
-    !state.link
-  )
-    return {
-      message: "Missing necessary data to set the score!",
-      status: 400,
-      data: state?.data,
+  // initialize success check
+  let successful = false;
+
+  try {
+    if (
+      !state ||
+      !state.data ||
+      !state.data.game ||
+      !state.data.league ||
+      !state.link
+    )
+      throw new Error("Missing necessary data to set the score!");
+
+    // verify user is signed in
+    await verifySession();
+
+    const { canEdit } = await canEditLeague(state.data.league);
+
+    if (!canEdit) {
+      return {
+        ...state,
+        message: "You do not have permission to create games for this division",
+        status: 401,
+      };
+    }
+
+    const gameScoreData = {
+      home_team_score: parseInt(formData.get("home_team_score") as string),
+      away_team_score: parseInt(formData.get("away_team_score") as string),
     };
 
-  // verify user is signed in
-  await verifySession();
+    // Validate form fields
+    const validatedFields = GameScoreSchema.safeParse(gameScoreData);
 
-  const { canEdit } = await canEditLeague(state.data.league);
+    // If any form fields are invalid, return early
+    if (!validatedFields.success) {
+      return {
+        ...state,
+        errors: validatedFields.error.flatten().fieldErrors,
+      };
+    }
 
-  if (!canEdit) {
-    return {
-      ...state,
-      message: "You do not have permission to create games for this division",
-      status: 400,
-    };
-  }
+    const sql = `
+      UPDATE league_management.games
+      SET 
+        home_team_score = $1,
+        away_team_score = $2,
+        status = 'completed'
+      WHERE
+        game_id = $3
+    `;
 
-  const gameScoreData = {
-    home_team_score: parseInt(formData.get("home_team_score") as string),
-    away_team_score: parseInt(formData.get("away_team_score") as string),
-  };
-
-  // Validate form fields
-  const validatedFields = GameScoreSchema.safeParse(gameScoreData);
-
-  // If any form fields are invalid, return early
-  if (!validatedFields.success) {
-    return {
-      ...state,
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
-  const sql = `
-    UPDATE league_management.games
-    SET 
-      home_team_score = $1,
-      away_team_score = $2,
-      status = 'completed'
-    WHERE
-      game_id = $3
-  `;
-
-  const gameScoreResult = await db
-    .query(sql, [
+    const { rowCount } = await db.query(sql, [
       gameScoreData.home_team_score,
       gameScoreData.away_team_score,
       state.data.game.game_id,
-    ])
-    .then(() => {
-      return {
-        message: "Game score updated",
-        status: 200,
-      };
-    })
-    .catch((err) => {
+    ]);
+
+    if (rowCount === 0)
+      throw new Error("Sorry, there was a problem setting the game score.");
+
+    successful = true;
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
+        data: state?.data,
+        link: state?.link,
       };
-    });
-
-  if (gameScoreResult.status === 400)
+    }
     return {
-      ...gameScoreResult,
-      data: {
-        ...state?.data,
-        ...gameScoreData,
-      },
-    };
-
-  redirect(state.link);
-}
-
-export async function getTeamGameStats(
-  game_id: number,
-  team_id: number,
-  division_id: number,
-) {
-  // verify user is signed in
-  await verifySession();
-
-  const sql = `
-    SELECT
-      u.user_id,
-      u.username,
-      u.first_name,
-      u.last_name,
-      dr.number,
-      dr.position,
-      (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = tm.user_id AND g.game_id = $1)::int AS goals,
-      (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = tm.user_id AND a.game_id = $1)::int AS assists,
-      (
-        (SELECT COUNT(*) FROM stats.goals AS g WHERE g.user_id = tm.user_id AND g.game_id = $1) +
-        (SELECT COUNT(*) FROM stats.assists AS a WHERE a.user_id = tm.user_id AND a.game_id = $1)	
-      )::int AS points,
-      (SELECT COUNT(*) FROM stats.shots AS s WHERE s.user_id = tm.user_id AND s.game_id = $1)::int AS shots,
-      (SELECT COUNT(*) FROM stats.saves AS sa WHERE sa.user_id = tm.user_id AND sa.game_id = $1)::int AS saves,
-      (SELECT SUM(minutes) FROM stats.penalties AS p WHERE p.user_id = tm.user_id AND p.game_id = $1)::int AS penalties_in_minutes
-    FROM
-      league_management.division_rosters AS dr
-    JOIN
-      league_management.team_memberships AS tm
-    ON
-      dr.team_membership_id = tm.team_membership_id
-    JOIN
-      admin.users AS u
-    ON
-      tm.user_id = u.user_id
-    JOIN
-      league_management.division_teams AS dt
-    ON
-      dt.division_team_id = dr.division_team_id
-    WHERE
-      dt.team_id = $2
-      AND
-      dt.division_id = $3
-      AND
-      dr.roster_role IN (2, 3, 4)
-    ORDER BY points DESC, goals DESC, assists DESC, shots DESC, last_name ASC, first_name ASC
-  `;
-
-  const teamGameStatsResult: ResultProps<PlayerStats[]> = await db
-    .query(sql, [game_id, team_id, division_id])
-    .then((res) => {
-      return {
-        message: "Player stats loaded",
-        status: 200,
-        data: res.rows,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  return teamGameStatsResult;
-}
-
-export async function getGameFeed(game_id: number): Promise<
-  ResultProps<{
-    period1: StatsData[];
-    period2: StatsData[];
-    period3: StatsData[];
-    [key: string]: StatsData[];
-  }>
-> {
-  // verify user is signed in
-  await verifySession();
-
-  const errorResponse = {
-    message: "There was a problem loading the game feed.",
-    status: 400,
-  };
-
-  // get all shots
-  const shotsSql = `
-    SELECT
-      tableoid::regclass AS type,
-      s.shot_id AS item_id,
-      s.user_id,
-      (SELECT username FROM admin.users AS u WHERE u.user_id = s.user_id) AS username,
-      (SELECT last_name FROM admin.users AS u WHERE u.user_id = s.user_id) AS user_last_name,
-      s.team_id,
-      (SELECT name FROM league_management.teams AS t WHERE t.team_id = s.team_id) AS team,
-      s.period,
-      s.period_time
-    FROM
-      stats.shots AS s
-    WHERE
-      game_id = $1
-    ORDER BY
-      period ASC, period_time ASC
-  `;
-
-  const shotsResult: ResultProps<StatsData[]> = await db
-    .query(shotsSql, [game_id])
-    .then((res) => {
-      return {
-        message: "Shot stats loaded",
-        status: 200,
-        data: res.rows,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  if (!shotsResult.data) {
-    return {
-      message: "There was a problem loading the game feed.",
-      status: 400,
+      message: "Something went wrong.",
+      status: 500,
+      data: state?.data,
+      link: state?.link,
     };
   }
 
-  // get all goals
-  const goalsSql = `
-    SELECT
-      tableoid::regclass AS type,
-      g.goal_id AS item_id,
-      g.user_id,
-      (SELECT username FROM admin.users AS u WHERE u.user_id = g.user_id) AS username,
-      (SELECT last_name FROM admin.users AS u WHERE u.user_id = g.user_id) AS user_last_name,
-      g.team_id,
-      (SELECT name FROM league_management.teams AS t WHERE t.team_id = g.team_id) AS team,
-      g.period,
-      g.period_time,
-      g.shorthanded,
-      g.power_play,
-      g.empty_net
-    FROM
-      stats.goals AS g
-    WHERE
-      game_id = $1
-    ORDER BY
-      period ASC, period_time ASC
-  `;
-
-  const goalsResult: ResultProps<StatsData[]> = await db
-    .query(goalsSql, [game_id])
-    .then((res) => {
-      return {
-        message: "Goals stats loaded",
-        status: 200,
-        data: res.rows,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  if (!goalsResult.data) {
-    return errorResponse;
-  }
-
-  // get all assists
-  const assistsSql = `
-    SELECT
-      tableoid::regclass AS type,
-      a.assist_id AS item_id,
-      a.goal_id,
-      a.user_id,
-      (SELECT username FROM admin.users AS u WHERE u.user_id = a.user_id) AS username,
-      (SELECT last_name FROM admin.users AS u WHERE u.user_id = a.user_id) AS user_last_name,
-      a.team_id,
-      (SELECT name FROM league_management.teams AS t WHERE t.team_id = a.team_id) AS team,
-      a.primary_assist
-    FROM
-      stats.assists AS a
-    WHERE
-      game_id = $1
-    ORDER BY
-      goal_id ASC, primary_assist DESC
-  `;
-
-  const assistsResult: ResultProps<StatsData[]> = await db
-    .query(assistsSql, [game_id])
-    .then((res) => {
-      return {
-        message: "Assist stats loaded",
-        status: 200,
-        data: res.rows,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  if (!assistsResult.data) {
-    return errorResponse;
-  }
-
-  // get all saves
-  const savesSql = `
-    SELECT
-      tableoid::regclass AS type,
-      s.save_id AS item_id,
-      s.user_id,
-      (SELECT username FROM admin.users AS u WHERE u.user_id = s.user_id) AS username,
-      (SELECT last_name FROM admin.users AS u WHERE u.user_id = s.user_id) AS user_last_name,
-      s.team_id,
-      (SELECT name FROM league_management.teams AS t WHERE t.team_id = s.team_id) AS team,
-      s.period,
-      s.period_time,
-      s.penalty_kill,
-      s.rebound
-    FROM
-      stats.saves AS s
-    WHERE
-      game_id = $1
-    ORDER BY
-      period ASC, period_time ASC
-  `;
-
-  const savesResult: ResultProps<StatsData[]> = await db
-    .query(savesSql, [game_id])
-    .then((res) => {
-      return {
-        message: "Saves stats loaded",
-        status: 200,
-        data: res.rows,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  if (!savesResult.data) {
-    return errorResponse;
-  }
-
-  // get all penalties
-  const penaltiesSql = `
-    SELECT
-      tableoid::regclass AS type,
-      p.penalty_id AS item_id,
-      p.user_id,
-      (SELECT username FROM admin.users AS u WHERE u.user_id = p.user_id) AS username,
-      (SELECT last_name FROM admin.users AS u WHERE u.user_id = p.user_id) AS user_last_name,
-      p.team_id,
-      (SELECT name FROM league_management.teams AS t WHERE t.team_id = p.team_id) AS team,
-      p.period,
-      p.period_time,
-      p.infraction,
-      p.minutes
-    FROM
-      stats.penalties AS p
-    WHERE
-      game_id = $1
-    ORDER BY
-      period ASC, period_time ASC
-  `;
-
-  const penaltiesResult: ResultProps<StatsData[]> = await db
-    .query(penaltiesSql, [game_id])
-    .then((res) => {
-      return {
-        message: "Penalties stats loaded",
-        status: 200,
-        data: res.rows,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  if (!penaltiesResult.data) {
-    return errorResponse;
-  }
-
-  // attach assists to goals
-  const goalsWithAssists: StatsData[] = [];
-  const goals = goalsResult.data;
-  const assists = assistsResult.data;
-
-  goals.forEach((g) => {
-    goalsWithAssists.push({
-      ...g,
-      assists: assists.filter((a) => a.goal_id === g.item_id),
-    });
-  });
-
-  // Object used as reference to order feed items
-  const typeOrder: {
-    [key: string]: number;
-  } = {
-    "stats.shots": 1,
-    "stats.goals": 2,
-    "stats.save": 3,
-    "stats.penalties": 4,
-    default: Number.MAX_VALUE,
-  };
-
-  // combine into single array, order by period & time
-  // when multiple different types share same period & time,
-  // put in this order: shot, goal, save, penalty
-  const gameFeedItems = [
-    ...shotsResult.data,
-    ...goalsWithAssists,
-    ...savesResult.data,
-    ...penaltiesResult.data,
-  ].sort(
-    (a, b) =>
-      a.period - b.period ||
-      (a.period_time.minutes || 0) * 60 +
-        (a.period_time.seconds || 0) -
-        ((b.period_time.minutes || 0) * 60 + (b.period_time.seconds || 0)) ||
-      (typeOrder[a.type] || typeOrder.default) -
-        (typeOrder[b.type] || typeOrder.default),
-  );
-
-  const gameFeed: {
-    period1: StatsData[];
-    period2: StatsData[];
-    period3: StatsData[];
-    [key: string]: StatsData[];
-  } = {
-    period1: gameFeedItems.filter((g) => g.period === 1),
-    period2: gameFeedItems.filter((g) => g.period === 2),
-    period3: gameFeedItems.filter((g) => g.period === 3),
-  };
-
-  return {
-    message: "Game feed data loaded!",
-    status: 200,
-    data: gameFeed,
-  };
-}
-
-export async function getGameTeamRosters(
-  away_team_id: number,
-  home_team_id: number,
-  division_id: number,
-) {
-  // verify user is signed in
-  await verifySession();
-
-  const rostersSql = `
-    SELECT
-      tm.team_id,
-      u.user_id,
-      u.first_name,
-      u.last_name,
-      dr.position
-    FROM
-      league_management.division_rosters AS dr
-    JOIN
-      league_management.team_memberships AS tm
-    ON
-      dr.team_membership_id = tm.team_membership_id
-    JOIN
-      admin.users AS u
-    ON
-      tm.user_id = u.user_id
-    JOIN
-      league_management.division_teams AS dt
-    ON
-      dt.division_team_id = dr.division_team_id
-    WHERE
-      dt.team_id IN ($1, $2) AND dt.division_id = $3
-    ORDER BY
-      tm.team_id, u.last_name, u.first_name
-  `;
-
-  const rosterResult: ResultProps<TeamRosterItem[]> = await db
-    .query(rostersSql, [away_team_id, home_team_id, division_id])
-    .then((res) => {
-      return {
-        message: "Rosters loaded",
-        status: 200,
-        data: res.rows,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  if (!rosterResult.data) {
-    return {
-      message: rosterResult.message,
-      status: rosterResult.status,
-    };
-  }
-
-  return {
-    message: rosterResult.message,
-    status: rosterResult.status,
-    data: {
-      away_roster: rosterResult.data.filter((p) => p.team_id === away_team_id),
-      home_roster: rosterResult.data.filter((p) => p.team_id === home_team_id),
-    },
-  };
+  if (state.link && successful) redirect(state.link);
 }
 
 // TODO: Add game feed data validation
 
-// const AddGameFeedShotSchema = z.object({
-//   team_id: z.number().min(1),
-//   game_id: z.number().min(1),
-//   user_id: z.number().min(1),
-//   period: z.number().min(1).max(3),
-//   minutes: z.number().min(0).max(19),
-//   seconds: z.number().min(0).max(59),
-//   power_play: z.boolean(),
-//   rebound: z.boolean(),
-// });
+const AddGameFeedShotSchema = z.object({
+  game_id: z.number().min(1),
+  user_id: z.number().min(1),
+  team_id: z.number().min(1),
+  period: z.number().min(1),
+  minutes: z.number(),
+  seconds: z.number(),
+  shorthanded: z.boolean().optional(),
+  power_play: z.boolean().optional(),
+  empty_net: z.boolean().optional(),
+  rebound: z.boolean().optional(),
+  assists: z.array(z.string()),
+  penalty_minutes: z.number().min(1).optional(),
+  infraction: z
+    .string()
+    .min(2, { message: "Infraction must be at least 2 characters long." })
+    .trim()
+    .optional(),
+  goalie_id: z.number().min(1).optional(),
+  opposition_id: z.number().min(1).optional(),
+});
 
 type AddGameFeedErrorProps = {
   team_id?: string[] | undefined;
@@ -1226,7 +1257,7 @@ export async function addToGameFeed(
   formData: FormData,
 ): Promise<AddGameFeedState> {
   const type = formData.get("type");
-  const feedItemData = {
+  const submittedData = {
     game_id: parseInt(formData.get("game_id") as string),
     user_id: parseInt(formData.get("user_id") as string),
     team_id: parseInt(formData.get("team_id") as string),
@@ -1238,230 +1269,195 @@ export async function addToGameFeed(
     empty_net: formData.get("empty_net") === "true",
     rebound: formData.get("rebound") === "true",
     assists: formData.getAll("assists") as string[],
-    penalty_minutes: parseInt(formData.get("penalty_minutes") as string),
-    infraction: formData.get("infraction") as string,
-    goalie_id: parseInt(formData.get("goalie_id") as string),
-    opposition_id: parseInt(formData.get("opposition_id") as string),
+    penalty_minutes:
+      parseInt(formData.get("penalty_minutes") as string) || undefined,
+    infraction: (formData.get("infraction") as string) || undefined,
+    goalie_id: parseInt(formData.get("goalie_id") as string) || undefined,
+    opposition_id:
+      parseInt(formData.get("opposition_id") as string) || undefined,
   };
 
-  const period_time = createPeriodTimeString(
-    feedItemData.minutes,
-    feedItemData.seconds,
-  );
+  // Validate form fields
+  const validatedFields = AddGameFeedShotSchema.safeParse(submittedData);
 
-  let inserted_goal_id: number | null = null;
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    return {
+      ...state,
+      errors: validatedFields.error.flatten().fieldErrors,
+      data: submittedData,
+    };
+  }
 
-  // goal or shot
-  if (type === "goal" || type === "shot") {
-    // -- add goal
-    if (type === "goal") {
-      const goalSql = `
-        INSERT INTO stats.goals
-          (game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net)
-        VALUES
-          ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING
-          goal_id
-      `;
+  // initialize success check
+  let successful = false;
 
-      const goalResult: ResultProps<{ goal_id: number }> = await db
-        .query(goalSql, [
-          feedItemData.game_id,
-          feedItemData.user_id,
-          feedItemData.team_id,
-          feedItemData.period,
-          period_time,
-          feedItemData.shorthanded,
-          feedItemData.power_play,
-          feedItemData.empty_net,
-        ])
-        .then((res) => {
-          return {
-            message: "Goal created!",
-            status: 200,
-            data: res.rows[0],
-          };
-        })
-        .catch((err) => {
-          return {
-            message: err.message,
-            status: 400,
-          };
-        });
+  try {
+    const period_time = createPeriodTimeString(
+      submittedData.minutes,
+      submittedData.seconds,
+    );
 
-      // if goal adding was successful, update the game score
-      if (goalResult.data) {
-        inserted_goal_id = goalResult.data.goal_id;
-      } else {
-        return {
-          ...goalResult,
-          data: feedItemData,
-          link: state?.link,
-        };
-      }
+    // initialize inserted_goal_id
+    let inserted_goal_id: number | null = null;
 
-      // -- -- add assists
-      if (feedItemData?.assists?.length && inserted_goal_id) {
-        const assistSql = `
-          INSERT INTO stats.assists
-            (goal_id, game_id, user_id, team_id, primary_assist)
+    // goal or shot
+    if (type === "goal" || type === "shot") {
+      // -- add goal
+      if (type === "goal") {
+        const goalSql = `
+          INSERT INTO stats.goals
+            (game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net)
           VALUES
-            ($1, $2, $3, $4, $5)
+            ($1, $2, $3, $4, $5, $6, $7, $8)
+          RETURNING
+            goal_id
         `;
 
-        let assistCount = 0;
-        for await (const assist of feedItemData.assists) {
-          const assistResult = await db
-            .query(assistSql, [
+        const { rows: goalRows } = await db.query<{ goal_id: number }>(
+          goalSql,
+          [
+            submittedData.game_id,
+            submittedData.user_id,
+            submittedData.team_id,
+            submittedData.period,
+            period_time,
+            submittedData.shorthanded,
+            submittedData.power_play,
+            submittedData.empty_net,
+          ],
+        );
+
+        if (!goalRows[0])
+          throw new Error("Sorry, there was a problem creating goal.");
+
+        // set inserted goal id returned by goal insert statement
+        inserted_goal_id = goalRows[0].goal_id;
+
+        // -- -- add assists
+        if (submittedData?.assists?.length && inserted_goal_id) {
+          const assistSql = `
+            INSERT INTO stats.assists
+              (goal_id, game_id, user_id, team_id, primary_assist)
+            VALUES
+              ($1, $2, $3, $4, $5)
+          `;
+
+          // Loop through each assist and add to database
+          let assistCount = 0;
+          for await (const assist of submittedData.assists) {
+            const { rowCount: assistsRowCount } = await db.query(assistSql, [
               inserted_goal_id,
-              feedItemData.game_id,
+              submittedData.game_id,
               assist,
-              feedItemData.team_id,
+              submittedData.team_id,
               assistCount === 0,
-            ])
-            .then(() => {
-              return {
-                message: "Assist created!",
-                status: 200,
-              };
-            })
-            .catch((err) => {
-              return {
-                message: err.message,
-                status: 400,
-              };
-            });
+            ]);
 
-          // TODO: improve assist error handling
-          if (assistResult.status === 400) {
-            throw new Error(assistResult.message);
+            if (assistsRowCount !== 1) {
+              throw new Error(`Sorry, there was a problem creating assist.`);
+            }
+
+            assistCount++;
           }
+        }
+      }
 
-          assistCount++;
+      // -- add shot
+      const shotSql = `
+        INSERT INTO stats.shots
+          (game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play)
+        VALUES 
+          ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING
+          shot_id
+      `;
+
+      const { rows: shotRows } = await db.query<{ shot_id: number }>(shotSql, [
+        submittedData.game_id,
+        submittedData.user_id,
+        submittedData.team_id,
+        submittedData.period,
+        period_time,
+        inserted_goal_id,
+        submittedData.shorthanded,
+        submittedData.power_play,
+      ]);
+
+      if (!shotRows[0]) {
+        throw new Error("Sorry, there was a problem creating shot.");
+      }
+
+      if (type !== "goal" && submittedData.goalie_id !== 0) {
+        // -- -- add save if not goal and the team has a goalie registered
+
+        const saveSql = `
+          INSERT INTO stats.saves
+            (game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound)
+          VALUES 
+            ($1, $2, $3, $4, $5, $6, $7, $8)
+        `;
+
+        const { rowCount: saveRowCount } = await db.query(saveSql, [
+          submittedData.game_id,
+          submittedData.goalie_id,
+          submittedData.opposition_id,
+          shotRows[0].shot_id,
+          submittedData.period,
+          period_time,
+          submittedData.shorthanded,
+          submittedData.rebound,
+        ]);
+
+        if (saveRowCount !== 1) {
+          throw new Error("Sorry, there was a problem creating save.");
         }
       }
     }
 
-    // -- add shot
-    const shotSql = `
-      INSERT INTO stats.shots
-        (game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play)
-      VALUES 
-        ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING
-        shot_id
-    `;
-
-    const shotResult: ResultProps<{ shot_id: number }> = await db
-      .query(shotSql, [
-        feedItemData.game_id,
-        feedItemData.user_id,
-        feedItemData.team_id,
-        feedItemData.period,
-        period_time,
-        inserted_goal_id,
-        feedItemData.shorthanded,
-        feedItemData.power_play,
-      ])
-      .then((res) => {
-        return {
-          message: "Shot created!",
-          status: 200,
-          data: res.rows[0],
-        };
-      })
-      .catch((err) => {
-        return {
-          message: err.message,
-          status: 400,
-        };
-      });
-
-    // TODO: improve shot error handling
-    if (shotResult.status === 400) {
-      throw new Error(shotResult.message);
-    }
-
-    if (type !== "goal" && shotResult.data && feedItemData.goalie_id !== 0) {
-      // -- -- add save if not goal and the team has a goalie registered
-
-      const saveSql = `
-        INSERT INTO stats.saves
-          (game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound)
-        VALUES 
-          ($1, $2, $3, $4, $5, $6, $7, $8)
+    // penalty
+    if (type === "penalty") {
+      const penaltySql = `
+        INSERT INTO stats.penalties
+          (game_id, user_id, team_id, period, period_time, infraction, minutes)
+        VALUES
+          ($1, $2, $3, $4, $5, $6, $7)
       `;
 
-      const saveResult = await db
-        .query(saveSql, [
-          feedItemData.game_id,
-          feedItemData.goalie_id,
-          feedItemData.opposition_id,
-          shotResult.data.shot_id,
-          feedItemData.period,
-          period_time,
-          feedItemData.shorthanded,
-          feedItemData.rebound,
-        ])
-        .then(() => {
-          return {
-            message: "Save created!",
-            status: 200,
-          };
-        })
-        .catch((err) => {
-          return {
-            message: err.message,
-            status: 400,
-          };
-        });
+      const { rowCount: penaltyRowCount } = await db.query(penaltySql, [
+        submittedData.game_id,
+        submittedData.user_id,
+        submittedData.team_id,
+        submittedData.period,
+        period_time,
+        submittedData.infraction,
+        submittedData.penalty_minutes,
+      ]);
 
-      // TODO: improve save error handling
-      if (saveResult.status === 400) {
-        throw new Error(saveResult.message);
+      if (penaltyRowCount !== 1) {
+        throw new Error("Sorry, there was a problem creating penalty.");
       }
     }
-  }
 
-  // penalty
-  if (type === "penalty") {
-    const penaltySql = `
-      INSERT INTO stats.penalties
-        (game_id, user_id, team_id, period, period_time, infraction, minutes)
-      VALUES
-        ($1, $2, $3, $4, $5, $6, $7)
-    `;
-
-    const penaltyResult = await db
-      .query(penaltySql, [
-        feedItemData.game_id,
-        feedItemData.user_id,
-        feedItemData.team_id,
-        feedItemData.period,
-        period_time,
-        feedItemData.infraction,
-        feedItemData.penalty_minutes,
-      ])
-      .then(() => {
-        return {
-          message: "Penalty created!",
-          status: 200,
-        };
-      })
-      .catch((err) => {
-        return {
-          message: err.message,
-          status: 400,
-        };
-      });
-
-    // TODO: improve penalty error handling
-    if (penaltyResult.status === 400) {
-      throw new Error(penaltyResult.message);
+    successful = true;
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        ...state,
+        message: err.message,
+        status: 400,
+        data: submittedData,
+      };
     }
+    return {
+      ...state,
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
+    };
   }
 
-  if (state?.link) redirect(`${state?.link}#game-feed-add`);
+  if (state?.link && successful) redirect(`${state?.link}#game-feed-add`);
 }
 
 export default async function endGame(state: {
@@ -1472,39 +1468,101 @@ export default async function endGame(state: {
   // Verify user session
   await verifySession();
 
-  if (!state.canEdit) redirect(state.backLink);
+  // Initialize success message
+  let success = false;
 
-  const sql = `
+  // Initialize response status
+  let status = 400;
+  try {
+    // TODO: create a canEditGame function to check this on backend
+    if (!state.canEdit) {
+      status = 401;
+      throw new Error("You do not have permission to end this game.");
+    }
+
+    const sql = `
     UPDATE league_management.games
     SET status = 'completed'
     WHERE game_id = $1
-    RETURNING game_id
   `;
 
-  const endGameResult = await db
-    .query(sql, [state.game_id])
-    .then((res) => {
-      if (res.rowCount === 0) {
-        throw new Error("Game not found!");
-      }
-      return {
-        message: "Game completed!",
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
+    const { rowCount } = await db.query(sql, [state.game_id]);
 
-  // TODO: improve penalty error handling
-  if (endGameResult.status === 400) {
-    throw new Error(endGameResult.message);
+    if (rowCount !== 1) {
+      throw new Error("Sorry, there was a problem ending this game.");
+    }
+
+    success = true;
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        ...state,
+        message: err.message,
+        status,
+      };
+    }
+    return {
+      ...state,
+      message: "Something went wrong.",
+      status: 500,
+    };
   }
 
-  redirect(state.backLink);
+  if (state.backLink && success) redirect(state.backLink);
+}
+
+/* ---------- DELETE ---------- */
+
+export async function deleteGame(state: {
+  data: {
+    game_id: number;
+  };
+  link: string;
+}) {
+  // Verify user session
+  await verifySession();
+
+  // initialize success
+  let success = false;
+
+  // set default status code;
+  let status = 400;
+  try {
+    // confirm can edit this game
+    const { canEdit } = await canEditGame(state.data.game_id);
+
+    if (!canEdit) {
+      status = 401;
+      throw new Error("You do not have permission to delete this game.");
+    }
+
+    const sql = `
+      DELETE FROM league_management.games
+      WHERE game_id = $1
+    `;
+
+    const { rowCount } = await db.query(sql, [state.data.game_id]);
+
+    if (rowCount !== 1)
+      throw new Error("Sorry, there was a problem deleting the game.");
+
+    success = true;
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        ...state,
+        message: err.message,
+        status,
+      };
+    }
+    return {
+      ...state,
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
+
+  if (success && state.link) redirect(state.link);
 }
 
 type DeleteFeedItemState = FormState<undefined, { id: number; type: string }>;
@@ -1512,11 +1570,66 @@ type DeleteFeedItemState = FormState<undefined, { id: number; type: string }>;
 export async function deleteFeedItem(
   state: DeleteFeedItemState,
 ): Promise<DeleteFeedItemState> {
-  if (!state?.data?.id || !state?.data?.type) {
+  // initialize success check
+  let success = false;
+
+  try {
+    if (!state) {
+      throw new Error('"Missing necessary data to delete feed item!"');
+    }
+
+    let sql: string;
+
+    switch (state.data.type) {
+      case "stats.goals":
+        sql = `
+        DELETE FROM stats.goals
+        WHERE goal_id = $1
+      `;
+        break;
+      case "stats.saves":
+        sql = `
+        DELETE FROM stats.saves
+        WHERE save_id = $1
+      `;
+        break;
+      case "stats.penalties":
+        sql = `
+        DELETE FROM stats.penalties
+        WHERE penalty_id = $1
+      `;
+        break;
+      default:
+        sql = `
+        DELETE FROM stats.shots
+        WHERE shot_id = $1
+      `;
+        break;
+    }
+
+    const result = await db.query(sql, [state.data.id]);
+
+    console.log(result);
+    if (result.rowCount !== 1)
+      throw new Error("Sorry, there was a problem deleting feed item.");
+
+    success = true;
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        ...state,
+        message: err.message,
+        status: 400,
+        data: {
+          id: state?.data?.id || 0,
+          type: state?.data?.type || "stats.goal",
+        },
+      };
+    }
     return {
-      message: "Missing necessary data to delete feed item!",
-      status: 400,
-      link: state?.link,
+      ...state,
+      message: "Something went wrong.",
+      status: 500,
       data: {
         id: state?.data?.id || 0,
         type: state?.data?.type || "stats.goal",
@@ -1524,49 +1637,5 @@ export async function deleteFeedItem(
     };
   }
 
-  let sql: string;
-
-  switch (state.data.type) {
-    case "stats.goals":
-      sql = `
-        DELETE FROM stats.goals
-        WHERE goal_id = $1
-      `;
-      break;
-    case "stats.saves":
-      sql = `
-        DELETE FROM stats.shots
-        WHERE shot_id = $1
-      `;
-      break;
-    case "stats.penalties":
-      sql = `
-        DELETE FROM stats.penalties
-        WHERE penalty_id = $1
-      `;
-      break;
-    default:
-      sql = `
-        DELETE FROM stats.shots
-        WHERE shot_id = $1
-      `;
-      break;
-  }
-
-  await db
-    .query(sql, [state.data.id])
-    .then(() => {
-      return {
-        message: "Feed item deleted!",
-        status: 200,
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 400,
-      };
-    });
-
-  if (state?.link) redirect(state?.link);
+  if (state?.link && success) redirect(state?.link);
 }

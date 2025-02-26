@@ -10,6 +10,10 @@
   &:where(ul) {
     padding-inline-start: var(--spacer-em-base);
   }
+
+  &:where(:not(ul)) {
+    padding-inline: var(--spacer-em-s);
+  }
 }
 
 .alert li::marker {

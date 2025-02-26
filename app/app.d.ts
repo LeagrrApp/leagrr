@@ -133,7 +133,6 @@ type LeagueData = {
   sport: "hockey" | "soccer" | "basketball" | "pickleball" | "badminton";
   status: string;
   seasons?: SeasonData[];
-  league_role_id?: number;
 };
 
 type SeasonData = {
@@ -155,10 +154,10 @@ type DivisionData = {
   name: string;
   description?: string;
   slug: string;
-  gender?: string;
-  tier?: number;
-  join_code?: string;
-  status?: string;
+  gender: string;
+  tier: number;
+  join_code: string;
+  status: string;
   season_slug: string;
   season_id: number;
   league_slug: string;
@@ -201,7 +200,7 @@ type GameData = {
     | "cancelled"
     | "postponed"
     | "archived";
-  has_been_published: boolean;
+  has_been_published?: boolean;
 };
 
 type AddGameData = {
@@ -231,7 +230,8 @@ type StatsData = {
   item_id: number;
   user_id: number;
   username: string;
-  user_last_name: string;
+  first_name: string;
+  last_name: string;
   team_id: number;
   team: string;
   period: number;

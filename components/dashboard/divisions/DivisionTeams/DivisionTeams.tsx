@@ -100,7 +100,7 @@ export default function DivisionTeams({ teams, division }: DivisionTeamsProps) {
             />
             <input type="hidden" name="league_id" value={division.league_id} />
             <Button type="submit" disabled={pending} variant="danger">
-              <Icon icon="delete" label="Confirm" />
+              <Icon icon="group_remove" label="Confirm" />
             </Button>
             <Button
               onClick={() => removeDialogRef?.current?.close()}

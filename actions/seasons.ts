@@ -9,7 +9,10 @@ import {
 import { isObjectEmpty } from "@/utils/helpers/objects";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { getDivisionsBySeason } from "./divisions";
 import { canEditLeague } from "./leagues";
+
+/* ---------- CREATE ---------- */
 
 const SeasonFormSchema = z.object({
   name: z
@@ -97,152 +100,125 @@ export async function createSeason(
     };
   }
 
-  // build insert sql for season
-  const sql = `
-    INSERT INTO league_management.seasons AS s (name, description, league_id, start_date, end_date)
-    VALUES ($1, $2, $3, $4, $5)
-    RETURNING
-      slug,
-      (SELECT slug FROM leagues as l WHERE l.league_id = s.league_id) AS league_slug
-  `;
+  // initialize redirect link
+  let redirectLink: string | undefined = undefined;
 
-  // query database
-  const seasonInsertResult: ResultProps<SeasonData> = await db
-    .query(sql, [
+  try {
+    // build insert sql for season
+    const sql = `
+      INSERT INTO league_management.seasons AS s (name, description, league_id, start_date, end_date)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING
+        slug,
+        (SELECT slug FROM leagues as l WHERE l.league_id = s.league_id) AS league_slug
+    `;
+
+    // query database
+    const { rows } = await db.query<SeasonData>(sql, [
       submittedData.name,
       submittedData.description,
       submittedData.league_id,
       submittedData.start_date,
       submittedData.end_date,
-    ])
-    .then((res) => {
-      return {
-        message: "Season created!",
-        status: 200,
-        data: res.rows[0],
-      };
-    })
-    .catch((err) => {
+    ]);
+
+    if (!rows[0])
+      throw new Error("Sorry, there was an error creating the season.");
+
+    // set redirect link
+    redirectLink = createDashboardUrl({
+      l: rows[0].league_slug,
+      s: rows[0].slug,
+    });
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
+        data: submittedData,
       };
-    });
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
+    };
+  }
 
-  if (seasonInsertResult?.data)
-    redirect(
-      createDashboardUrl({
-        l: seasonInsertResult?.data.league_slug,
-        s: seasonInsertResult?.data.slug,
-      }),
-    );
-
-  return {
-    ...seasonInsertResult,
-    data: submittedData,
-  };
+  // Redirect to the new season page
+  if (redirectLink) redirect(redirectLink);
 }
+
+/* ---------- READ ---------- */
 
 export async function getSeason(
   season_slug: string,
   league_slug: string,
-  includeDivisions?: boolean,
+  options?: { includeDivisions?: boolean },
 ): Promise<ResultProps<SeasonData>> {
   // Verify user session
   await verifySession();
 
-  // build the select statement to get the season information
-  const seasonSql = `
-    SELECT
-      s.name,
-      s.description,
-      s.start_date,
-      s.end_date,
-      s.status,
-      s.season_id,
-      l.league_id,
-      l.slug AS league_slug,
-      l.name AS league
-    FROM
-      league_management.seasons AS s
-    JOIN
-      league_management.leagues AS l
-    ON
-      s.league_id = l.league_id
-    WHERE
-      s.slug = $1
-      AND
-      l.slug = $2
-  `;
-
-  const seasonResult: ResultProps<SeasonData> = await db
-    .query(seasonSql, [season_slug, league_slug])
-    .then((res) => {
-      if (!res.rowCount) {
-        throw new Error("Season not found!");
-      }
-
-      return {
-        message: "Season data retrieved!",
-        status: 200,
-        data: res.rows[0],
-      };
-    })
-    .catch((err) => {
-      return {
-        message: err.message,
-        status: 404,
-      };
-    });
-
-  // if the league was not found, return error
-  if (!seasonResult.data) return seasonResult;
-
-  const response: ResultProps<SeasonData> = {
-    ...seasonResult,
-  };
-
-  if (includeDivisions) {
-    const divisionSql = `
+  try {
+    // build the select statement to get the season information
+    const seasonSql = `
       SELECT
-        division_id,
-        name,
-        description,
-        tier,
-        slug,
-        gender,
-        season_id,
-        status,
-        join_code
-      FROM league_management.divisions WHERE season_id = $1
-      ORDER BY gender, tier
+        s.name,
+        s.description,
+        s.start_date,
+        s.end_date,
+        s.status,
+        s.season_id,
+        l.league_id,
+        l.slug AS league_slug,
+        l.name AS league
+      FROM
+        league_management.seasons AS s
+      JOIN
+        league_management.leagues AS l
+      ON
+        s.league_id = l.league_id
+      WHERE
+        s.slug = $1
+        AND
+        l.slug = $2
     `;
 
-    const divisionResult: ResultProps<DivisionData[]> = await db
-      .query(divisionSql, [seasonResult.data.season_id])
-      .then((res) => {
-        return {
-          message: "Division data retrieved!",
-          status: 200,
-          data: res.rows,
-        };
-      })
-      .catch((err) => {
-        return {
-          message: err.message,
-          status: 404,
-        };
-      });
+    const { rows: seasonRows } = await db.query<SeasonData>(seasonSql, [
+      season_slug,
+      league_slug,
+    ]);
 
-    if (divisionResult.data) {
-      response.data = {
-        ...(response.data as SeasonData),
-        divisions: divisionResult.data,
+    // if the league was not found, return error
+    if (!seasonRows[0]) throw new Error("Team not found!");
+
+    const season = seasonRows[0];
+
+    if (options?.includeDivisions) {
+      const { data: divisions } = await getDivisionsBySeason(season.season_id);
+
+      if (divisions && divisions.length > 0) {
+        season.divisions = divisions;
+      }
+    }
+
+    return {
+      message: "Season data loaded!",
+      status: 200,
+      data: season,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
       };
     }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
   }
-
-  return response;
 }
 
 export async function getSeasonMetaData(
@@ -303,6 +279,53 @@ export async function getSeasonMetaData(
   }
 }
 
+export async function getSeasonsByLeague(
+  league: string | number,
+): Promise<ResultProps<SeasonData[]>> {
+  try {
+    // build select statement to get all seasons for associated league
+    const seasonsSql = `
+      SELECT
+        s.slug,
+        s.name,
+        s.status,
+        s.start_date,
+        s.end_date
+      FROM
+        league_management.seasons AS s
+      JOIN
+        league_management.leagues AS l
+      ON
+        s.league_id = l.league_id
+      WHERE
+        ${typeof league === "string" ? `l.slug` : `l.league_id`} = $1
+      ORDER BY s.end_date DESC
+    `;
+
+    // make request to database for seasons
+    const { rows } = await db.query<SeasonData>(seasonsSql, [league]);
+
+    return {
+      message: "Seasons retrieved",
+      status: 200,
+      data: rows,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong",
+      status: 500,
+    };
+  }
+}
+
+/* ---------- UPDATE ---------- */
+
 export async function editSeason(
   state: SeasonFormState,
   formData: FormData,
@@ -347,8 +370,6 @@ export async function editSeason(
   if (!isObjectEmpty(errors)) return { errors, data: submittedData };
 
   // Check to see if the user is allowed to edit a season for this league
-
-  // check for site wide admin privileges
   const { canEdit } = await canEditLeague(submittedData.league_id);
 
   if (!canEdit) {
@@ -359,104 +380,114 @@ export async function editSeason(
     };
   }
 
-  // build insert sql for season
-  const updateSql = `
-    UPDATE
-      league_management.seasons AS s
-    SET
-      name = $1,
-      description = $2,
-      start_date = $3,
-      end_date = $4,
-      status = $5
-    WHERE
-      season_id = $6
-    RETURNING
-      slug,
-      (SELECT slug FROM leagues as l WHERE l.league_id = s.league_id) AS league_slug
-  `;
+  // Initialize redirect link
+  let redirectLink: string | undefined = undefined;
 
-  // query database
-  const seasonUpdateResult: ResultProps<SeasonData> = await db
-    .query(updateSql, [
+  try {
+    // build insert sql for season
+    const updateSql = `
+      UPDATE
+        league_management.seasons AS s
+      SET
+        name = $1,
+        description = $2,
+        start_date = $3,
+        end_date = $4,
+        status = $5
+      WHERE
+        season_id = $6
+      RETURNING
+        slug,
+        (SELECT slug FROM leagues as l WHERE l.league_id = s.league_id) AS league_slug
+    `;
+
+    // query database
+    const { rows } = await db.query<SeasonData>(updateSql, [
       submittedData.name,
       submittedData.description,
       submittedData.start_date,
       submittedData.end_date,
       submittedData.status,
       submittedData.season_id,
-    ])
-    .then((res) => {
-      return {
-        message: "Season updated!",
-        status: 200,
-        data: res.rows[0],
-      };
-    })
-    .catch((err) => {
+    ]);
+
+    if (!rows[0]) throw new Error("There was a problem editing the season.");
+
+    // set redirect link
+    redirectLink = createDashboardUrl({
+      l: rows[0].league_slug,
+      s: rows[0].slug,
+    });
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
+        data: submittedData,
       };
-    });
+    }
+    return {
+      message: "Something went wrong",
+      status: 500,
+      data: submittedData,
+    };
+  }
 
-  if (seasonUpdateResult?.data)
-    redirect(
-      createDashboardUrl({
-        l: seasonUpdateResult?.data.league_slug,
-        s: seasonUpdateResult?.data.slug,
-      }),
-    );
-
-  return {
-    ...seasonUpdateResult,
-    data: submittedData,
-  };
+  // Redirect to the season page
+  if (redirectLink) redirect(redirectLink);
 }
 
+/* ---------- DELETE ---------- */
+
 export async function deleteSeason(state: {
-  season_id: number;
-  league_id: number;
-  backLink: string;
+  data: {
+    season_id: number;
+    league_id: number;
+    backLink: string;
+  };
 }) {
   // Verify user session
   await verifySession();
 
-  // set check for whether user has permission to delete
-  const { canEdit: canDelete } = await canEditLeague(state.league_id);
+  try {
+    if (!state.data) throw new Error("Sorry, unable to delete season.");
 
-  if (!canDelete) {
-    // failed both user role check and league role check, shortcut out
-    return {
-      message: "You do not have permission to delete this season.",
-      status: 401,
-    };
-  }
+    // set check for whether user has permission to delete
+    const { canEdit: canDelete } = await canEditLeague(state.data.league_id);
 
-  // create delete sql statement
-  const sql = `
-    DELETE FROM league_management.seasons
-    WHERE season_id = $1
-  `;
-
-  // query the database
-  await db
-    .query(sql, [state.season_id])
-    .then((res) => {
+    if (!canDelete) {
+      // failed both user role check and league role check, shortcut out
       return {
-        message: "Season deleted",
-        data: res.rows[0],
-        status: 200,
+        message: "You do not have permission to delete this season.",
+        status: 401,
+        data: state.data,
       };
-    })
-    .catch((err) => {
+    }
+    // create delete sql statement
+    const sql = `
+      DELETE FROM league_management.seasons
+      WHERE season_id = $1
+    `;
+
+    // query the database
+    const { rowCount } = await db.query(sql, [state.data.season_id]);
+
+    if (rowCount !== 1)
+      throw new Error("There was a problem deleting the season.");
+  } catch (err) {
+    if (err instanceof Error) {
       return {
         message: err.message,
         status: 400,
+        data: state.data,
       };
-    });
+    }
+    return {
+      message: "Something went wrong",
+      status: 500,
+      data: state.data,
+    };
+  }
 
-  // TODO: improve error handling if there is an issue deleting season
-
-  redirect(state.backLink);
+  redirect(state.data.backLink);
 }

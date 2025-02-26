@@ -80,8 +80,10 @@ export default function GameQuickScore({
                 required
               />
             </div>
-            {state?.message && state?.status === 400 && (
-              <Alert alert={state.message} type="danger" />
+            {state?.message && state?.status !== 200 && (
+              <Col fullSpan>
+                <Alert alert={state.message} type="danger" />
+              </Col>
             )}
             <Button type="submit" disabled={pending}>
               Confirm Score

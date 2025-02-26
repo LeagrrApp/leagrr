@@ -8,6 +8,7 @@ import Flex from "@/components/ui/layout/Flex";
 import Grid from "@/components/ui/layout/Grid";
 import Link from "next/link";
 import { useActionState } from "react";
+import Alert from "../ui/Alert/Alert";
 
 export default function SignUpForm() {
   const [state, action, pending] = useActionState(signUp, undefined);
@@ -60,6 +61,11 @@ export default function SignUpForm() {
           errors={{ errs: state?.errors?.password_confirm, type: "danger" }}
           required
         />
+        {state?.message && state?.status !== 200 && (
+          <Col fullSpan>
+            <Alert alert={state.message} type="danger" />
+          </Col>
+        )}
         <Col fullSpan>
           <Flex alignItems="center" gap="base">
             <Button type="submit" disabled={pending}>

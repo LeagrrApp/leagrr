@@ -1,16 +1,17 @@
 "use client";
 
 import { editTeam } from "@/actions/teams";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/forms/Input";
 import Select from "@/components/ui/forms/Select";
 import TextArea from "@/components/ui/forms/TextArea";
 import Icon from "@/components/ui/Icon/Icon";
+import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { color_options } from "@/lib/definitions";
 import { useActionState, useState } from "react";
 import css from "./teamForm.module.css";
-import Col from "@/components/ui/layout/Col";
 
 interface EditTeamProps {
   team: TeamData;
@@ -76,6 +77,11 @@ export default function EditTeam({ team, backLink }: EditTeamProps) {
           )}
         </Col>
         <input type="hidden" name="team_id" value={team.team_id} />
+        {state?.message && state?.status !== 200 && (
+          <Col fullSpan>
+            <Alert alert={state.message} type="danger" />
+          </Col>
+        )}
         <Button type="submit" disabled={pending}>
           <Icon icon="save" label={`Save ${teamName}`} />
         </Button>

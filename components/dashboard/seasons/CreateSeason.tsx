@@ -1,22 +1,25 @@
 "use client";
 
 import { createSeason } from "@/actions/seasons";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/forms/Input";
 import TextArea from "@/components/ui/forms/TextArea";
 import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
-import { useRouter } from "next/navigation";
 import { useActionState } from "react";
 
 interface CreateSeasonProps {
   league_id: number;
+  backLink: string;
 }
 
-export default function CreateSeason({ league_id }: CreateSeasonProps) {
+export default function CreateSeason({
+  league_id,
+  backLink,
+}: CreateSeasonProps) {
   const [state, action, pending] = useActionState(createSeason, undefined);
-  const router = useRouter();
 
   return (
     <form action={action}>
@@ -56,6 +59,11 @@ export default function CreateSeason({ league_id }: CreateSeasonProps) {
           required
         />
         <input type="hidden" name="league_id" value={league_id} />
+        {state?.message && state.status !== 200 && (
+          <Col fullSpan>
+            <Alert alert={state.message} type="danger" />
+          </Col>
+        )}
         <Col>
           <Button type="submit" fullWidth disabled={pending}>
             <Icon icon="add_circle" label="Create Season" />
@@ -63,10 +71,11 @@ export default function CreateSeason({ league_id }: CreateSeasonProps) {
         </Col>
         <Col>
           <Button
-            onClick={() => router.back()}
+            href={backLink}
             type="button"
             variant="grey"
             fullWidth
+            disabled={pending}
           >
             <Icon icon="cancel" label="Cancel" />
           </Button>

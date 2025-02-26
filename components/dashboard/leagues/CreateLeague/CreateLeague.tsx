@@ -1,6 +1,7 @@
 "use client";
 
 import { createLeague } from "@/actions/leagues";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Card from "@/components/ui/Card/Card";
 import Container from "@/components/ui/Container/Container";
@@ -92,6 +93,9 @@ export default function CreateLeague({ user_id }: CreateLeagueProps) {
                   label={`Create ${leagueName || "League"}`}
                 />
               </Button>
+              {state?.message && state.status !== 200 && (
+                <Alert alert={state.message} type="danger" />
+              )}
             </Grid>
           </form>
         </Card>

@@ -1,7 +1,7 @@
 import {
   canEditLeague,
   deleteLeague,
-  getLeagueData,
+  getLeague,
   getLeagueMetaData,
 } from "@/actions/leagues";
 import EditLeague from "@/components/dashboard/leagues/EditLeague";
@@ -31,7 +31,7 @@ export default async function Page({ params }: PageProps) {
   const { league } = await params;
 
   // check user is has permission to access league settings
-  const { data: leagueData } = await getLeagueData(league);
+  const { data: leagueData } = await getLeague(league);
 
   // if league data not found, redirect
   if (!leagueData) notFound();
@@ -52,7 +52,7 @@ export default async function Page({ params }: PageProps) {
       {canDelete && (
         <ModalConfirmAction
           defaultState={{
-            league_id: leagueData.league_id,
+            data: { league_id: leagueData.league_id },
           }}
           actionFunction={deleteLeague}
           confirmationHeading={`Are you sure you want to delete ${leagueData.name}?`}

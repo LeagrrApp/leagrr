@@ -50,7 +50,7 @@ export default async function Page({ params }: PageProps) {
   const { nextGame, prevGame, teamMembers, divisionStandings } =
     await getTeamDashboardData(team_id, division_id);
 
-  const leagueUrl = await getDivisionUrlById(division_id);
+  const { data: leagueUrl } = await getDivisionUrlById(division_id);
 
   const { canEdit } = await canEditTeam(team);
 
@@ -104,7 +104,13 @@ export default async function Page({ params }: PageProps) {
             </Button>
           )}
         </DashboardUnitHeader>
-        <DivisionRoster divisionRoster={teamMembers} />
+        {teamMembers ? (
+          <DivisionRoster divisionRoster={teamMembers} />
+        ) : (
+          <Card padding="ml">
+            <p>There are no players in this roster.</p>
+          </Card>
+        )}
       </DashboardUnit>
 
       <DashboardUnit gridArea="leagues">

@@ -1,9 +1,11 @@
 "use client";
 
 import { editUser } from "@/actions/users";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/forms/Input";
 import Icon from "@/components/ui/Icon/Icon";
+import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { useActionState, useEffect, useState } from "react";
 
@@ -114,6 +116,11 @@ export default function EditUser({ user }: EditUserProps) {
           label="Pronouns"
         />
         <input type="hidden" name="user_id" value={user.user_id} />
+        {state?.message && state?.status !== 200 && (
+          <Col fullSpan>
+            <Alert type="danger" alert={state.message} />
+          </Col>
+        )}
         <Button type="submit" disabled={pending}>
           <Icon icon="save" label="Save" />
         </Button>

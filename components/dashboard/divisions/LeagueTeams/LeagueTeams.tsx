@@ -104,7 +104,7 @@ export default function LeagueTeams({ teams, division }: LeagueTeamsProps) {
               </Col>
             )}
             <Button type="submit" disabled={pending}>
-              <Icon icon="delete" label="Confirm" />
+              <Icon icon="group_add" label="Confirm" />
             </Button>
             <Button
               onClick={() => addDialogRef?.current?.close()}

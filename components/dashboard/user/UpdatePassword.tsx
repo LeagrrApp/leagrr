@@ -23,9 +23,19 @@ export default function UpdatePassword({
   const [currentPasswordValue, setCurrentPasswordValue] = useState<string>("");
   const [newPasswordValue, setNewPasswordValue] = useState<string>("");
   const [confirmPasswordValue, setConfirmPasswordValue] = useState<string>("");
+  const [hasFormErrors, setHasFormErrors] = useState<boolean>(false);
 
   useEffect(() => {
+    if (
+      state?.errors?.confirm_password ||
+      state?.errors?.current_password ||
+      state?.errors?.new_password ||
+      state?.errors?.user_id
+    ) {
+      setHasFormErrors(true);
+    }
     if (state?.status === 200) {
+      setHasFormErrors(false);
       setCurrentPasswordValue("");
       setNewPasswordValue("");
       setConfirmPasswordValue("");
@@ -66,15 +76,15 @@ export default function UpdatePassword({
               required
             />
             <input type="hidden" name="user_id" value={user.user_id} />
-            <Button type="submit" disabled={pending}>
-              <Icon icon="save" label="Save Password" />
-            </Button>
-            {state?.message && state?.status && (
+            {state?.message && state?.status && !hasFormErrors && (
               <Alert
                 type={state.status === 200 ? "success" : "danger"}
                 alert={state.message}
               />
             )}
+            <Button type="submit" disabled={pending}>
+              <Icon icon="save" label="Save Password" />
+            </Button>
           </Grid>
         </form>
       </Card>

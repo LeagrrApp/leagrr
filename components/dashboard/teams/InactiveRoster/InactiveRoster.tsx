@@ -1,6 +1,6 @@
 "use client";
 
-import { addPlayerToDivisionTeam } from "@/actions/teams";
+import { addPlayerToDivisionTeam } from "@/actions/teamMemberships";
 import Button from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
 import Input from "@/components/ui/forms/Input";

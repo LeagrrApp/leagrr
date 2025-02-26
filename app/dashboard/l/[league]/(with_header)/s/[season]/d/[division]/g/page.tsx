@@ -1,5 +1,8 @@
-import { getDivision, getDivisionMetaInfo } from "@/actions/divisions";
-import { getLeagueInfoForGames } from "@/actions/games";
+import {
+  getDivision,
+  getDivisionMetaInfo,
+  getDivisionOptionsForGames,
+} from "@/actions/divisions";
 import { canEditLeague } from "@/actions/leagues";
 import CreateGame from "@/components/dashboard/games/CreateGame";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
@@ -35,10 +38,8 @@ export default async function Page({ params }: PageProps) {
 
   if (!canEdit) redirect(backLink);
 
-  const { data: addGameData } = await getLeagueInfoForGames(
-    division,
-    season,
-    league,
+  const { data: addGameData } = await getDivisionOptionsForGames(
+    divisionData.division_id,
   );
 
   return (

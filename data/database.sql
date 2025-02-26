@@ -754,13 +754,13 @@ ADD CONSTRAINT fk_league_venue_league_id FOREIGN KEY (league_id)
 -- Create league_management.games
 CREATE TABLE league_management.games (
   game_id               SERIAL NOT NULL PRIMARY KEY,
-  home_team_id          INT,
+  home_team_id          INT NOT NULL,
   home_team_score       INT DEFAULT 0,
-  away_team_id          INT,
+  away_team_id          INT NOT NULL,
   away_team_score       INT DEFAULT 0,
   division_id           INT,
   playoff_id            INT,
-  date_time             TIMESTAMP,
+  date_time             TIMESTAMP NOT NULL,
   arena_id              INT,
   status                VARCHAR(20) NOT NULL DEFAULT 'draft',
   has_been_published    BOOLEAN DEFAULT false,

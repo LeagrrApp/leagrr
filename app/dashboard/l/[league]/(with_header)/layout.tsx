@@ -1,4 +1,4 @@
-import { canEditLeague, getLeagueData } from "@/actions/leagues";
+import { canEditLeague, getLeague } from "@/actions/leagues";
 import LeagueHeader from "@/components/dashboard/leagues/LeagueHeader/LeagueHeader";
 import { verifySession } from "@/lib/session";
 import { notFound } from "next/navigation";
@@ -17,7 +17,9 @@ export default async function Layout({
   const { league } = await params;
 
   // load league data
-  const { data: leagueData } = await getLeagueData(league);
+  const { data: leagueData } = await getLeague(league, {
+    includeSeasons: true,
+  });
 
   // if league data is unavailable, redirect to notfound
   if (!leagueData) notFound();

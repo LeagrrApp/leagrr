@@ -46,9 +46,11 @@ export default async function Page({ params }: PageProps) {
       <EditDivisionInfo division={divisionData} divisionLink={backLink} />
       <ModalConfirmAction
         defaultState={{
-          division_id: divisionData.division_id,
-          league_id: divisionData.league_id,
-          backLink: createDashboardUrl({ l: league, s: season }),
+          link: createDashboardUrl({ l: league, s: season }),
+          data: {
+            division_id: divisionData.division_id,
+            league_id: divisionData.league_id,
+          },
         }}
         actionFunction={deleteDivision}
         confirmationHeading={`Are you sure you want to delete ${divisionData.name}?`}

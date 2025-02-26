@@ -1,9 +1,5 @@
-import {
-  canEditTeam,
-  getAllTeamMembers,
-  getTeam,
-  getTeamMetaData,
-} from "@/actions/teams";
+import { getAllTeamMembers } from "@/actions/teamMemberships";
+import { canEditTeam, getTeam, getTeamMetaData } from "@/actions/teams";
 import TeamInvite from "@/components/dashboard/teams/TeamInvite/TeamInvite";
 import TeamMembers from "@/components/dashboard/teams/TeamMembers/TeamMembers";
 import Alert from "@/components/ui/Alert/Alert";
@@ -44,6 +40,16 @@ export default async function Page({ params }: PageProps) {
   const backLink = createDashboardUrl({ t: team });
 
   const { data: teamMembers } = await getAllTeamMembers(team_id);
+
+  if (!teamMembers) {
+    return (
+      <>
+        <BackButton label="Back to team" href={backLink} />
+        <h2 className="push-m">Team Members</h2>
+        <Alert alert="Sorry, unable to load team members." type="danger" />
+      </>
+    );
+  }
 
   // Check if user has edit permissions
   const { canEdit } = await canEditTeam(team);

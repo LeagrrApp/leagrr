@@ -13,10 +13,10 @@ export default async function UserSnapshot({ user }: UserSnapshotProps) {
   const { user_id } = user;
 
   // get next game for any division team
-  const nextGame = await getUserGamePreviews(user_id);
+  const { data: nextGame } = await getUserGamePreviews(user_id);
 
   // get most recent completed game for any division team
-  const prevGame = await getUserGamePreviews(user_id, true);
+  const { data: prevGame } = await getUserGamePreviews(user_id, true);
 
   return (
     <>

@@ -1,6 +1,7 @@
 "use client";
 
 import { editSeason } from "@/actions/seasons";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/forms/Input";
 import Select from "@/components/ui/forms/Select";
@@ -76,6 +77,11 @@ export default function EditSeason({ backLink, season }: EditSeasonProps) {
         />
         <input type="hidden" name="league_id" value={season.league_id} />
         <input type="hidden" name="season_id" value={season.season_id} />
+        {state?.message && state.status !== 200 && (
+          <Col fullSpan>
+            <Alert alert={state.message} type="danger" />
+          </Col>
+        )}
         <Col>
           <Button type="submit" fullWidth disabled={pending}>
             <Icon icon="save" label="Save Season" />

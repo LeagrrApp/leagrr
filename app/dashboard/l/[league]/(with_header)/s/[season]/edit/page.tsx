@@ -44,9 +44,11 @@ export default async function Page({ params }: PageProps) {
 
       <ModalConfirmAction
         defaultState={{
-          season_id: seasonData.season_id,
-          league_id: seasonData.league_id,
-          backLink: createDashboardUrl({ l: league }),
+          data: {
+            season_id: seasonData.season_id,
+            league_id: seasonData.league_id,
+            backLink: createDashboardUrl({ l: league }),
+          },
         }}
         actionFunction={deleteSeason}
         confirmationHeading={`Are you sure you want to delete ${seasonData.name}?`}

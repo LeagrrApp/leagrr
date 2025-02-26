@@ -1,11 +1,14 @@
-import { getDivision } from "@/actions/divisions";
+import { getDivision, getDivisionOptionsForGames } from "@/actions/divisions";
 import {
+  canEditGame,
+  deleteGame,
   getGame,
   getGameMetaInfo,
-  getLeagueInfoForGames,
 } from "@/actions/games";
-import { canEditLeague } from "@/actions/leagues";
 import EditGame from "@/components/dashboard/games/EditGame";
+import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
+import BackButton from "@/components/ui/BackButton/BackButton";
+import Grid from "@/components/ui/layout/Grid";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
 
@@ -14,12 +17,14 @@ interface PageProps {
     division: string;
     season: string;
     league: string;
-    game_id: number;
+    game_id: string;
   }>;
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const { game_id } = await params;
+  const { game_id: game_id_string } = await params;
+
+  const game_id = parseInt(game_id_string);
 
   const { data: gameData } = await getGame(game_id);
 
@@ -33,13 +38,17 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function Page({ params }: PageProps) {
-  const { division, season, league, game_id } = await params;
+  const { division, season, league, game_id: game_id_string } = await params;
+
+  const game_id = parseInt(game_id_string);
+
+  console.log(typeof game_id);
 
   const { data: divisionData } = await getDivision(division, season, league);
 
   if (!divisionData) notFound();
 
-  const { canEdit } = await canEditLeague(divisionData.league_id);
+  const { canEdit } = await canEditGame(game_id);
 
   const backLink = createDashboardUrl({
     l: league,
@@ -50,28 +59,52 @@ export default async function Page({ params }: PageProps) {
 
   if (!canEdit) redirect(backLink);
 
-  const { data: addGameData } = await getLeagueInfoForGames(
-    division,
-    season,
-    league,
+  const { data: addGameData } = await getDivisionOptionsForGames(
+    divisionData.division_id,
   );
 
   const { data: gameData } = await getGame(game_id);
 
   return (
     <>
+      <BackButton href={backLink} label="Back to game" />
       <h3 className="push">Edit game</h3>
-      {addGameData && gameData ? (
-        <EditGame
-          addGameData={addGameData}
-          gameData={gameData}
-          league_id={divisionData.league_id}
-          game_id={gameData.game_id}
-          backLink={backLink}
+      <Grid gap="base">
+        {addGameData && gameData ? (
+          <EditGame
+            addGameData={addGameData}
+            gameData={gameData}
+            league_id={divisionData.league_id}
+            game_id={gameData.game_id}
+            backLink={backLink}
+          />
+        ) : (
+          <p>There was a problem loading the data needed to edit this game.</p>
+        )}
+        <ModalConfirmAction
+          defaultState={{
+            data: {
+              game_id,
+            },
+            link: createDashboardUrl({
+              l: league,
+              s: season,
+              d: division,
+            }),
+          }}
+          actionFunction={deleteGame}
+          confirmationHeading={`Are you sure you want to delete this game?`}
+          confirmationByline={`This action is permanent cannot be undone. Consider setting the game's status to "Archived" instead.`}
+          trigger={{
+            icon: "delete",
+            label: "Delete Game",
+            buttonStyles: {
+              variant: "danger",
+              fullWidth: true,
+            },
+          }}
         />
-      ) : (
-        <p>There was a problem loading the data needed to edit this game.</p>
-      )}
+      </Grid>
     </>
   );
 }
