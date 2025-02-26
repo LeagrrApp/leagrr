@@ -207,7 +207,7 @@ export async function getLeague(
 export async function getLeagueMetaData(
   league: string | number,
   options?: {
-    prefix?: string;
+    prefix?: string | string[];
   },
 ) {
   try {
@@ -228,8 +228,11 @@ export async function getLeagueMetaData(
 
     let title = createMetaTitle([rows[0].name]);
 
-    if (options?.prefix)
+    if (options?.prefix && typeof options.prefix === "string")
       title = createMetaTitle([options.prefix, rows[0].name]);
+
+    if (options?.prefix && typeof options.prefix === "object")
+      title = createMetaTitle([...options.prefix, rows[0].name]);
 
     return {
       message: "League metadata loaded",

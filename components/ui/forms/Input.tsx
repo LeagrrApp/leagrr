@@ -1,6 +1,9 @@
 "use client";
 
-import { apply_classes_conditional } from "@/utils/helpers/html-attributes";
+import {
+  apply_classes,
+  apply_classes_conditional,
+} from "@/utils/helpers/html-attributes";
 import { ChangeEvent, PropsWithChildren, useEffect, useState } from "react";
 import Alert from "../Alert/Alert";
 import css from "./forms.module.css";
@@ -49,6 +52,7 @@ export default function Input({
   errors,
   optional,
   disabled,
+  className,
 }: InputProps) {
   const [inputValue, setInputValue] = useState(value || defaultValue || "");
   const [inputType, setInputType] = useState(type || "");
@@ -76,7 +80,7 @@ export default function Input({
   }
 
   return (
-    <div className={css.unit}>
+    <div className={apply_classes(css.unit, className)}>
       {!labelAfter && (
         <label
           className={apply_classes_conditional(css.label, "srt", hideLabel)}

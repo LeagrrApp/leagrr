@@ -280,3 +280,11 @@ type LocationData = {
   arena: string;
   arena_id: number;
 };
+
+type LeagueVenueData = {
+  league_venue_id: number;
+  venue_id: number;
+  venue: string;
+  address: string;
+  arenas: string;
+};

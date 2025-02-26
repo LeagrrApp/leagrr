@@ -1,0 +1,40 @@
+.settings_menu {
+  background-color: var(--color-grey);
+
+  /* padding-block-start: var(--spacer-l); */
+  display: flex;
+
+  & ul {
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+
+    & .delete_item {
+      flex-grow: 1;
+      display: flex;
+      align-items: flex-end;
+    }
+  }
+
+  & a {
+    display: flex;
+
+    &:where(:hover, :focus-visible) {
+      background-color: var(--color-primary-lightest);
+    }
+  }
+
+  & [aria-current="true"] {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+  }
+
+  .settings_delete {
+    justify-content: flex-start;
+    border-radius: 0;
+    border: 0;
+  }
+}

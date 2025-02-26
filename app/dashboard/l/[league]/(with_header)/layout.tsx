@@ -30,7 +30,6 @@ export default async function Layout({
   return (
     <>
       <LeagueHeader league={leagueData} canEdit={canEdit} />
-
       {children}
     </>
   );

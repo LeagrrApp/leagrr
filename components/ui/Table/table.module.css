@@ -28,11 +28,11 @@
         background-color: var(--tr-color);
       }
 
-      &:nth-child(even) {
+      &:nth-child(odd) {
         --tr-color: var(--color-grey-light);
       }
 
-      &:has(a:is(:hover, :focus-visible)) {
+      &:has(a:not([data-no-full-hover]):is(:hover, :focus-visible)) {
         --tr-color: var(--color-secondary-lightest);
       }
 
@@ -57,7 +57,7 @@
     text-decoration: none;
   }
 
-  & a::before {
+  & a:where(:not([data-no-full-hover]))::before {
     content: " ";
     display: inline-block;
     position: absolute;

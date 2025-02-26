@@ -4,7 +4,6 @@ import Badge from "@/components/ui/Badge/Badge";
 import Icon from "@/components/ui/Icon/Icon";
 import IconSport from "@/components/ui/Icon/IconSport";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
-import { usePathname } from "next/navigation";
 import DHeader from "../../DHeader/DHeader";
 import SeasonSelector from "../../seasons/SeasonSelector/SeasonSelector";
 import css from "./leagueHeader.module.css";
@@ -15,19 +14,17 @@ interface LeagueHeaderProps {
 }
 
 export default function LeagueHeader({ league, canEdit }: LeagueHeaderProps) {
-  const pathname = usePathname();
-
   const badgeColor: ColorOptions =
     league.status === "archived" ? "danger" : "warning";
 
-  const editLink = createDashboardUrl({ l: league.slug }, "edit");
+  const settingsLink = createDashboardUrl({ l: league.slug }, "settings");
 
   return (
     <DHeader
       className={css.league_header}
       containerClassName={css.league_header_container}
     >
-      <div className={css.league_header_unit}>
+      <div className={css.league_header_grid}>
         <h1 className={css.league_header_headline}>
           <IconSport
             sport={league.sport}
@@ -38,17 +35,21 @@ export default function LeagueHeader({ league, canEdit }: LeagueHeaderProps) {
           {league.status && league.status !== "public" && (
             <Badge text={league.status} type={badgeColor} fontSize="h4" />
           )}
-          {canEdit && pathname !== editLink && (
+        </h1>
+
+        {league.description && <p>{league.description}</p>}
+        <div className={css.league_header_actions}>
+          {canEdit && (
             <Icon
-              icon="edit_square"
-              label="Edit League"
+              icon="settings"
+              label="League Settings"
               hideLabel
-              href={editLink}
+              href={settingsLink}
               size="h3"
             />
           )}
-        </h1>
-        {league.description && <p>{league.description}</p>}
+          <Icon icon="more_vert" label="More Menu" hideLabel size="h3" />
+        </div>
       </div>
 
       {league.seasons && (

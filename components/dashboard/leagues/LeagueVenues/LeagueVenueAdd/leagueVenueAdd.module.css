@@ -1,0 +1,25 @@
+.arenas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacer-m);
+}
+
+.new_arena {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: var(--spacer-s) var(--spacer-m);
+
+  .new_arena_input {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: 1 / 3;
+
+    /* gap: 0; */
+  }
+
+  .new_arena_button {
+    grid-row: 2 / 3;
+    border-radius: var(--spacer-xs);
+  }
+}

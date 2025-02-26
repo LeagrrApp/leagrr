@@ -246,3 +246,7 @@ export function convert_roles_to_select_choices(roles: Map<number, RoleData>) {
 
   return choices;
 }
+
+export function addressAsGoogleMapsLink(address: string): string {
+  return `https://www.google.com/maps/place/${address.replaceAll(" ", "+")}`;
+}
