@@ -29,7 +29,6 @@ export default function CreateSeason({
             name="name"
             label="Name"
             errors={{ errs: state?.errors?.name, type: "danger" }}
-            defaultValue="2025 Winter"
             required
           />
         </Col>
@@ -38,7 +37,6 @@ export default function CreateSeason({
             name="description"
             label="Description"
             errors={{ errs: state?.errors?.description, type: "danger" }}
-            defaultValue="Get your winter skate on!"
             optional
           />
         </Col>
@@ -46,7 +44,6 @@ export default function CreateSeason({
           type="date"
           name="start_date"
           label="Start Date"
-          defaultValue="2025-01-01"
           errors={{ errs: state?.errors?.start_date, type: "danger" }}
           required
         />
@@ -54,7 +51,6 @@ export default function CreateSeason({
           type="date"
           name="end_date"
           label="End Date"
-          defaultValue="2025-04-30"
           errors={{ errs: state?.errors?.end_date, type: "danger" }}
           required
         />

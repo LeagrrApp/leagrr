@@ -1,5 +1,6 @@
 "use client";
 
+import { apply_classes_conditional } from "@/utils/helpers/html-attributes";
 import { ChangeEvent, useEffect, useState } from "react";
 import Alert from "../Alert/Alert";
 import css from "./forms.module.css";
@@ -7,7 +8,7 @@ import css from "./forms.module.css";
 interface TextAreaProps extends Partial<HTMLTextAreaElement> {
   label: string;
   labelAfter?: boolean;
-  labelAsPlaceholder?: boolean;
+  hideLabel?: boolean;
   onChange?(e: ChangeEvent<HTMLTextAreaElement>): unknown;
   errors?: {
     errs?: string[];
@@ -20,7 +21,7 @@ export default function TextArea({
   label,
   name,
   labelAfter,
-  labelAsPlaceholder,
+  hideLabel,
   placeholder,
   value,
   defaultValue,
@@ -34,7 +35,7 @@ export default function TextArea({
     value || defaultValue || "",
   );
 
-  const placeholderText = labelAsPlaceholder ? label : placeholder;
+  const placeholderText = !placeholder && hideLabel ? label : placeholder;
 
   useEffect(() => {
     setTextAreaValue(value || defaultValue || "");
@@ -49,7 +50,10 @@ export default function TextArea({
   return (
     <div className={css.unit}>
       {!labelAfter && (
-        <label className={css.label} htmlFor={name}>
+        <label
+          className={apply_classes_conditional(css.label, "srt", hideLabel)}
+          htmlFor={name}
+        >
           {label}{" "}
           {optional && <span className={css.label_optional}>(Optional)</span>}
         </label>
@@ -65,7 +69,10 @@ export default function TextArea({
         autoCapitalize={autocapitalize}
       />
       {labelAfter && (
-        <label className={css.label} htmlFor={name}>
+        <label
+          className={apply_classes_conditional(css.label, "srt", hideLabel)}
+          htmlFor={name}
+        >
           {label}{" "}
           {optional && <span className={css.label_optional}>(Optional)</span>}
         </label>

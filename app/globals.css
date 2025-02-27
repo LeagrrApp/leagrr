@@ -340,6 +340,10 @@ h6,
   font-size: var(--type-scale-h6);
 }
 
+.type-scale-base {
+  font-size: var(--type-scale-base);
+}
+
 h1,
 h2,
 h3 {

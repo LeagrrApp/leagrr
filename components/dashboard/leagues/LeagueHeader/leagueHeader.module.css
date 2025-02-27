@@ -16,8 +16,24 @@
   gap: var(--spacer-base);
 }
 
+.league_header_grid {
+  display: grid;
+  gap: 0 var(--spacer-base);
+  grid-template-columns: 1fr auto;
+}
+
+.league_header_actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacer-m);
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+}
+
 .league_header_headline {
   display: flex;
   align-items: center;
   gap: var(--spacer-base);
+  max-width: 45rem;
 }

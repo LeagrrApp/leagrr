@@ -28,14 +28,12 @@ export default function CreateTeam({ user_id }: CreateTeamProps) {
         <Input
           label="Name"
           name="name"
-          defaultValue="Metcalfe Jets"
           errors={{ errs: state?.errors?.name, type: "danger" }}
           required
         />
         <TextArea
           label="Description"
           name="description"
-          value="A small town team."
           errors={{ errs: state?.errors?.description, type: "danger" }}
           optional
         />

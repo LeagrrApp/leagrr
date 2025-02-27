@@ -44,7 +44,9 @@ export default function Menu({ userData, menuData }: MenuProps) {
       <Link
         className={css.menu_item}
         href={createDashboardUrl({ u: username })}
-        aria-current={pathname.includes(createDashboardUrl({ u: username }))}
+        aria-current={
+          pathname.includes(createDashboardUrl({ u: username })) || undefined
+        }
         // onClick={() => setMenuOpen(false)}
       >
         {img ? (
@@ -85,9 +87,10 @@ export default function Menu({ userData, menuData }: MenuProps) {
               <Link
                 className={css.menu_item}
                 href={createDashboardUrl({ t: team.slug })}
-                aria-current={pathname.includes(
-                  createDashboardUrl({ t: team.slug }),
-                )}
+                aria-current={
+                  pathname.includes(createDashboardUrl({ t: team.slug })) ||
+                  undefined
+                }
                 // onClick={() => setMenuOpen(false)}
               >
                 {team.img ? (
@@ -113,7 +116,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
               icon="add_circle"
               label="Add a team"
               href="/dashboard/t/"
-              aria-current={pathname === `/dashboard/t`}
+              aria-current={pathname === `/dashboard/t` || undefined}
               // onClick={() => setMenuOpen(false)}
             />
           </li>
@@ -128,9 +131,11 @@ export default function Menu({ userData, menuData }: MenuProps) {
                   <Link
                     className={css.menu_item}
                     href={createDashboardUrl({ l: league.slug })}
-                    aria-current={pathname.includes(
-                      createDashboardUrl({ l: league.slug }),
-                    )}
+                    aria-current={
+                      pathname.includes(
+                        createDashboardUrl({ l: league.slug }),
+                      ) || undefined
+                    }
                     // onClick={() => setMenuOpen(false)}
                   >
                     {league.img ? (
@@ -157,7 +162,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
                     icon="add_circle"
                     label="Create a league"
                     href="/dashboard/l/"
-                    aria-current={pathname === `/dashboard/l`}
+                    aria-current={pathname === `/dashboard/l` || undefined}
                     // onClick={() => setMenuOpen(false)}
                   />
                 </li>
@@ -174,7 +179,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
                 className={css.menu_item}
                 label="Admin"
                 icon="admin_panel_settings"
-                aria-current={pathname === `/dashboard/admin`}
+                aria-current={pathname === `/dashboard/admin` || undefined}
                 // onClick={() => setMenuOpen(false)}
               />
             </li>
@@ -185,7 +190,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
               className={css.menu_item}
               label="Settings"
               icon="settings"
-              aria-current={pathname === `/dashboard/settings`}
+              aria-current={pathname === `/dashboard/settings` || undefined}
               onClick={() => setMenuOpen(false)}
             />
           </li>

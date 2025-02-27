@@ -1,6 +1,8 @@
 import { getGameUrl } from "@/actions/games";
+import { getUserTeams } from "@/actions/users";
 import Badge from "@/components/ui/Badge/Badge";
 import Card from "@/components/ui/Card/Card";
+import Indicator from "@/components/ui/Indicator/Indicator";
 import InitialsCircle from "@/components/ui/InitialsCircle/InitialsCircle";
 import {
   applyAppropriateTextColor,
@@ -10,8 +12,6 @@ import { apply_classes_conditional } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
 import { CSSProperties } from "react";
 import css from "./gamePreview.module.css";
-import { getUserTeams } from "@/actions/users";
-import Indicator from "@/components/ui/Indicator/Indicator";
 
 interface GamePreviewProps {
   game: GameData;
@@ -50,7 +50,11 @@ export default async function GamePreview({
     status,
   } = game;
 
-  const { data: gameUrl } = await getGameUrl(game_id);
+  const gameUrlResult = await getGameUrl(game_id);
+
+  console.log(gameUrlResult);
+
+  const { data: gameUrl } = gameUrlResult;
 
   const gameDate = date_time.toLocaleString("en-CA", {
     weekday: "short",

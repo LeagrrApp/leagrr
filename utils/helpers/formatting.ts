@@ -91,7 +91,8 @@ export function nameDisplay(
     | "last_name"
     | "initials"
     | "first_initial"
-    | "last_initial",
+    | "last_initial"
+    | "last_first",
   last_name_first?: boolean,
 ): string {
   switch (style) {
@@ -245,4 +246,8 @@ export function convert_roles_to_select_choices(roles: Map<number, RoleData>) {
   });
 
   return choices;
+}
+
+export function addressAsGoogleMapsLink(address: string): string {
+  return `https://www.google.com/maps/place/${address.replaceAll(" ", "+")}`;
 }

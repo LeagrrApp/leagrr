@@ -246,35 +246,39 @@ export async function getGameUrl(game_id: number) {
 
   try {
     const sql = `
-    SELECT
-      g.game_id,
-      d.slug AS division_slug,
-      s.slug AS season_slug,
-      l.slug AS league_slug
-    FROM
-      league_management.games AS g
-    JOIN
-      league_management.divisions AS d
-    ON
-      g.division_id = d.division_id
-    JOIN
-      league_management.seasons AS s
-    ON
-      s.season_id = d.division_id
-    JOIN
-      league_management.leagues AS l
-    ON
-      s.league_id = l.league_id
-    WHERE
-      game_id = $1
-  `;
+      SELECT
+        g.game_id,
+        d.slug AS division_slug,
+        s.slug AS season_slug,
+        l.slug AS league_slug
+      FROM
+        league_management.games AS g
+      JOIN
+        league_management.divisions AS d
+      ON
+        g.division_id = d.division_id
+      JOIN
+        league_management.seasons AS s
+      ON
+        s.season_id = d.season_id
+      JOIN
+        league_management.leagues AS l
+      ON
+        s.league_id = l.league_id
+      WHERE
+        game_id = $1
+    `;
 
-    const { rows } = await db.query<{
+    const result = await db.query<{
       game_id: number;
       league_slug: string;
       division_slug: string;
       season_slug: string;
     }>(sql, [game_id]);
+
+    console.log(result);
+
+    const { rows } = result;
 
     if (!rows[0]) throw new Error("Sorry, unable to load game URL.");
 

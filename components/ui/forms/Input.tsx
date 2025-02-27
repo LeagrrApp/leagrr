@@ -1,6 +1,9 @@
 "use client";
 
-import { apply_classes_conditional } from "@/utils/helpers/html-attributes";
+import {
+  apply_classes,
+  apply_classes_conditional,
+} from "@/utils/helpers/html-attributes";
 import { ChangeEvent, PropsWithChildren, useEffect, useState } from "react";
 import Alert from "../Alert/Alert";
 import css from "./forms.module.css";
@@ -20,7 +23,6 @@ function InputWrap({
 interface InputProps extends Partial<HTMLInputElement> {
   label?: string;
   labelAfter?: boolean;
-  labelAsPlaceholder?: boolean;
   hideLabel?: boolean;
   onChange?(e: ChangeEvent<HTMLInputElement>): unknown;
   errors?: {
@@ -35,7 +37,6 @@ export default function Input({
   type,
   name,
   labelAfter,
-  labelAsPlaceholder,
   hideLabel,
   placeholder,
   value,
@@ -49,11 +50,12 @@ export default function Input({
   errors,
   optional,
   disabled,
+  className,
 }: InputProps) {
   const [inputValue, setInputValue] = useState(value || defaultValue || "");
   const [inputType, setInputType] = useState(type || "");
 
-  const placeholderText = labelAsPlaceholder ? label : placeholder;
+  const placeholderText = !placeholder && hideLabel ? label : placeholder;
 
   useEffect(() => {
     setInputValue(value || defaultValue || "");
@@ -76,7 +78,7 @@ export default function Input({
   }
 
   return (
-    <div className={css.unit}>
+    <div className={apply_classes(css.unit, className)}>
       {!labelAfter && (
         <label
           className={apply_classes_conditional(css.label, "srt", hideLabel)}

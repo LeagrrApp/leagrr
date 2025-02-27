@@ -1,0 +1,9 @@
+.form {
+  display: flex;
+  gap: var(--spacer-base);
+}
+
+.input {
+  flex-direction: row;
+  flex-grow: 1;
+}

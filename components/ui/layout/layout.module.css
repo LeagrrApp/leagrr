@@ -41,3 +41,7 @@
   flex: var(--flex-grow, auto) var(--flex-shrink, auto) var(--flex-basis, auto);
   align-self: var(--align-self);
 }
+
+.col_grid_area {
+  grid-area: var(--grid-area);
+}

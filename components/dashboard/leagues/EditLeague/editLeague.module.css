@@ -1,0 +1,98 @@
+.form {
+  container: edit_form / inline-size;
+}
+
+.layout {
+  display: grid;
+  gap: var(--spacer-base);
+  grid-template-areas:
+    "name"
+    "description"
+    "sport"
+    "status"
+    "submit"
+    "cancel";
+
+  @container (width >= 45rem) {
+    grid-template-areas:
+      "name sport"
+      "description sport"
+      "status sport"
+      "submit cancel";
+    grid-template-rows: auto 1fr auto;
+  }
+}
+
+.unit_name {
+  grid-area: name;
+}
+
+.unit_description {
+  grid-area: description;
+  display: flex;
+
+  & > div {
+    width: 100%;
+
+    & > textarea {
+      flex-grow: 1;
+    }
+  }
+}
+
+.unit_sport {
+  grid-area: sport;
+}
+
+.unit_status {
+  grid-area: status;
+}
+
+.unit_message {
+  grid-area: message;
+}
+
+.unit_submit {
+  grid-area: submit;
+}
+
+.unit_cancel {
+  grid-area: cancel;
+}
+
+.sport_wrap {
+  display: grid;
+  gap: var(--spacer-ml);
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.sport_option {
+  /* flex-grow: 1;
+  flex-shrink: 0; */
+  padding: var(--spacer-base) var(--spacer-ml);
+  border: 0.0625rem solid var(--color-grey);
+  cursor: pointer;
+  border-radius: var(--spacer-m);
+  transition: all var(--transition);
+  text-align: center;
+
+  &:has(input:checked) {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    background-color: var(--color-primary-lightest);
+  }
+
+  &:has(input:disabled) {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  & input {
+    appearance: none;
+    position: absolute;
+  }
+}
+
+.sport_icon {
+  flex-direction: column;
+}

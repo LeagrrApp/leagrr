@@ -27,7 +27,6 @@ export default function CreateDivision({ season }: CreateDivisionProps) {
             name="name"
             label="Name"
             errors={{ errs: state?.errors?.name, type: "danger" }}
-            defaultValue="Div 1"
             required
           />
         </Col>
@@ -36,7 +35,6 @@ export default function CreateDivision({ season }: CreateDivisionProps) {
             name="description"
             label="Description"
             errors={{ errs: state?.errors?.description, type: "danger" }}
-            defaultValue="For those elites!"
             optional
           />
         </Col>
@@ -45,7 +43,6 @@ export default function CreateDivision({ season }: CreateDivisionProps) {
           name="tier"
           label="Tier"
           min="1"
-          defaultValue="1"
           errors={{ errs: state?.errors?.tier, type: "danger" }}
           required
         />
