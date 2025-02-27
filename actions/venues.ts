@@ -280,8 +280,6 @@ export async function removeLeagueVenue(
   state: RemoveLeagueVenueFormState,
   formData: FormData,
 ): Promise<RemoveLeagueVenueFormState> {
-  console.log("getting things started");
-
   const submittedData = {
     league_venue_id: parseInt(formData.get("league_venue_id") as string),
   };

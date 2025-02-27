@@ -25,7 +25,6 @@ export default function Menu({ userData, menuData }: MenuProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    console.log("closing nav because of page change");
     setMenuOpen(false);
   }, [pathname]);
 

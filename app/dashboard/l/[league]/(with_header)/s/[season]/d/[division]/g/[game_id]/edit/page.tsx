@@ -42,8 +42,6 @@ export default async function Page({ params }: PageProps) {
 
   const game_id = parseInt(game_id_string);
 
-  console.log(typeof game_id);
-
   const { data: divisionData } = await getDivision(division, season, league);
 
   if (!divisionData) notFound();

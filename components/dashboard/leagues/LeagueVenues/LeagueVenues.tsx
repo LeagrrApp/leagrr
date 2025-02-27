@@ -11,7 +11,7 @@ import Table from "@/components/ui/Table/Table";
 import { Truncate } from "@/components/ui/Truncate/Truncate";
 import { addressAsGoogleMapsLink } from "@/utils/helpers/formatting";
 import { usePathname } from "next/navigation";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import LeagueVenueAdd from "./LeagueVenueAdd/LeagueVenueAdd";
 
 interface LeagueVenuesProps {
@@ -37,10 +37,6 @@ export default function LeagueVenues({ venues, league }: LeagueVenuesProps) {
     if (venues) return venues[0];
     return undefined;
   });
-
-  useEffect(() => {
-    console.log(removeState);
-  }, [removeState]);
 
   const tableHeadings = [
     { title: "Venue", highlightCol: true },

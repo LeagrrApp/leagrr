@@ -66,7 +66,6 @@ export default function LeagueAdmins({ league, admins }: LeagueAdminsProps) {
   }, [editState, admins]);
 
   useEffect(() => {
-    console.log(removeState);
     if (removeState?.status === 200 && admins) {
       // success route, update list of admins
 
@@ -75,7 +74,6 @@ export default function LeagueAdmins({ league, admins }: LeagueAdminsProps) {
         (a) => a.league_admin_id !== removeState.data.league_admin_id,
       );
 
-      console.log(updatedAdmins);
       setAdminToEdit(updatedAdmins[0]);
       // set updated list to be displayed
       setAdminsList(updatedAdmins);

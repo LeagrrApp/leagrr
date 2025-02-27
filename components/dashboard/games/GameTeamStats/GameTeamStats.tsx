@@ -36,8 +36,6 @@ export default async function GameTeamStats({
     game.division_id,
   );
 
-  console.log(teamGameStats);
-
   if (!teamGameStats)
     return (
       <div className={apply_classes(classes)}>
