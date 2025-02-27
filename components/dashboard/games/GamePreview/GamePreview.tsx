@@ -52,8 +52,6 @@ export default async function GamePreview({
 
   const gameUrlResult = await getGameUrl(game_id);
 
-  console.log(gameUrlResult);
-
   const { data: gameUrl } = gameUrlResult;
 
   const gameDate = date_time.toLocaleString("en-CA", {

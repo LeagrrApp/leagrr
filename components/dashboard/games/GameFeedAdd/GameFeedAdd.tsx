@@ -42,10 +42,6 @@ export default function GameFeedAdd({
     data: {},
   });
 
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
-
   const away_players: Choice[] = useMemo(
     () => [
       ...teamRosters?.away_roster.map((p) => {

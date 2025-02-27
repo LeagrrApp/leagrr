@@ -269,16 +269,12 @@ export async function getGameUrl(game_id: number) {
         game_id = $1
     `;
 
-    const result = await db.query<{
+    const { rows } = await db.query<{
       game_id: number;
       league_slug: string;
       division_slug: string;
       season_slug: string;
     }>(sql, [game_id]);
-
-    console.log(result);
-
-    const { rows } = result;
 
     if (!rows[0]) throw new Error("Sorry, unable to load game URL.");
 
@@ -636,18 +632,16 @@ export async function getTeamGameStats(
       ORDER BY points DESC, goals DESC, assists DESC, shots DESC, last_name ASC, first_name ASC
     `;
 
-    const result = await db.query<PlayerStats>(sql, [
+    const { rows } = await db.query<PlayerStats>(sql, [
       game_id,
       team_id,
       division_id,
     ]);
 
-    console.log(result);
-
     return {
       message: "Team game stats loaded",
       status: 200,
-      data: result.rows,
+      data: rows,
     };
   } catch (err) {
     if (err instanceof Error) {
@@ -1611,10 +1605,9 @@ export async function deleteFeedItem(
         break;
     }
 
-    const result = await db.query(sql, [state.data.id]);
+    const { rowCount } = await db.query(sql, [state.data.id]);
 
-    console.log(result);
-    if (result.rowCount !== 1)
+    if (rowCount !== 1)
       throw new Error("Sorry, there was a problem deleting feed item.");
 
     success = true;
