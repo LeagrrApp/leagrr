@@ -1,3 +1,5 @@
+import { convert_roles_to_select_choices } from "@/utils/helpers/formatting";
+
 export const sports_options: readonly [string, ...string[]] = [
   "hockey",
   "soccer",
@@ -50,10 +52,15 @@ export const league_roles = new Map<number, RoleData>();
 league_roles.set(1, { role: 1, title: "Commissioner" });
 league_roles.set(2, { role: 2, title: "Manager" });
 
+export const league_roles_options =
+  convert_roles_to_select_choices(league_roles);
+
 export const team_roles = new Map<number, RoleData>();
 
 team_roles.set(1, { role: 1, title: "Manager" });
 team_roles.set(2, { role: 2, title: "Member" });
+
+export const team_roles_options = convert_roles_to_select_choices(team_roles);
 
 export const roster_roles = new Map<number, RoleData>();
 
@@ -62,3 +69,6 @@ roster_roles.set(2, { role: 2, title: "Captain" });
 roster_roles.set(3, { role: 3, title: "Alternate" });
 roster_roles.set(4, { role: 4, title: "Player" });
 roster_roles.set(5, { role: 5, title: "Spare" });
+
+export const roster_roles_options =
+  convert_roles_to_select_choices(roster_roles);

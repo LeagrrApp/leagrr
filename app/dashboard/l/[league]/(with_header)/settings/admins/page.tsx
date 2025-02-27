@@ -42,7 +42,7 @@ export default async function Page({ params }: PageProps) {
       <h2 className="push">
         <Icon label="Admins" icon="admin_panel_settings" gap="em-s" />
       </h2>
-      <LeagueAdmins admins={admins} />
+      <LeagueAdmins league={leagueData} admins={admins} />
     </>
   );
 }

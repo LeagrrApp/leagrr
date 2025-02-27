@@ -23,7 +23,6 @@ function InputWrap({
 interface InputProps extends Partial<HTMLInputElement> {
   label?: string;
   labelAfter?: boolean;
-  labelAsPlaceholder?: boolean;
   hideLabel?: boolean;
   onChange?(e: ChangeEvent<HTMLInputElement>): unknown;
   errors?: {
@@ -38,7 +37,6 @@ export default function Input({
   type,
   name,
   labelAfter,
-  labelAsPlaceholder,
   hideLabel,
   placeholder,
   value,
@@ -57,7 +55,7 @@ export default function Input({
   const [inputValue, setInputValue] = useState(value || defaultValue || "");
   const [inputType, setInputType] = useState(type || "");
 
-  const placeholderText = labelAsPlaceholder ? label : placeholder;
+  const placeholderText = !placeholder && hideLabel ? label : placeholder;
 
   useEffect(() => {
     setInputValue(value || defaultValue || "");

@@ -48,7 +48,6 @@ export default function LeagueHeader({ league, canEdit }: LeagueHeaderProps) {
               size="h3"
             />
           )}
-          <Icon icon="more_vert" label="More Menu" hideLabel size="h3" />
         </div>
       </div>
 

@@ -887,7 +887,7 @@ export async function getUserGamePreviews(
   }
 }
 
-export async function userSearch(identifier: string) {
+export async function userSearch(query: string) {
   await verifySession();
 
   try {
@@ -915,7 +915,7 @@ export async function userSearch(identifier: string) {
         last_name ASC, first_name ASC
     `;
 
-    const { rows } = await db.query<UserData>(sql, [`%${identifier}%`]);
+    const { rows } = await db.query<UserData>(sql, [`%${query}%`]);
 
     return {
       message: "Results loaded.",
@@ -932,6 +932,70 @@ export async function userSearch(identifier: string) {
     return {
       message: "Something went wrong.",
       status: 500,
+    };
+  }
+}
+
+const UserSearchSchema = z.object({
+  query: z
+    .string()
+    .min(2, { message: "Search must be at least two characters." }),
+});
+
+type UserSearchErrorProps = {
+  query?: string[] | undefined;
+};
+
+type UserSearchFormState = FormState<
+  UserSearchErrorProps,
+  {
+    query: string;
+    users?: UserData[];
+  }
+>;
+
+export async function userSearchAction(
+  state: UserSearchFormState,
+  formData: FormData,
+): Promise<UserSearchFormState> {
+  const submittedData = {
+    query: formData.get("query") as string,
+  };
+
+  // Validate data
+  const validatedFields = UserSearchSchema.safeParse(submittedData);
+
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    return {
+      data: submittedData,
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    const { message, status, data } = await userSearch(submittedData.query);
+
+    return {
+      message,
+      status,
+      data: {
+        query: submittedData.query,
+        users: data,
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+        data: submittedData,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
     };
   }
 }

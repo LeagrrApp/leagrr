@@ -9,18 +9,17 @@ import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import Table from "@/components/ui/Table/Table";
-import { league_roles } from "@/lib/definitions";
-import {
-  convert_roles_to_select_choices,
-  nameDisplay,
-} from "@/utils/helpers/formatting";
+import { league_roles, league_roles_options } from "@/lib/definitions";
+import { nameDisplay } from "@/utils/helpers/formatting";
 import { useActionState, useEffect, useRef, useState } from "react";
+import LeagueAdminsAdd from "./LeagueAdminsAdd/LeagueAdminsAdd";
 
 interface LeagueAdminsProps {
+  league: LeagueData;
   admins?: LeagueAdminData[];
 }
 
-export default function LeagueAdmins({ admins }: LeagueAdminsProps) {
+export default function LeagueAdmins({ league, admins }: LeagueAdminsProps) {
   const editDialogRef = useRef<HTMLDialogElement>(null);
   const removeDialogRef = useRef<HTMLDialogElement>(null);
   const [editState, editAction, editPending] = useActionState(
@@ -103,11 +102,9 @@ export default function LeagueAdmins({ admins }: LeagueAdminsProps) {
     }
   }
 
-  const leagueRoleOptions = convert_roles_to_select_choices(league_roles);
-
   return (
     <>
-      <Table className="push">
+      <Table className="push-l">
         <thead>
           <tr>
             {tableHeadings.map((th) => (
@@ -126,7 +123,7 @@ export default function LeagueAdmins({ admins }: LeagueAdminsProps) {
             adminsList.map((a, i) => (
               <tr key={a.user_id}>
                 <th>{nameDisplay(a.first_name, a.last_name, "full", true)}</th>
-                <td>{a.league_role}</td>
+                <td>{league_roles.get(a.league_role)?.title}</td>
                 <td>
                   <Button
                     style={{ position: "relative" }}
@@ -171,7 +168,7 @@ export default function LeagueAdmins({ admins }: LeagueAdminsProps) {
                   <Select
                     name="league_role"
                     label="League Role"
-                    choices={leagueRoleOptions}
+                    choices={league_roles_options}
                     selected={adminToEdit.league_role}
                     required
                   />
@@ -186,8 +183,8 @@ export default function LeagueAdmins({ admins }: LeagueAdminsProps) {
                     <Alert alert={editState.message} type="danger" />
                   </Col>
                 )}
-                <Button type="submit" disabled={editPending} variant="danger">
-                  <Icon icon="delete" label="Confirm" />
+                <Button type="submit" disabled={editPending}>
+                  <Icon icon="save" label="Confirm" />
                 </Button>
                 <Button
                   onClick={() => editDialogRef?.current?.close()}
@@ -230,6 +227,7 @@ export default function LeagueAdmins({ admins }: LeagueAdminsProps) {
           </Dialog>
         </>
       )}
+      <LeagueAdminsAdd league={league} />
     </>
   );
 }

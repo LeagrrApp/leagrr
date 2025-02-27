@@ -2,19 +2,22 @@
 
 import { db } from "@/db/pg";
 import { verifySession } from "@/lib/session";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { canEditLeague, getLeagueIdFromSlug } from "./leagues";
 
 const LeagueAdminSchema = z.object({
   league_id: z.number().min(1),
-  league_admin_id: z.number().min(1),
+  league_admin_id: z.number().min(1).optional(),
   league_role: z.number().min(1).max(2).optional(),
+  user_id: z.number().min(1).optional(),
 });
 
 interface LeagueAdminErrorProps {
   league_id?: string[] | undefined;
   league_admin_id?: string[] | undefined;
   league_role?: string[] | undefined;
+  user_id?: string[] | undefined;
 }
 
 type LeagueAdminFormState = FormState<
@@ -23,10 +26,90 @@ type LeagueAdminFormState = FormState<
     league_id?: number;
     league_admin_id?: number;
     league_role?: number;
+    user_id?: number;
   }
 >;
 
 /* ---------- CREATE ---------- */
+
+export async function createLeagueAdmin(
+  state: LeagueAdminFormState,
+  formData: FormData,
+): Promise<LeagueAdminFormState> {
+  await verifySession();
+
+  const submittedData = {
+    league_id: parseInt(formData.get("league_id") as string),
+    league_role: parseInt(formData.get("league_role") as string),
+    user_id: parseInt(formData.get("user_id") as string),
+  };
+
+  // initialize success check
+  let success = false;
+
+  // initialize response status code.
+  let status = 400;
+
+  try {
+    const { isAdmin, isCommissioner } = await canEditLeague(
+      submittedData.league_id,
+    );
+
+    if (!isAdmin && !isCommissioner) {
+      status = 401;
+      throw new Error("Sorry, you do not have permission to add admins.");
+    }
+
+    // Validate form fields
+    const validatedFields = LeagueAdminSchema.safeParse(submittedData);
+
+    // If any form fields are invalid, return early
+    if (!validatedFields.success) {
+      return {
+        errors: validatedFields.error.flatten().fieldErrors,
+        data: submittedData,
+      };
+    }
+
+    // TODO: check if already an admin
+
+    // build insert sql
+    const sql = `
+      INSERT INTO league_management.league_admins
+        (league_id, user_id, league_role)
+      VALUES
+        ($1, $2, $3)
+    `;
+
+    const { rowCount } = await db.query(sql, [
+      submittedData.league_id,
+      submittedData.user_id,
+      submittedData.league_role,
+    ]);
+
+    if (rowCount !== 1)
+      throw new Error("Sorry, there was a problem adding league admin.");
+
+    success = true;
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        ...state,
+        message: err.message,
+        status,
+        data: submittedData,
+      };
+    }
+    return {
+      ...state,
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
+    };
+  }
+
+  if (success && state?.link) redirect(state.link);
+}
 
 /* ---------- READ ---------- */
 
@@ -188,6 +271,9 @@ export async function editLeagueAdmin(
       };
     }
 
+    // TODO:  check if there is at least one other commissioner
+    //        before allowing the role to be change from commissioner to manager
+
     // build update sql
     const sql = `
       UPDATE league_management.league_admins
@@ -269,7 +355,9 @@ export async function removeLeagueAdmin(
       };
     }
 
-    // build update sql
+    // TODO:  check if there is at least one other commissioner before removing
+
+    // build delete sql
     const sql = `
       DELETE FROM league_management.league_admins
       WHERE
