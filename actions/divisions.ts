@@ -7,7 +7,6 @@ import {
   createDashboardUrl,
   createMetaTitle,
 } from "@/utils/helpers/formatting";
-import { oops } from "@/utils/helpers/testers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getGamesByDivisionId } from "./games";
@@ -1142,7 +1141,6 @@ export async function removeTeamFromDivision(
   };
 
   try {
-    oops();
     const { canEdit } = await canEditLeague(submittedData.league_id);
 
     if (!canEdit) {

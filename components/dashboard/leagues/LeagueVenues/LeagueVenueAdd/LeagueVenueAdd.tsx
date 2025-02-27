@@ -25,11 +25,7 @@ export default function LeagueVenueAdd({ league_id }: LeagueVenueAddProps) {
     data: {},
   });
 
-  const [arenasToAdd, setArenasToAdd] = useState<string[]>([
-    "A",
-    "B",
-    "International",
-  ]);
+  const [arenasToAdd, setArenasToAdd] = useState<string[]>([]);
   const [arenaBeingAdded, setArenaBeingAdded] = useState<string>("");
 
   useEffect(() => {
@@ -72,7 +68,6 @@ export default function LeagueVenueAdd({ league_id }: LeagueVenueAddProps) {
               <Input
                 name="venue_name"
                 label="Name"
-                defaultValue="Stuart Holmes Arena"
                 errors={{ errs: state?.errors?.venue_name, type: "danger" }}
                 required
               />
@@ -81,7 +76,6 @@ export default function LeagueVenueAdd({ league_id }: LeagueVenueAddProps) {
               <TextArea
                 name="venue_description"
                 label="Description"
-                defaultValue="Osgoode Community Centre and Stuart Holmes Arena"
                 errors={{
                   errs: state?.errors?.venue_description,
                   type: "danger",
@@ -92,7 +86,6 @@ export default function LeagueVenueAdd({ league_id }: LeagueVenueAddProps) {
               <Input
                 name="venue_address"
                 label="Address"
-                defaultValue="5660 Osgoode Main St, Osgoode, ON K0A 2W0"
                 errors={{ errs: state?.errors?.venue_address, type: "danger" }}
                 required
               />
