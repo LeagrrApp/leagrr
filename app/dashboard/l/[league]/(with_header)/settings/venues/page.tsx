@@ -1,6 +1,7 @@
 import { canEditLeague, getLeague, getLeagueMetaData } from "@/actions/leagues";
 import { getVenuesByLeagueId } from "@/actions/venues";
 import LeagueVenues from "@/components/dashboard/leagues/LeagueVenues/LeagueVenues";
+import Icon from "@/components/ui/Icon/Icon";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
 
@@ -38,7 +39,9 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <>
-      <h2 className="push">Venues</h2>
+      <h2 className="push">
+        <Icon label="Venues" icon="home_pin" gap="em-s" />
+      </h2>
 
       <LeagueVenues venues={venues} league={leagueData} />
     </>

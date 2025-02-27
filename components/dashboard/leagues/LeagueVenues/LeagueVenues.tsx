@@ -49,6 +49,13 @@ export default function LeagueVenues({ venues, league }: LeagueVenuesProps) {
     { title: "Remove" },
   ];
 
+  function removeVenue(index: number) {
+    if (!venues) return;
+
+    setVenueToRemove(venues[index]);
+    removeDialogRef?.current?.showModal();
+  }
+
   return (
     <>
       <Table className="push">
@@ -84,11 +91,7 @@ export default function LeagueVenues({ venues, league }: LeagueVenuesProps) {
                   <Button
                     style={{ position: "relative" }}
                     variant="danger"
-                    onClick={() => {
-                      console.log("click tastic");
-                      setVenueToRemove(venues[i]);
-                      removeDialogRef?.current?.showModal();
-                    }}
+                    onClick={() => removeVenue(i)}
                   >
                     <Icon icon="delete" label="Remove venue" hideLabel />
                   </Button>
@@ -112,7 +115,7 @@ export default function LeagueVenues({ venues, league }: LeagueVenuesProps) {
           <form action={removeAction}>
             <Grid cols={2} gap="base">
               <Col fullSpan>
-                <h3>Are you sure you to remove {venueToRemove.venue}?</h3>
+                <h3>Are you sure you want to remove {venueToRemove.venue}?</h3>
               </Col>
               <input
                 type="hidden"

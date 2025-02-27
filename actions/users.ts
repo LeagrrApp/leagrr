@@ -887,6 +887,55 @@ export async function getUserGamePreviews(
   }
 }
 
+export async function userSearch(identifier: string) {
+  await verifySession();
+
+  try {
+    const sql = `
+      SELECT
+        user_id,
+        username,
+        email,
+        first_name,
+        last_name,
+        gender,
+        pronouns,
+        user_role,
+        img,
+        status
+      FROM
+        admin.users
+      WHERE
+        username ILIKE $1
+        OR
+        first_name ILIKE $1
+        OR
+        last_name ILIKE $1
+      ORDER BY
+        last_name ASC, first_name ASC
+    `;
+
+    const { rows } = await db.query<UserData>(sql, [`%${identifier}%`]);
+
+    return {
+      message: "Results loaded.",
+      status: 200,
+      data: rows,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
+}
+
 /* ---------- UPDATE ---------- */
 
 const EditUserSchema = z.object({

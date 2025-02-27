@@ -24,20 +24,25 @@ export default async function Layout({
   if (!leagueData) notFound();
 
   // Get users role to check league permissions
-  const { canEdit, role } = await canEditLeague(leagueData.league_id);
+  const { canEdit, isCommissioner, isAdmin } = await canEditLeague(
+    leagueData.league_id,
+  );
   const backLink = createDashboardUrl({ l: league });
 
   // If not a league admin, redirect back to league
   if (!canEdit) redirect(backLink);
 
   // Check if user has authority to delete
-  const canDelete = role?.role === 1;
+  const commissionerPrivileges = isCommissioner || isAdmin;
 
   return (
     <Container>
       <BackButton href={backLink} label="Back to league" />
       <Card className={css.settings_grid}>
-        <LeagueSettingsMenu league={leagueData} canDelete={canDelete} />
+        <LeagueSettingsMenu
+          league={leagueData}
+          commissionerPrivileges={commissionerPrivileges}
+        />
         <div className={css.settings_work_area}>{children}</div>
       </Card>
     </Container>

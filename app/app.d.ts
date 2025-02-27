@@ -264,8 +264,13 @@ type RoleData = {
   title: string;
 };
 
-type AdminRole = {
-  league_role: number | undefined;
+type LeagueAdminData = {
+  league_admin_id: number;
+  league_role: number;
+  user_id: number;
+  username: string;
+  first_name: string;
+  last_name: string;
 };
 
 type MenuItemData = {

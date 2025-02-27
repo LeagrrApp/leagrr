@@ -10,46 +10,52 @@ import css from "./leagueSettingsMenu.module.css";
 
 interface LeagueSettingsMenuProps {
   league: LeagueData;
-  canDelete: boolean;
+  commissionerPrivileges: boolean;
 }
 
 export default function LeagueSettingsMenu({
   league,
-  canDelete,
+  commissionerPrivileges,
 }: LeagueSettingsMenuProps) {
   const pathname = usePathname();
 
   const { slug, name, league_id } = league;
 
+  const menuItems = [
+    {
+      icon: "info",
+      label: "Information",
+      url: createDashboardUrl({ l: slug }, "settings"),
+    },
+    {
+      icon: "home_pin",
+      label: "Venues",
+      url: createDashboardUrl({ l: slug }, "settings/venues"),
+    },
+  ];
+
+  if (commissionerPrivileges) {
+    menuItems.push({
+      icon: "admin_panel_settings",
+      label: "Admins",
+      url: createDashboardUrl({ l: slug }, "settings/admins"),
+    });
+  }
   return (
     <nav className={css.settings_menu}>
       <ul>
-        <li>
-          <Icon
-            icon="info"
-            label="League Info"
-            padding={["ml", "base"]}
-            href={createDashboardUrl({ l: slug }, "settings")}
-            aria-current={
-              pathname === createDashboardUrl({ l: slug }, "settings") ||
-              undefined
-            }
-          />
-        </li>
-        <li>
-          <Icon
-            icon="home_pin"
-            label="Venues"
-            padding={["ml", "base"]}
-            href={createDashboardUrl({ l: slug }, "settings/venues")}
-            aria-current={
-              pathname.includes(
-                createDashboardUrl({ l: slug }, "settings/venue"),
-              ) || undefined
-            }
-          />
-        </li>
-        {canDelete && (
+        {menuItems.map((item) => (
+          <li key={item.url}>
+            <Icon
+              icon={item.icon}
+              label={item.label}
+              padding={["ml", "base"]}
+              href={item.url}
+              aria-current={pathname === item.url || undefined}
+            />
+          </li>
+        ))}
+        {commissionerPrivileges && (
           <li className={css.delete_item}>
             <ModalConfirmAction
               defaultState={{

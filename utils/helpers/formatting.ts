@@ -91,7 +91,8 @@ export function nameDisplay(
     | "last_name"
     | "initials"
     | "first_initial"
-    | "last_initial",
+    | "last_initial"
+    | "last_first",
   last_name_first?: boolean,
 ): string {
   switch (style) {
