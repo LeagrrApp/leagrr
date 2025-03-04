@@ -1,11 +1,12 @@
 "use client";
 
-import { apply_classes_conditional } from "@/utils/helpers/html-attributes";
 import { ChangeEvent, useEffect, useState } from "react";
 import Alert from "../Alert/Alert";
 import css from "./forms.module.css";
+import Label from "./Label";
 
 interface TextAreaProps extends Partial<HTMLTextAreaElement> {
+  name: string;
   label: string;
   labelAfter?: boolean;
   hideLabel?: boolean;
@@ -50,13 +51,13 @@ export default function TextArea({
   return (
     <div className={css.unit}>
       {!labelAfter && (
-        <label
-          className={apply_classes_conditional(css.label, "srt", hideLabel)}
+        <Label
+          label={label}
           htmlFor={name}
-        >
-          {label}{" "}
-          {optional && <span className={css.label_optional}>(Optional)</span>}
-        </label>
+          hideLabel={hideLabel}
+          required={required}
+          optional={optional}
+        />
       )}
       <textarea
         className={css.field}
@@ -69,13 +70,13 @@ export default function TextArea({
         autoCapitalize={autocapitalize}
       />
       {labelAfter && (
-        <label
-          className={apply_classes_conditional(css.label, "srt", hideLabel)}
+        <Label
+          label={label}
           htmlFor={name}
-        >
-          {label}{" "}
-          {optional && <span className={css.label_optional}>(Optional)</span>}
-        </label>
+          hideLabel={hideLabel}
+          required={required}
+          optional={optional}
+        />
       )}
       {errors?.errs?.length && <Alert alert={errors.errs} type={errors.type} />}
     </div>
