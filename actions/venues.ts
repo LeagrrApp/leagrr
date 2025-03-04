@@ -47,11 +47,14 @@ export async function createVenue(
 ): Promise<VenueFormState> {
   const submittedData = {
     venue_name: formData.get("venue_name") as string,
-    venue_description: formData.get("venue_description") as string,
+    venue_description:
+      (formData.get("venue_description") as string) || undefined,
     venue_address: formData.get("venue_address") as string,
-    arenas: formData.getAll("arenas") as string[],
+    arenas: (formData.getAll("arenas") as string[]).filter((a) => a !== ""),
     league_id: parseInt(formData.get("league_id") as string),
   };
+
+  console.log(submittedData);
 
   const validatedFields = VenueCreateSchema.safeParse(submittedData);
 
@@ -68,71 +71,65 @@ export async function createVenue(
   try {
     // create insert sql statement for venue
     const venueSql = `
-      INSERT INTO league_management.venues
-        (name, description, address)
-      VALUES
-        ($1, $2, $3)
-      RETURNING
-        venue_id
-    `;
-
+        INSERT INTO league_management.venues
+          (name, description, address)
+        VALUES
+          ($1, $2, $3)
+        RETURNING
+          venue_id
+      `;
     // query database
     const { rows: venueRows } = await db.query<{ venue_id: number }>(venueSql, [
       submittedData.venue_name,
       submittedData.venue_description,
       submittedData.venue_address,
     ]);
-
     if (!venueRows[0])
       throw new Error("Sorry, there was a problem saving the venue.");
-
     // get returned venue_id from new venue
     const { venue_id } = venueRows[0];
 
-    // loop through provided arenas and add to database
-    for (const arena of submittedData.arenas) {
-      if (arena) {
-        const arenaSql = `
-          INSERT INTO league_management.arenas
-            (name, venue_id)
-          VALUES
-            ($1, $2)
-        `;
-
-        await db.query<{ arena_id: number }>(arenaSql, [arena, venue_id]);
-      }
-    }
-
-    // add venue as a league venue
-    const leagueVenueSql = `
-      INSERT INTO league_management.league_venues
-        (venue_id, league_id)
+    // set up insert sql for arenas
+    const arenaSql = `
+      INSERT INTO league_management.arenas
+        (name, venue_id)
       VALUES
         ($1, $2)
     `;
 
+    if (submittedData.arenas.length !== 0) {
+      // loop through provided arenas and add to database
+      for (const arena of submittedData.arenas) {
+        await db.query<{ arena_id: number }>(arenaSql, [arena, venue_id]);
+      }
+    } else {
+      // Add default "Arena"
+      await db.query<{ arena_id: number }>(arenaSql, ["Arena", venue_id]);
+    }
+    // add venue as a league venue
+    const leagueVenueSql = `
+        INSERT INTO league_management.league_venues
+          (venue_id, league_id)
+        VALUES
+          ($1, $2)
+      `;
     // query database to insert league venue
     const { rowCount } = await db.query(leagueVenueSql, [
       venue_id,
       submittedData.league_id,
     ]);
-
     if (rowCount !== 1) {
       // there was an issue inserting the league venue
       // delete the venue & arenas to avoid bloating database
-
       const deleteVenueSql = `
-        DELETE FROM league_management.venues
-        WHERE venue_id = $1;
-      `;
-
+          DELETE FROM league_management.venues
+          WHERE venue_id = $1;
+        `;
       await db.query(deleteVenueSql, [venue_id]);
-
       throw new Error(
         "Sorry, there was a problem adding venue to list of league venues.",
       );
     }
-
     success = true;
   } catch (err) {
     if (err instanceof Error) {
