@@ -2,7 +2,6 @@
   display: grid;
   gap: var(--spacer-base);
   container: game / inline-size;
-  padding-block-end: var(--spacer-xl);
 
   @container (min-width: 50rem) {
     grid-template-columns: 1fr 1fr;

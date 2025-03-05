@@ -16,7 +16,7 @@ interface EditDivisionProps {
   divisionLink: string;
 }
 
-export default function EditDivisionInfo({
+export default function EditDivision({
   division,
   divisionLink,
 }: EditDivisionProps) {
@@ -68,7 +68,7 @@ export default function EditDivisionInfo({
           label="Join Code"
           errors={{ errs: state?.errors?.join_code, type: "danger" }}
           value={state?.data?.join_code || division.join_code}
-          optional
+          required
         />
         <Select
           name="status"
@@ -76,6 +76,7 @@ export default function EditDivisionInfo({
           choices={status_options}
           errors={{ errs: state?.errors?.status, type: "danger" }}
           selected={state?.data?.status || division.status}
+          required
         />
         <input type="hidden" value={division.division_id} name="division_id" />
         <input type="hidden" value={division.league_id} name="league_id" />

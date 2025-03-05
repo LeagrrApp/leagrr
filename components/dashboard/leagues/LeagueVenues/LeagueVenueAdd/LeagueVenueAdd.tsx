@@ -9,7 +9,7 @@ import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { usePathname } from "next/navigation";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import css from "./leagueVenueAdd.module.css";
 
 interface LeagueVenueAddProps {
@@ -27,10 +27,6 @@ export default function LeagueVenueAdd({ league_id }: LeagueVenueAddProps) {
 
   const [arenasToAdd, setArenasToAdd] = useState<string[]>([]);
   const [arenaBeingAdded, setArenaBeingAdded] = useState<string>("");
-
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
 
   function addNewArena() {
     if (arenaBeingAdded) {
