@@ -1,5 +1,6 @@
 "use client";
 import { createDivision } from "@/actions/divisions";
+import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/forms/Input";
 import Select from "@/components/ui/forms/Select";
@@ -7,9 +8,9 @@ import TextArea from "@/components/ui/forms/TextArea";
 import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
-import { gender_options, status_options } from "@/lib/definitions";
+import { gender_options } from "@/lib/definitions";
 import { useRouter } from "next/navigation";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 
 interface CreateDivisionProps {
   season: SeasonData;
@@ -18,6 +19,10 @@ interface CreateDivisionProps {
 export default function CreateDivision({ season }: CreateDivisionProps) {
   const [state, action, pending] = useActionState(createDivision, undefined);
   const router = useRouter();
+
+  useEffect(() => {
+    console.log(state);
+  }, [state]);
 
   return (
     <form action={action}>
@@ -53,36 +58,24 @@ export default function CreateDivision({ season }: CreateDivisionProps) {
           errors={{ errs: state?.errors?.gender, type: "danger" }}
           required
         />
-        <Input
-          type="text"
-          name="join_code"
-          label="Join Code"
-          errors={{ errs: state?.errors?.join_code, type: "danger" }}
-          optional
-        />
-        <Select
-          name="status"
-          label="Status"
-          choices={status_options}
-          errors={{ errs: state?.errors?.status, type: "danger" }}
-        />
         <input type="hidden" name="season_id" value={season.season_id} />
         <input type="hidden" name="league_id" value={season.league_id} />
-        <Col>
-          <Button type="submit" fullWidth disabled={pending}>
-            <Icon icon="add_circle" label="Create Division" />
-          </Button>
-        </Col>
-        <Col>
-          <Button
-            onClick={() => router.back()}
-            type="button"
-            variant="grey"
-            fullWidth
-          >
-            <Icon icon="cancel" label="Cancel" />
-          </Button>
-        </Col>
+        {state?.message && state.status !== 200 && (
+          <Col fullSpan>
+            <Alert alert={state.message} type="danger" />
+          </Col>
+        )}
+        <Button type="submit" fullWidth disabled={pending}>
+          <Icon icon="add_circle" label="Create Division" />
+        </Button>
+        <Button
+          onClick={() => router.back()}
+          type="button"
+          variant="grey"
+          fullWidth
+        >
+          <Icon icon="cancel" label="Cancel" />
+        </Button>
       </Grid>
     </form>
   );

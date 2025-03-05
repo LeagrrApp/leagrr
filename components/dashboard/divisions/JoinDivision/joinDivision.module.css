@@ -2,4 +2,33 @@
   min-height: 100dvh;
   display: flex;
   align-items: center;
+  background: linear-gradient(
+    225deg,
+    hsla(from var(--color-team, var(--color-primary)) h s l / 0.5),
+    transparent 50%
+  );
+  position: relative;
+  isolation: isolate;
+}
+
+.league_info {
+  position: absolute;
+  inset: auto auto var(--spacer-l) var(--spacer-l);
+  font-weight: bold;
+  width: min(65rem, calc(100% - (var(--spacer-l) * 2)));
+  line-height: 0.875;
+  z-index: -1;
+  font-family: var(--font-secondary);
+  opacity: 0.5;
+}
+
+.league_name {
+  font-size: calc(var(--type-scale-xxxl) * 1.5);
+  color: var(--color-grey);
+}
+
+.division_name {
+  font-size: var(--type-scale-xxxl);
+  display: block;
+  color: var(--color-grey-dark);
 }

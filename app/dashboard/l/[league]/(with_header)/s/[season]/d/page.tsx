@@ -1,5 +1,6 @@
 import { getSeason, getSeasonMetaData } from "@/actions/seasons";
 import CreateDivision from "@/components/dashboard/divisions/CreateDivision";
+import Card from "@/components/ui/Card/Card";
 import Container from "@/components/ui/Container/Container";
 import { verifySession } from "@/lib/session";
 import { notFound } from "next/navigation";
@@ -29,8 +30,10 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <Container>
-      <h2 className="push">New division</h2>
-      <CreateDivision season={seasonData} />
+      <Card padding="l">
+        <h2 className="push">New division</h2>
+        <CreateDivision season={seasonData} />
+      </Card>
     </Container>
   );
 }

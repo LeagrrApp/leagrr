@@ -1,8 +1,8 @@
+import { getDashboardMenuData } from "@/actions/users";
 import Menu from "@/components/dashboard/Menu/Menu";
 import SkipLinks from "@/components/ui/accessibility/SkipLinks";
-import css from "./layout.module.css";
 import { verifySession } from "@/lib/session";
-import { getDashboardMenuData } from "@/actions/users";
+import css from "./layout.module.css";
 
 export default async function Layout({
   children,
@@ -34,7 +34,9 @@ export default async function Layout({
 
       <Menu userData={userData} menuData={data} />
 
-      <main id="main">{children}</main>
+      <main id="main" className={css.main}>
+        {children}
+      </main>
     </div>
   );
 }

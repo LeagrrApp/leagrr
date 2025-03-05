@@ -1,6 +1,6 @@
 import DHeader from "@/components/dashboard/DHeader/DHeader";
 import CreateTeam from "@/components/dashboard/teams/CreateTeam";
-import Card from "@/components/ui/Card/Card";
+import JoinTeamByCode from "@/components/dashboard/teams/JoinTeamByCode/JoinTeamByCode";
 import Container from "@/components/ui/Container/Container";
 import { verifySession } from "@/lib/session";
 import { createMetaTitle } from "@/utils/helpers/formatting";
@@ -28,10 +28,7 @@ export default async function Page() {
           <h2 className="push">Create Team</h2>
           <CreateTeam user_id={user_id} />
         </div>
-        <Card padding="l">
-          <h2 className="push">Join Team</h2>
-          <p>Join an existing team with the teams join code!</p>
-        </Card>
+        <JoinTeamByCode />
       </Container>
     </>
   );

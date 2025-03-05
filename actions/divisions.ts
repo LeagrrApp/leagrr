@@ -79,7 +79,6 @@ export async function createDivision(
     league_id: parseInt(formData.get("league_id") as string),
     tier: parseInt(formData.get("tier") as string),
     gender: formData.get("gender") as string,
-    join_code: formData.get("join_code") as string,
   };
 
   // initialize redirect link
@@ -112,13 +111,13 @@ export async function createDivision(
     // create insert postgresql statement
     const sql = `
       INSERT INTO league_management.divisions AS d
-        (name, description, season_id, tier, gender, join_code)
+        (name, description, season_id, tier, gender)
       VALUES
-        ($1, $2, $3, $4, $5, $6)
+        ($1, $2, $3, $4, $5)
       RETURNING
         slug,
         (SELECT slug FROM league_management.seasons as s WHERE s.season_id = $3) AS season_slug,
-        (SELECT slug FROM league_management.leagues as l WHERE l.league_id = $7) AS league_slug
+        (SELECT slug FROM league_management.leagues as l WHERE l.league_id = $6) AS league_slug
     `;
 
     // query database
@@ -128,7 +127,6 @@ export async function createDivision(
       submittedData.season_id,
       submittedData.tier,
       submittedData.gender,
-      submittedData.join_code,
       submittedData.league_id,
     ]);
 

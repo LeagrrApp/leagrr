@@ -50,18 +50,18 @@ export default function CreateGame({
     <form action={action}>
       <Grid cols={{ xs: 1, m: 2 }} gap="base">
         <Select
-          name="home_team_id"
-          label="Home Team"
-          choices={team_options}
-          errors={{ errs: state?.errors?.home_team_id, type: "danger" }}
-          selected={state?.data?.home_team_id}
-        />
-        <Select
           name="away_team_id"
           label="Away Team"
           choices={team_options}
           errors={{ errs: state?.errors?.away_team_id, type: "danger" }}
           selected={state?.data?.away_team_id}
+        />
+        <Select
+          name="home_team_id"
+          label="Home Team"
+          choices={team_options}
+          errors={{ errs: state?.errors?.home_team_id, type: "danger" }}
+          selected={state?.data?.home_team_id}
         />
         <Input
           type="datetime-local"

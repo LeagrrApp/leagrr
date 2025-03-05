@@ -8,6 +8,7 @@ import Container from "@/components/ui/Container/Container";
 import Input from "@/components/ui/forms/Input";
 import Select from "@/components/ui/forms/Select";
 import Icon from "@/components/ui/Icon/Icon";
+import IconSport from "@/components/ui/Icon/IconSport";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { useSearchParams } from "next/navigation";
@@ -16,12 +17,14 @@ import css from "./joinDivision.module.css";
 
 interface JoinDivisionProps {
   division: DivisionData;
-  teams: TeamData[];
+  league?: LeagueData;
+  teams?: TeamData[];
   backLink: string;
 }
 
 export default function JoinDivision({
   division,
+  league,
   teams,
   backLink,
 }: JoinDivisionProps) {
@@ -33,6 +36,35 @@ export default function JoinDivision({
 
   const { name, division_id } = division;
 
+  if (!teams || teams.length < 1) {
+    return (
+      <div
+        className={css.join_division}
+        data-league-name={league?.name}
+        data-division-name={division.name}
+      >
+        <div className={css.league_info} aria-hidden="true">
+          <span className={css.division_name}>{division.name}</span>
+          {league?.name && (
+            <span className={css.league_name}>{league.name}</span>
+          )}
+        </div>
+        <Container maxWidth="35rem">
+          <Card padding="l">
+            <h1 className="push-ml">Sorry</h1>
+            <p className="push">
+              You don&apos;t manage any teams or all of the teams you manage are
+              already assigned to this division.
+            </p>
+            <Button href="/dashboard/">
+              <Icon icon="chevron_left" label="Go back" />
+            </Button>
+          </Card>
+        </Container>
+      </div>
+    );
+  }
+
   const team_choices = teams.map((t) => {
     return {
       value: t.team_id,
@@ -42,6 +74,10 @@ export default function JoinDivision({
 
   return (
     <div className={css.join_division}>
+      <div className={css.league_info} aria-hidden="true">
+        <span className={css.division_name}>{division.name}</span>
+        {league?.name && <span className={css.league_name}>{league.name}</span>}
+      </div>
       <Container maxWidth="35rem">
         <Card padding="l">
           <form action={action}>
@@ -75,7 +111,10 @@ export default function JoinDivision({
                 </Col>
               )}
               <Button type="submit" disabled={pending}>
-                <Icon icon="group_add" label="Join Team" />
+                <IconSport
+                  sport={league?.sport || "group_add"}
+                  label="Join Division"
+                />
               </Button>
             </Grid>
           </form>

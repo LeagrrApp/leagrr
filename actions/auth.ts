@@ -11,7 +11,11 @@ import { z } from "zod";
 const SignupFormSchema = z.object({
   username: z
     .string()
-    .min(2, { message: "Name must be at least 2 characters long." })
+    .min(4, { message: "Name must be at least 2 characters long." })
+    .regex(/^[a-z0-9]{4,10}$/, {
+      message:
+        "4-10 lowercase letters and numbers only, no spaces or special characters.",
+    })
     .trim(),
   email: z.string().email({ message: "Please enter a valid email." }).trim(),
   first_name: z
@@ -72,10 +76,10 @@ export async function signUp(state: UserFormState, formData: FormData) {
 
     // create PostgreSQL insert statement
     const insertSql: string = `
-      INSERT INTO
-        admin.users (username, email, first_name, last_name, password_hash)
+      INSERT INTO admin.users
+        (username, email, first_name, last_name, password_hash)
       VALUES
-        ($1, $2, $3, $4, $5)
+        (LOWER($1), $2, $3, $4, $5)
       RETURNING
         user_id,
         user_role,
@@ -147,7 +151,7 @@ export async function signIn(
   state: SignInFormState,
   formData: FormData,
 ): Promise<SignInFormState> {
-  const identifier = formData.get("identifier") as string;
+  const identifier = (formData.get("identifier") as string).toLowerCase();
   const password = formData.get("password") as string;
 
   if (!identifier || !password) return;

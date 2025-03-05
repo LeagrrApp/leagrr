@@ -4,8 +4,10 @@ import {
   getDivisionMetaInfo,
 } from "@/actions/divisions";
 import { canEditLeague } from "@/actions/leagues";
-import EditDivisionInfo from "@/components/dashboard/divisions/EditDivisionInfo";
+import EditDivision from "@/components/dashboard/divisions/EditDivision";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
+import BackButton from "@/components/ui/BackButton/BackButton";
+import Card from "@/components/ui/Card/Card";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
 
@@ -42,28 +44,31 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <>
-      <h3>Division Information</h3>
-      <EditDivisionInfo division={divisionData} divisionLink={backLink} />
-      <ModalConfirmAction
-        defaultState={{
-          link: createDashboardUrl({ l: league, s: season }),
-          data: {
-            division_id: divisionData.division_id,
-            league_id: divisionData.league_id,
-          },
-        }}
-        actionFunction={deleteDivision}
-        confirmationHeading={`Are you sure you want to delete ${divisionData.name}?`}
-        confirmationByline={`This action is permanent cannot be undone. Consider setting the division's status to "Archived" instead.`}
-        trigger={{
-          icon: "delete",
-          label: "Delete Division",
-          buttonStyles: {
-            variant: "danger",
-            fullWidth: true,
-          },
-        }}
-      />
+      <BackButton href={backLink} label="Back to division" />
+      <Card padding="l">
+        <h3 className="push-m">Division Information</h3>
+        <EditDivision division={divisionData} divisionLink={backLink} />
+        <ModalConfirmAction
+          defaultState={{
+            link: createDashboardUrl({ l: league, s: season }),
+            data: {
+              division_id: divisionData.division_id,
+              league_id: divisionData.league_id,
+            },
+          }}
+          actionFunction={deleteDivision}
+          confirmationHeading={`Are you sure you want to delete ${divisionData.name}?`}
+          confirmationByline={`This action is permanent cannot be undone. Consider setting the division's status to "Archived" instead.`}
+          trigger={{
+            icon: "delete",
+            label: "Delete Division",
+            buttonStyles: {
+              variant: "danger",
+              fullWidth: true,
+            },
+          }}
+        />
+      </Card>
     </>
   );
 }

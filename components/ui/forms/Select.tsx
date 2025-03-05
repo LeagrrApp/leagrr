@@ -4,10 +4,13 @@ import { capitalize } from "@/utils/helpers/formatting";
 import { ChangeEvent, useEffect, useState } from "react";
 import Alert from "../Alert/Alert";
 import forms from "./forms.module.css";
+import Label from "./Label";
 
 interface SelectProps extends Partial<HTMLSelectElement> {
+  name: string;
   label: string;
   labelAfter?: boolean;
+  hideLabel?: boolean;
   onChange?(e: ChangeEvent<HTMLSelectElement>): unknown;
   errors?: {
     errs?: string[];
@@ -20,9 +23,10 @@ interface SelectProps extends Partial<HTMLSelectElement> {
 }
 
 export default function Select({
-  label,
   name,
+  label,
   labelAfter,
+  hideLabel,
   choices,
   selected,
   required,
@@ -49,9 +53,13 @@ export default function Select({
   return (
     <div className={forms.unit}>
       {!labelAfter && (
-        <label className={forms.label} htmlFor={name}>
-          {label}
-        </label>
+        <Label
+          label={label}
+          htmlFor={name}
+          hideLabel={hideLabel}
+          required={required}
+          optional={optional}
+        />
       )}
       <select
         className={forms.field}
@@ -87,9 +95,13 @@ export default function Select({
         })}
       </select>
       {labelAfter && (
-        <label className={forms.label} htmlFor={name}>
-          {label}
-        </label>
+        <Label
+          label={label}
+          htmlFor={name}
+          hideLabel={hideLabel}
+          required={required}
+          optional={optional}
+        />
       )}
       {errors?.errs?.length && <Alert alert={errors.errs} type={errors.type} />}
     </div>

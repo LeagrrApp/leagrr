@@ -1,12 +1,10 @@
 "use client";
 
-import {
-  apply_classes,
-  apply_classes_conditional,
-} from "@/utils/helpers/html-attributes";
+import { apply_classes } from "@/utils/helpers/html-attributes";
 import { ChangeEvent, PropsWithChildren, useEffect, useState } from "react";
 import Alert from "../Alert/Alert";
 import css from "./forms.module.css";
+import Label from "./Label";
 
 interface InputWrapProps {
   isPassword: boolean;
@@ -21,7 +19,8 @@ function InputWrap({
 }
 
 interface InputProps extends Partial<HTMLInputElement> {
-  label?: string;
+  label: string;
+  name: string;
   labelAfter?: boolean;
   hideLabel?: boolean;
   onChange?(e: ChangeEvent<HTMLInputElement>): unknown;
@@ -80,13 +79,13 @@ export default function Input({
   return (
     <div className={apply_classes(css.unit, className)}>
       {!labelAfter && (
-        <label
-          className={apply_classes_conditional(css.label, "srt", hideLabel)}
+        <Label
+          label={label}
           htmlFor={name}
-        >
-          {label}{" "}
-          {optional && <span className={css.label_optional}>(Optional)</span>}
-        </label>
+          hideLabel={hideLabel}
+          required={required}
+          optional={optional}
+        />
       )}
       <InputWrap isPassword={type === "password"}>
         <input
@@ -121,13 +120,13 @@ export default function Input({
         )}
       </InputWrap>
       {labelAfter && (
-        <label
-          className={apply_classes_conditional(css.label, "srt", hideLabel)}
+        <Label
+          label={label}
           htmlFor={name}
-        >
-          {label}{" "}
-          {optional && <span className={css.label_optional}>(Optional)</span>}
-        </label>
+          hideLabel={hideLabel}
+          required={required}
+          optional={optional}
+        />
       )}
       {errors?.errs?.length && <Alert alert={errors.errs} type={errors.type} />}
     </div>
