@@ -354,6 +354,107 @@ export async function addPlayerToDivisionTeam(
   if (state?.link && success) redirect(state.link);
 }
 
+type JoinTeamByCodeFormState = FormState<
+  TeamMembershipErrorProps,
+  {
+    join_code?: string;
+  }
+>;
+
+const JoinTeamByCodeSchema = z.object({
+  join_code: z.string().trim(),
+});
+
+export async function joinTeamByCode(
+  state: JoinTeamByCodeFormState,
+  formData: FormData,
+): Promise<JoinTeamByCodeFormState> {
+  // check user is logged in and get their user_id
+  const { user_id } = await verifySession();
+
+  const submittedData = {
+    join_code: formData.get("join_code") as string,
+  };
+
+  // Validate data
+  const validatedFields = JoinTeamByCodeSchema.safeParse(submittedData);
+
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    return {
+      data: submittedData,
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  // initialize redirect link
+  let redirectLink: string | undefined = undefined;
+
+  // initialize error status code
+  let status = 400;
+
+  try {
+    // get team by join_code, returning team_id and slug
+    const selectTeamSql = `
+      SELECT
+        team_id,
+        slug
+      FROM
+        league_management.teams
+      WHERE
+        join_code = $1
+    `;
+
+    const { rows: teamRows } = await db.query<{
+      team_id: number;
+      slug: string;
+    }>(selectTeamSql, [submittedData.join_code]);
+
+    // if no team found, error out
+    if (!teamRows[0]) {
+      status = 404;
+      throw new Error("Sorry, join code does not match any teams!");
+    }
+
+    // create new team membership
+    const insertTMSql = `
+      INSERT INTO league_management.team_memberships
+        (team_id, user_id)
+      VALUES
+        ($1, $2)
+    `;
+
+    const { rowCount } = await db.query(insertTMSql, [
+      teamRows[0].team_id,
+      user_id,
+    ]);
+
+    // no row count indicates and error occurred.
+    if (rowCount === 0) {
+      throw new Error("Sorry, there was a problem joining team.");
+    }
+
+    // set redirect url
+    redirectLink = createDashboardUrl({ t: teamRows[0].slug });
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status,
+        data: submittedData,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
+    };
+  }
+
+  // redirect to team page
+  if (redirect) redirect(redirectLink);
+}
+
 /* ---------- READ ---------- */
 
 export async function getAllTeamMembers(team_id: number) {
