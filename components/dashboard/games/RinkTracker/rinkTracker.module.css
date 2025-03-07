@@ -20,6 +20,7 @@
 
 .rink_wrap {
   position: relative;
+  margin: var(--spacer-l) var(--spacer-base) var(--spacer-base);
 }
 
 .rink_marker {

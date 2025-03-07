@@ -256,19 +256,7 @@ export default async function GameFeed({
               </span>
             </p>
 
-            {rinkTrackerItems.length > 0 && (
-              <div
-                style={{
-                  padding: "var(--spacer-base)",
-                  marginBlockStart: "var(--spacer-base)",
-                }}
-              >
-                <RinkTracker
-                  rinkItems={rinkTrackerItems}
-                  linkPrefix="game-feed"
-                />
-              </div>
-            )}
+            <RinkTracker rinkItems={rinkTrackerItems} linkPrefix="game-feed" />
           </div>
         )}
       </Card>
