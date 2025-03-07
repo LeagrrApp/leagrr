@@ -67,6 +67,10 @@ export default async function Page({ params }: PageProps) {
               fullWidth: true,
             },
           }}
+          typeToConfirm={{
+            type: "division",
+            confirmString: `${league}/${season}/${division}`,
+          }}
         />
       </Card>
     </>

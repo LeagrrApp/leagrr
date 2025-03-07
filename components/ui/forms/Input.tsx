@@ -23,6 +23,7 @@ interface InputProps extends Partial<HTMLInputElement> {
   name: string;
   labelAfter?: boolean;
   hideLabel?: boolean;
+  noPlaceholder?: boolean;
   onChange?(e: ChangeEvent<HTMLInputElement>): unknown;
   errors?: {
     errs?: string[];
@@ -38,6 +39,7 @@ export default function Input({
   labelAfter,
   hideLabel,
   placeholder,
+  noPlaceholder,
   value,
   defaultValue,
   required,
@@ -94,7 +96,7 @@ export default function Input({
           name={name}
           id={name}
           onChange={handleChange}
-          placeholder={placeholderText}
+          placeholder={!noPlaceholder ? placeholderText : undefined}
           value={inputValue}
           min={min}
           max={max}
