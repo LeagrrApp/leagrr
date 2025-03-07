@@ -150,6 +150,276 @@ export async function createGame(
   if (state?.link && createGameSuccessful) redirect(state?.link);
 }
 
+const AddGameFeedShotSchema = z.object({
+  game_id: z.number().min(1),
+  user_id: z.number().min(1),
+  team_id: z.number().min(1),
+  period: z.number().min(1),
+  minutes: z.number(),
+  seconds: z.number(),
+  coordinates: z.string({ message: "Please provide stat location." }),
+  shorthanded: z.boolean().optional(),
+  power_play: z.boolean().optional(),
+  empty_net: z.boolean().optional(),
+  rebound: z.boolean().optional(),
+  assists: z.array(z.string()),
+  penalty_minutes: z.number().min(1).optional(),
+  infraction: z
+    .string()
+    .min(2, { message: "Infraction must be at least 2 characters long." })
+    .trim()
+    .optional(),
+  goalie_id: z.number().min(1).optional(),
+  opposition_id: z.number().min(1).optional(),
+});
+
+type AddGameFeedErrorProps = {
+  game_id?: string[] | undefined;
+  user_id?: string[] | undefined;
+  team_id?: string[] | undefined;
+  period?: string[] | undefined;
+  minutes?: string[] | undefined;
+  seconds?: string[] | undefined;
+  coordinates?: string[] | undefined;
+  penalty_minutes?: string[] | undefined;
+  infraction?: string[] | undefined;
+  opposition_id?: string[] | undefined;
+};
+
+type AddGameFeedState = FormState<
+  AddGameFeedErrorProps,
+  {
+    game_id?: number;
+    user_id?: number;
+    team_id?: number;
+    period?: number;
+    minutes?: number;
+    seconds?: number;
+    coordinates?: string;
+    shorthanded?: boolean;
+    power_play?: boolean;
+    empty_net?: boolean;
+    rebound?: boolean;
+    assists?: string[];
+    penalty_minutes?: number;
+    infraction?: string;
+    goalie_id?: number;
+    opposition_id?: number;
+  }
+>;
+
+export async function addToGameFeed(
+  state: AddGameFeedState,
+  formData: FormData,
+): Promise<AddGameFeedState> {
+  const type = formData.get("type");
+  const submittedData = {
+    game_id: parseInt(formData.get("game_id") as string),
+    user_id: parseInt(formData.get("user_id") as string),
+    team_id: parseInt(formData.get("team_id") as string),
+    period: parseInt(formData.get("period") as string),
+    minutes: parseInt(formData.get("minutes") as string),
+    seconds: parseInt(formData.get("seconds") as string),
+    coordinates: formData.get("coordinates") as string,
+    shorthanded: formData.get("shorthanded") === "true",
+    power_play: formData.get("power_play") === "true",
+    empty_net: formData.get("empty_net") === "true",
+    rebound: formData.get("rebound") === "true",
+    assists: formData.getAll("assists") as string[],
+    penalty_minutes:
+      parseInt(formData.get("penalty_minutes") as string) || undefined,
+    infraction: (formData.get("infraction") as string) || undefined,
+    goalie_id: parseInt(formData.get("goalie_id") as string) || undefined,
+    opposition_id:
+      parseInt(formData.get("opposition_id") as string) || undefined,
+  };
+
+  // Validate form fields
+  const validatedFields = AddGameFeedShotSchema.safeParse(submittedData);
+
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    return {
+      ...state,
+      errors: validatedFields.error.flatten().fieldErrors,
+      data: submittedData,
+    };
+  }
+
+  // initialize success check
+  let successful = false;
+
+  try {
+    const period_time = createPeriodTimeString(
+      submittedData.minutes,
+      submittedData.seconds,
+    );
+
+    // initialize inserted_goal_id
+    let inserted_goal_id: number | null = null;
+
+    // goal or shot
+    if (type === "goal" || type === "shot") {
+      // -- add goal
+      if (type === "goal") {
+        const goalSql = `
+          INSERT INTO stats.goals
+            (game_id, user_id, team_id, period, period_time, coordinates, shorthanded, power_play, empty_net)
+          VALUES
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          RETURNING
+            goal_id
+        `;
+
+        const { rows: goalRows } = await db.query<{ goal_id: number }>(
+          goalSql,
+          [
+            submittedData.game_id,
+            submittedData.user_id,
+            submittedData.team_id,
+            submittedData.period,
+            period_time,
+            submittedData.coordinates,
+            submittedData.shorthanded,
+            submittedData.power_play,
+            submittedData.empty_net,
+          ],
+        );
+
+        if (!goalRows[0])
+          throw new Error("Sorry, there was a problem creating goal.");
+
+        // set inserted goal id returned by goal insert statement
+        inserted_goal_id = goalRows[0].goal_id;
+
+        // -- -- add assists
+        if (submittedData?.assists?.length && inserted_goal_id) {
+          const assistSql = `
+            INSERT INTO stats.assists
+              (goal_id, game_id, user_id, team_id, primary_assist)
+            VALUES
+              ($1, $2, $3, $4, $5)
+          `;
+
+          // Loop through each assist and add to database
+          let assistCount = 0;
+          for await (const assist of submittedData.assists) {
+            const { rowCount: assistsRowCount } = await db.query(assistSql, [
+              inserted_goal_id,
+              submittedData.game_id,
+              assist,
+              submittedData.team_id,
+              assistCount === 0,
+            ]);
+
+            if (assistsRowCount !== 1) {
+              throw new Error(`Sorry, there was a problem creating assist.`);
+            }
+
+            assistCount++;
+          }
+        }
+      }
+
+      // -- add shot
+      const shotSql = `
+        INSERT INTO stats.shots
+          (game_id, user_id, team_id, period, period_time, coordinates, goal_id, shorthanded, power_play)
+        VALUES
+          ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        RETURNING
+          shot_id
+      `;
+
+      const { rows: shotRows } = await db.query<{ shot_id: number }>(shotSql, [
+        submittedData.game_id,
+        submittedData.user_id,
+        submittedData.team_id,
+        submittedData.period,
+        period_time,
+        submittedData.coordinates,
+        inserted_goal_id,
+        submittedData.shorthanded,
+        submittedData.power_play,
+      ]);
+
+      if (!shotRows[0]) {
+        throw new Error("Sorry, there was a problem creating shot.");
+      }
+
+      if (type !== "goal" && submittedData.goalie_id !== 0) {
+        // -- -- add save if not goal and the team has a goalie registered
+
+        const saveSql = `
+          INSERT INTO stats.saves
+            (game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound)
+          VALUES
+            ($1, $2, $3, $4, $5, $6, $7, $8)
+        `;
+
+        const { rowCount: saveRowCount } = await db.query(saveSql, [
+          submittedData.game_id,
+          submittedData.goalie_id,
+          submittedData.opposition_id,
+          shotRows[0].shot_id,
+          submittedData.period,
+          period_time,
+          submittedData.shorthanded,
+          submittedData.rebound,
+        ]);
+
+        if (saveRowCount !== 1) {
+          throw new Error("Sorry, there was a problem creating save.");
+        }
+      }
+    }
+
+    // penalty
+    if (type === "penalty") {
+      const penaltySql = `
+        INSERT INTO stats.penalties
+          (game_id, user_id, team_id, period, period_time, coordinates, infraction, minutes)
+        VALUES
+          ($1, $2, $3, $4, $5, $6, $7, $8)
+      `;
+
+      const { rowCount: penaltyRowCount } = await db.query(penaltySql, [
+        submittedData.game_id,
+        submittedData.user_id,
+        submittedData.team_id,
+        submittedData.period,
+        period_time,
+        submittedData.coordinates,
+        submittedData.infraction,
+        submittedData.penalty_minutes,
+      ]);
+
+      if (penaltyRowCount !== 1) {
+        throw new Error("Sorry, there was a problem creating penalty.");
+      }
+    }
+
+    successful = true;
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        ...state,
+        message: err.message,
+        status: 400,
+        data: submittedData,
+      };
+    }
+    return {
+      ...state,
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
+    };
+  }
+
+  if (state?.link && successful) redirect(`${state?.link}#game-feed-add`);
+}
+
 /* ---------- READ ---------- */
 
 export async function getGame(game_id: number) {
@@ -681,7 +951,8 @@ export async function getGameFeed(game_id: number): Promise<
         s.team_id,
         t.name AS team,
         s.period,
-        s.period_time
+        s.period_time,
+        s.coordinates
       FROM
         stats.shots AS s
       JOIN
@@ -715,7 +986,8 @@ export async function getGameFeed(game_id: number): Promise<
         g.period_time,
         g.shorthanded,
         g.power_play,
-        g.empty_net
+        g.empty_net,
+        g.coordinates
       FROM
         stats.goals AS g
       JOIN
@@ -812,7 +1084,8 @@ export async function getGameFeed(game_id: number): Promise<
         p.period,
         p.period_time,
         p.infraction,
-        p.minutes
+        p.minutes,
+        p.coordinates
       FROM
         stats.penalties AS p
       JOIN
@@ -847,10 +1120,10 @@ export async function getGameFeed(game_id: number): Promise<
     const typeOrder: {
       [key: string]: number;
     } = {
-      "stats.shots": 1,
-      "stats.goals": 2,
-      "stats.save": 3,
-      "stats.penalties": 4,
+      shots: 1,
+      goals: 2,
+      save: 3,
+      penalties: 4,
       default: Number.MAX_VALUE,
     };
 
@@ -862,15 +1135,26 @@ export async function getGameFeed(game_id: number): Promise<
       ...goalsWithAssists,
       ...saves,
       ...penalties,
-    ].sort(
-      (a, b) =>
-        a.period - b.period ||
-        (a.period_time.minutes || 0) * 60 +
-          (a.period_time.seconds || 0) -
-          ((b.period_time.minutes || 0) * 60 + (b.period_time.seconds || 0)) ||
-        (typeOrder[a.type] || typeOrder.default) -
-          (typeOrder[b.type] || typeOrder.default),
-    );
+    ]
+      .sort(
+        (a, b) =>
+          a.period - b.period ||
+          (a.period_time.minutes || 0) * 60 +
+            (a.period_time.seconds || 0) -
+            ((b.period_time.minutes || 0) * 60 +
+              (b.period_time.seconds || 0)) ||
+          (typeOrder[a.type] || typeOrder.default) -
+            (typeOrder[b.type] || typeOrder.default),
+      )
+      .map((item) => {
+        const transformedItem = { ...item };
+
+        transformedItem.type = item.type.replace("stats.", "");
+
+        return transformedItem;
+      });
+
+    console.log(gameFeedItems);
 
     const gameFeed: {
       period1: StatsData[];
@@ -889,6 +1173,7 @@ export async function getGameFeed(game_id: number): Promise<
       data: gameFeed,
     };
   } catch (err) {
+    console.log(err);
     if (err instanceof Error) {
       return {
         message: err.message,
@@ -1194,270 +1479,6 @@ export async function setGameScore(
   if (state.link && successful) redirect(state.link);
 }
 
-// TODO: Add game feed data validation
-
-const AddGameFeedShotSchema = z.object({
-  game_id: z.number().min(1),
-  user_id: z.number().min(1),
-  team_id: z.number().min(1),
-  period: z.number().min(1),
-  minutes: z.number(),
-  seconds: z.number(),
-  shorthanded: z.boolean().optional(),
-  power_play: z.boolean().optional(),
-  empty_net: z.boolean().optional(),
-  rebound: z.boolean().optional(),
-  assists: z.array(z.string()),
-  penalty_minutes: z.number().min(1).optional(),
-  infraction: z
-    .string()
-    .min(2, { message: "Infraction must be at least 2 characters long." })
-    .trim()
-    .optional(),
-  goalie_id: z.number().min(1).optional(),
-  opposition_id: z.number().min(1).optional(),
-});
-
-type AddGameFeedErrorProps = {
-  team_id?: string[] | undefined;
-  game_id?: string[] | undefined;
-  user_id?: string[] | undefined;
-  period?: string[] | undefined;
-  minutes?: string[] | undefined;
-  seconds?: string[] | undefined;
-  power_play?: string[] | undefined;
-  rebound?: string[] | undefined;
-};
-
-type AddGameFeedState = FormState<
-  AddGameFeedErrorProps,
-  {
-    game_id?: number;
-    user_id?: number;
-    team_id?: number;
-    period?: number;
-    minutes?: number;
-    seconds?: number;
-    shorthanded?: boolean;
-    power_play?: boolean;
-    empty_net?: boolean;
-    rebound?: boolean;
-    assists?: string[];
-    penalty_minutes?: number;
-    infraction?: string;
-    goalie_id?: number;
-    opposition_id?: number;
-  }
->;
-
-export async function addToGameFeed(
-  state: AddGameFeedState,
-  formData: FormData,
-): Promise<AddGameFeedState> {
-  const type = formData.get("type");
-  const submittedData = {
-    game_id: parseInt(formData.get("game_id") as string),
-    user_id: parseInt(formData.get("user_id") as string),
-    team_id: parseInt(formData.get("team_id") as string),
-    period: parseInt(formData.get("period") as string),
-    minutes: parseInt(formData.get("minutes") as string),
-    seconds: parseInt(formData.get("seconds") as string),
-    shorthanded: formData.get("shorthanded") === "true",
-    power_play: formData.get("power_play") === "true",
-    empty_net: formData.get("empty_net") === "true",
-    rebound: formData.get("rebound") === "true",
-    assists: formData.getAll("assists") as string[],
-    penalty_minutes:
-      parseInt(formData.get("penalty_minutes") as string) || undefined,
-    infraction: (formData.get("infraction") as string) || undefined,
-    goalie_id: parseInt(formData.get("goalie_id") as string) || undefined,
-    opposition_id:
-      parseInt(formData.get("opposition_id") as string) || undefined,
-  };
-
-  // Validate form fields
-  const validatedFields = AddGameFeedShotSchema.safeParse(submittedData);
-
-  // If any form fields are invalid, return early
-  if (!validatedFields.success) {
-    return {
-      ...state,
-      errors: validatedFields.error.flatten().fieldErrors,
-      data: submittedData,
-    };
-  }
-
-  // initialize success check
-  let successful = false;
-
-  try {
-    const period_time = createPeriodTimeString(
-      submittedData.minutes,
-      submittedData.seconds,
-    );
-
-    // initialize inserted_goal_id
-    let inserted_goal_id: number | null = null;
-
-    // goal or shot
-    if (type === "goal" || type === "shot") {
-      // -- add goal
-      if (type === "goal") {
-        const goalSql = `
-          INSERT INTO stats.goals
-            (game_id, user_id, team_id, period, period_time, shorthanded, power_play, empty_net)
-          VALUES
-            ($1, $2, $3, $4, $5, $6, $7, $8)
-          RETURNING
-            goal_id
-        `;
-
-        const { rows: goalRows } = await db.query<{ goal_id: number }>(
-          goalSql,
-          [
-            submittedData.game_id,
-            submittedData.user_id,
-            submittedData.team_id,
-            submittedData.period,
-            period_time,
-            submittedData.shorthanded,
-            submittedData.power_play,
-            submittedData.empty_net,
-          ],
-        );
-
-        if (!goalRows[0])
-          throw new Error("Sorry, there was a problem creating goal.");
-
-        // set inserted goal id returned by goal insert statement
-        inserted_goal_id = goalRows[0].goal_id;
-
-        // -- -- add assists
-        if (submittedData?.assists?.length && inserted_goal_id) {
-          const assistSql = `
-            INSERT INTO stats.assists
-              (goal_id, game_id, user_id, team_id, primary_assist)
-            VALUES
-              ($1, $2, $3, $4, $5)
-          `;
-
-          // Loop through each assist and add to database
-          let assistCount = 0;
-          for await (const assist of submittedData.assists) {
-            const { rowCount: assistsRowCount } = await db.query(assistSql, [
-              inserted_goal_id,
-              submittedData.game_id,
-              assist,
-              submittedData.team_id,
-              assistCount === 0,
-            ]);
-
-            if (assistsRowCount !== 1) {
-              throw new Error(`Sorry, there was a problem creating assist.`);
-            }
-
-            assistCount++;
-          }
-        }
-      }
-
-      // -- add shot
-      const shotSql = `
-        INSERT INTO stats.shots
-          (game_id, user_id, team_id, period, period_time, goal_id, shorthanded, power_play)
-        VALUES 
-          ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING
-          shot_id
-      `;
-
-      const { rows: shotRows } = await db.query<{ shot_id: number }>(shotSql, [
-        submittedData.game_id,
-        submittedData.user_id,
-        submittedData.team_id,
-        submittedData.period,
-        period_time,
-        inserted_goal_id,
-        submittedData.shorthanded,
-        submittedData.power_play,
-      ]);
-
-      if (!shotRows[0]) {
-        throw new Error("Sorry, there was a problem creating shot.");
-      }
-
-      if (type !== "goal" && submittedData.goalie_id !== 0) {
-        // -- -- add save if not goal and the team has a goalie registered
-
-        const saveSql = `
-          INSERT INTO stats.saves
-            (game_id, user_id, team_id, shot_id, period, period_time, penalty_kill, rebound)
-          VALUES 
-            ($1, $2, $3, $4, $5, $6, $7, $8)
-        `;
-
-        const { rowCount: saveRowCount } = await db.query(saveSql, [
-          submittedData.game_id,
-          submittedData.goalie_id,
-          submittedData.opposition_id,
-          shotRows[0].shot_id,
-          submittedData.period,
-          period_time,
-          submittedData.shorthanded,
-          submittedData.rebound,
-        ]);
-
-        if (saveRowCount !== 1) {
-          throw new Error("Sorry, there was a problem creating save.");
-        }
-      }
-    }
-
-    // penalty
-    if (type === "penalty") {
-      const penaltySql = `
-        INSERT INTO stats.penalties
-          (game_id, user_id, team_id, period, period_time, infraction, minutes)
-        VALUES
-          ($1, $2, $3, $4, $5, $6, $7)
-      `;
-
-      const { rowCount: penaltyRowCount } = await db.query(penaltySql, [
-        submittedData.game_id,
-        submittedData.user_id,
-        submittedData.team_id,
-        submittedData.period,
-        period_time,
-        submittedData.infraction,
-        submittedData.penalty_minutes,
-      ]);
-
-      if (penaltyRowCount !== 1) {
-        throw new Error("Sorry, there was a problem creating penalty.");
-      }
-    }
-
-    successful = true;
-  } catch (err) {
-    if (err instanceof Error) {
-      return {
-        ...state,
-        message: err.message,
-        status: 400,
-        data: submittedData,
-      };
-    }
-    return {
-      ...state,
-      message: "Something went wrong.",
-      status: 500,
-      data: submittedData,
-    };
-  }
-
-  if (state?.link && successful) redirect(`${state?.link}#game-feed-add`);
-}
-
 export default async function endGame(state: {
   canEdit: boolean;
   game_id: number;
@@ -1579,19 +1600,19 @@ export async function deleteFeedItem(
     let sql: string;
 
     switch (state.data.type) {
-      case "stats.goals":
+      case "goals":
         sql = `
         DELETE FROM stats.goals
         WHERE goal_id = $1
       `;
         break;
-      case "stats.saves":
+      case "saves":
         sql = `
         DELETE FROM stats.saves
         WHERE save_id = $1
       `;
         break;
-      case "stats.penalties":
+      case "penalties":
         sql = `
         DELETE FROM stats.penalties
         WHERE penalty_id = $1
@@ -1619,7 +1640,7 @@ export async function deleteFeedItem(
         status: 400,
         data: {
           id: state?.data?.id || 0,
-          type: state?.data?.type || "stats.goal",
+          type: state?.data?.type || "goal",
         },
       };
     }
@@ -1629,7 +1650,7 @@ export async function deleteFeedItem(
       status: 500,
       data: {
         id: state?.data?.id || 0,
-        type: state?.data?.type || "stats.goal",
+        type: state?.data?.type || "goal",
       },
     };
   }

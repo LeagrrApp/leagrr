@@ -2,10 +2,14 @@ import endGame, { getGameFeed, getGameTeamRosters } from "@/actions/games";
 import Card from "@/components/ui/Card/Card";
 import Icon from "@/components/ui/Icon/Icon";
 import Grid from "@/components/ui/layout/Grid";
-import { addNumberOrdinals } from "@/utils/helpers/formatting";
+import {
+  addNumberOrdinals,
+  convertGameFeedItemsToRinkItems,
+} from "@/utils/helpers/formatting";
 import { apply_classes } from "@/utils/helpers/html-attributes";
 import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
 import GameFeedAdd from "../GameFeedAdd/GameFeedAdd";
+import RinkTracker from "../RinkTracker/RinkTracker";
 import css from "./gameFeed.module.css";
 import GameFeedItem from "./GameFeedItem";
 
@@ -99,6 +103,18 @@ export default async function GameFeed({
   if (game.home_team_score < game.away_team_score)
     game_end_highlight_class = css.away_team_win;
 
+  // Prep rink tracker items
+  const allFeedItems: StatsData[] = [
+    ...gameFeed.period1,
+    ...gameFeed.period2,
+    ...gameFeed.period3,
+  ];
+
+  const rinkTrackerItems: RinkItem[] = convertGameFeedItemsToRinkItems(
+    allFeedItems,
+    game,
+  );
+
   return (
     <section id="game-feed" className={css.game_feed}>
       <h3 className="push-ml type-scale-h4">Game Feed</h3>
@@ -131,7 +147,7 @@ export default async function GameFeed({
                     {gameFeed[p].map((item: StatsData) => {
                       const isHome = game.home_team_id === item.team_id;
 
-                      if (item.type === "stats.goals") {
+                      if (item.type === "goals") {
                         if (item.team_id === game.home_team_id) {
                           running_home_team_score++;
                         } else {
@@ -159,12 +175,19 @@ export default async function GameFeed({
                 {i !== 2 && currentTime.period !== i + 1 && (
                   <div className={css.game_feed_summary}>
                     <h5>{addNumberOrdinals(i + 1)} Period Score</h5>
-                    <p>
+                    <p className="push">
                       {game.away_team}{" "}
                       <strong>{running_away_team_score}</strong> —{" "}
                       <strong>{running_home_team_score}</strong>{" "}
                       {game.home_team}
                     </p>
+                    <RinkTracker
+                      rinkItems={convertGameFeedItemsToRinkItems(
+                        gameFeed[p],
+                        game,
+                      )}
+                      linkPrefix="game-feed"
+                    />
                   </div>
                 )}
               </li>
@@ -232,6 +255,20 @@ export default async function GameFeed({
                 <strong>{game.home_team_score}</strong> {game.home_team}
               </span>
             </p>
+
+            {rinkTrackerItems.length > 0 && (
+              <div
+                style={{
+                  padding: "var(--spacer-base)",
+                  marginBlockStart: "var(--spacer-base)",
+                }}
+              >
+                <RinkTracker
+                  rinkItems={rinkTrackerItems}
+                  linkPrefix="game-feed"
+                />
+              </div>
+            )}
           </div>
         )}
       </Card>

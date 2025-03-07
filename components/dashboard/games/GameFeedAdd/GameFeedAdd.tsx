@@ -13,6 +13,7 @@ import Grid from "@/components/ui/layout/Grid";
 import { nameDisplay } from "@/utils/helpers/formatting";
 import { usePathname } from "next/navigation";
 import { useActionState, useEffect, useMemo, useState } from "react";
+import RinkTracker from "../RinkTracker/RinkTracker";
 import css from "./gameFeedAdd.module.css";
 
 interface GameFeedAddProps {
@@ -76,6 +77,8 @@ export default function GameFeedAdd({
   const [goalie, setGoalie] = useState<number>(
     teamRosters.home_roster.find((p) => p.position === "Goalie")?.user_id || 0,
   );
+  const [coordinatesValue, setCoordinatesValue] = useState<string>("");
+  const [rinkItems, setRinkItems] = useState<RinkItem[]>([]);
 
   useEffect(() => {
     setPlayer(
@@ -98,6 +101,40 @@ export default function GameFeedAdd({
 
     setCanAssist(filteredList);
   }, [player, away_players, game.home_team_id, home_players, team]);
+
+  useEffect(() => {
+    if (coordinatesValue) {
+      // set display icon on rink
+      const newRinkItem = {
+        icon: "target",
+        coordinates: coordinatesValue,
+        color:
+          team === game.home_team_id
+            ? game.home_team_color
+            : game.away_team_color,
+      };
+
+      switch (type) {
+        case "goal":
+          newRinkItem.icon = "e911_emergency";
+          break;
+        case "save":
+          newRinkItem.icon = "security";
+          break;
+        case "penalty":
+          newRinkItem.icon = "gavel";
+          break;
+        default:
+          break;
+      }
+      setRinkItems([newRinkItem]);
+    }
+  }, [type, coordinatesValue, team, game]);
+
+  function handleAddRinkItem(coordinates: string) {
+    // set coordinates for form submission
+    setCoordinatesValue(coordinates);
+  }
 
   const team_choices: Choice[] = [
     { label: game.away_team, value: game.away_team_id },
@@ -223,6 +260,18 @@ export default function GameFeedAdd({
           }
         />
         <input type="hidden" name="goalie_id" value={goalie} />
+        <Col fullSpan>
+          <h5 className="push-m">Play Tracker</h5>
+          {state?.errors?.coordinates && (
+            <div className="push-m">
+              <Alert alert={state.errors.coordinates} type="danger" />
+            </div>
+          )}
+          <RinkTracker rinkItems={rinkItems} handleAdd={handleAddRinkItem} />
+        </Col>
+        {coordinatesValue && (
+          <input type="hidden" name="coordinates" value={coordinatesValue} />
+        )}
         {state?.message && state?.status !== 200 && (
           <Col fullSpan>
             <Alert alert={state.message} type="danger" />
