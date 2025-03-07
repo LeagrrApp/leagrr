@@ -44,10 +44,10 @@ export default async function Page({ params }: PageProps) {
 
       <ModalConfirmAction
         defaultState={{
+          link: createDashboardUrl({ l: league }),
           data: {
             season_id: seasonData.season_id,
             league_id: seasonData.league_id,
-            backLink: createDashboardUrl({ l: league }),
           },
         }}
         actionFunction={deleteSeason}
@@ -60,6 +60,10 @@ export default async function Page({ params }: PageProps) {
             variant: "danger",
             fullWidth: true,
           },
+        }}
+        typeToConfirm={{
+          type: "season",
+          confirmString: `${league}/${season}`,
         }}
       />
     </Container>

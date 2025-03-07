@@ -74,6 +74,10 @@ export default function LeagueSettingsMenu({
                   padding: ["ml", "base"],
                 },
               }}
+              typeToConfirm={{
+                type: "league",
+                confirmString: slug,
+              }}
             />
           </li>
         )}

@@ -72,6 +72,10 @@ export default async function Page({ params }: PageProps) {
                 fullWidth: true,
               },
             }}
+            typeToConfirm={{
+              type: "team",
+              confirmString: `${team}`,
+            }}
           />
         )}
       </div>

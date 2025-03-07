@@ -4,10 +4,12 @@
 import Alert from "@/components/ui/Alert/Alert";
 import Button, { ButtonProps } from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
+import Input from "@/components/ui/forms/Input";
 import Icon from "@/components/ui/Icon/Icon";
+import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { apply_classes } from "@/utils/helpers/html-attributes";
-import { useActionState, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import css from "./modalConfirmAction.module.css";
 
 interface ModalConfirmActionProps {
@@ -24,6 +26,10 @@ interface ModalConfirmActionProps {
     icon?: string;
     buttonStyles?: ButtonProps;
   };
+  typeToConfirm?: {
+    confirmString: string;
+    type: string;
+  };
 }
 
 export default function ModalConfirmAction({
@@ -34,9 +40,22 @@ export default function ModalConfirmAction({
   confirmationButton,
   confirmationButtonVariant,
   trigger,
+  typeToConfirm,
 }: ModalConfirmActionProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [state, action] = useActionState(actionFunction, defaultState);
+  const [state, action, pending] = useActionState(actionFunction, defaultState);
+  const [typedConfirmedText, setTypedConfirmedText] = useState<string>("");
+  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeToConfirm) {
+      setButtonDisabled(
+        typedConfirmedText !== typeToConfirm.confirmString || pending,
+      );
+    } else {
+      setButtonDisabled(pending);
+    }
+  }, [typeToConfirm, typedConfirmedText, pending]);
 
   return (
     <>
@@ -63,14 +82,39 @@ export default function ModalConfirmAction({
 
       <Dialog className={css.dialog} ref={dialogRef}>
         <form action={action}>
-          <h2 className={css.dialog_heading}>{confirmationHeading}</h2>
-          {confirmationByline && (
-            <p className={css.dialog_byline}>{confirmationByline}</p>
-          )}
           <Grid cols={2} gap="base">
+            <Col fullSpan>
+              <h2 className={css.dialog_heading}>{confirmationHeading}</h2>
+              {confirmationByline && (
+                <p className={css.dialog_byline}>{confirmationByline}</p>
+              )}
+            </Col>
+            {typeToConfirm && (
+              <Col fullSpan>
+                <small className={css.confirmation_label}>
+                  In order to delete this {typeToConfirm.type}, please type out
+                  the {typeToConfirm.type} information:{" "}
+                  <strong className={css.confirmation_string}>
+                    {typeToConfirm.confirmString}
+                  </strong>
+                </small>
+                <Input
+                  id="confirmation-string"
+                  name="confirmation-string"
+                  label="Type confirmation"
+                  type="text"
+                  value={typedConfirmedText}
+                  onChange={(e) => setTypedConfirmedText(e.target.value)}
+                  hideLabel
+                  noPlaceholder
+                  required
+                />
+              </Col>
+            )}
             <Button
               type="submit"
               variant={confirmationButtonVariant || "danger"}
+              disabled={buttonDisabled}
             >
               {confirmationButton || "Confirm"}
             </Button>
