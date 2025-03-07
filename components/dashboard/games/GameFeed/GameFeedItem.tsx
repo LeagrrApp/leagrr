@@ -28,6 +28,8 @@ export default function GameFeedItem({
   backLink,
 }: GameFeedItemProps) {
   const {
+    type,
+    item_id,
     period,
     period_time,
     first_name,
@@ -51,12 +53,12 @@ export default function GameFeedItem({
   let preText: string | undefined = undefined;
 
   // Goal specific pre-text
-  if (item.type === "stats.goals" && empty_net) preText = "Empty net goal";
-  if (item.type === "stats.goals" && empty_net && shorthanded)
+  if (type === "goals" && empty_net) preText = "Empty net goal";
+  if (type === "goals" && empty_net && shorthanded)
     preText = "Shorthanded empty net goal";
-  if (item.type === "stats.goals" && shorthanded) preText = "Shorthanded goal";
-  if (item.type === "stats.goals" && power_play) preText = "Power play goal";
-  if (item.type === "stats.goals" && empty_net && power_play)
+  if (type === "goals" && shorthanded) preText = "Shorthanded goal";
+  if (type === "goals" && power_play) preText = "Power play goal";
+  if (type === "goals" && empty_net && power_play)
     preText = "Power play empty net goal";
 
   // set icon
@@ -66,17 +68,17 @@ export default function GameFeedItem({
     highlight: false,
   };
 
-  switch (item.type) {
-    case "stats.goals":
+  switch (type) {
+    case "goals":
       icon.icon = "e911_emergency";
       icon.label = "Goal";
       icon.highlight = true;
       break;
-    case "stats.saves":
+    case "saves":
       icon.icon = "security";
       icon.label = "Save";
       break;
-    case "stats.penalties":
+    case "penalties":
       icon.icon = "gavel";
       icon.label = "Penalty";
       break;
@@ -85,7 +87,7 @@ export default function GameFeedItem({
   }
 
   return (
-    <li className={apply_classes(classes)}>
+    <li id={`game-feed-${type}-${item_id}`} className={apply_classes(classes)}>
       <div className={css.game_feed_item_time}>
         <h5 className={css.game_feed_item_period_time}>
           {formatTimePeriod(period_time)}
@@ -107,7 +109,7 @@ export default function GameFeedItem({
         />
       </div>
       <p className={css.game_feed_item_player_info}>
-        {item.type === "stats.shots" && (
+        {type === "shots" && (
           <>
             <Link href={createDashboardUrl({ u: username })}>
               {nameDisplay(first_name, last_name, "first_initial")}
@@ -115,7 +117,7 @@ export default function GameFeedItem({
             shot on goal
           </>
         )}
-        {item.type === "stats.goals" && (
+        {type === "goals" && (
           <>
             {preText ? preText : "Goal"} by{" "}
             <Link href={createDashboardUrl({ u: username })}>
@@ -136,7 +138,7 @@ export default function GameFeedItem({
             </span>
           </>
         )}
-        {item.type === "stats.saves" && (
+        {type === "saves" && (
           <>
             Save by{" "}
             <Link href={createDashboardUrl({ u: username })}>
@@ -145,7 +147,7 @@ export default function GameFeedItem({
             {!rebound && ", no rebound"}
           </>
         )}
-        {item.type === "stats.penalties" && (
+        {type === "penalties" && (
           <>
             <Link href={createDashboardUrl({ u: username })}>
               {nameDisplay(first_name, last_name, "first_initial")}
@@ -167,7 +169,7 @@ export default function GameFeedItem({
           defaultState={{
             data: {
               id: item.item_id,
-              type: item.type,
+              type: type,
             },
             link: backLink,
           }}

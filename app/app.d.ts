@@ -249,6 +249,7 @@ type StatsData = {
   rebound?: boolean;
   infraction?: string;
   minutes?: number;
+  coordinates?: string;
 };
 
 type StatLeaderBoardItem = {
@@ -292,4 +293,12 @@ type LeagueVenueData = {
   venue: string;
   address: string;
   arenas: string;
+};
+
+type RinkItem = {
+  icon: string;
+  coordinates: string;
+  color: string;
+  item_id?: number;
+  type?: string;
 };

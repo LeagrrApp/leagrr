@@ -62,6 +62,8 @@
 }
 
 .game_feed_item {
+  --color-feed: var(--color-away);
+
   border: 0.0625rem solid var(--color-grey);
   border-radius: var(--spacer-s);
   grid-column: 1 / -1;
@@ -77,6 +79,12 @@
     hsla(from var(--color-away, var(--color-white)) h s l / 0.25),
     transparent 20%
   );
+  transition: box-shadow var(--transition);
+
+  &:target {
+    box-shadow: 0 0 var(--spacer-base)
+      hsla(from var(--color-feed, var(--color-primary)) h s l / 0.25);
+  }
 
   @container (min-width: 45rem) {
     grid-column: span 4;

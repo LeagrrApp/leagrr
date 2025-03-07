@@ -251,3 +251,41 @@ export function convert_roles_to_select_choices(roles: Map<number, RoleData>) {
 export function addressAsGoogleMapsLink(address: string): string {
   return `https://www.google.com/maps/place/${address.replaceAll(" ", "+")}`;
 }
+
+export function convertGameFeedItemsToRinkItems(
+  feedItems: StatsData[],
+  game: GameData,
+) {
+  return feedItems
+    .filter((item) => {
+      if (item.coordinates) return true;
+    })
+    .map((item) => {
+      const newRinkItem: RinkItem = {
+        item_id: item.item_id,
+        icon: "target",
+        coordinates: item.coordinates || "",
+        color:
+          item.team_id === game.home_team_id
+            ? game.home_team_color
+            : game.away_team_color,
+        type: item.type,
+      };
+
+      switch (item.type) {
+        case "goals":
+          newRinkItem.icon = "e911_emergency";
+          break;
+        // case "saves":
+        //   newRinkItem.icon = "security";
+        //   break;
+        case "penalties":
+          newRinkItem.icon = "gavel";
+          break;
+        default:
+          break;
+      }
+
+      return newRinkItem;
+    });
+}

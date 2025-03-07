@@ -169,6 +169,8 @@ html {
   line-height: 1.5;
   background-color: var(--color-background);
   color: var(--color-foreground);
+  scroll-behavior: smooth;
+  scroll-padding-block-start: var(--spacer-base);
 }
 
 /* Remove default margin in favour of better control in authored CSS */
