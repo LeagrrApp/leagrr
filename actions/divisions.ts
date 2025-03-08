@@ -737,6 +737,65 @@ export async function editDivision(
   if (redirectLink) redirect(redirectLink);
 }
 
+export async function publishDivision(state: {
+  data: {
+    division_id: number;
+    season_id: number;
+    league_id: number;
+  };
+  link: string;
+}) {
+  // Verify user session
+  await verifySession();
+
+  let publishSuccessful = false;
+
+  try {
+    // set check for whether user has permission to publish
+    const { canEdit } = await canEditLeague(state.data.league_id);
+
+    if (!canEdit) {
+      // failed both user role check and league role check, shortcut out
+      return {
+        ...state,
+        message: "You do not have permission to publish this division.",
+        status: 401,
+      };
+    }
+
+    // create delete sql statement
+    const sql = `
+      UPDATE league_management.divisions
+      SET
+        status = 'public'
+      WHERE division_id = $1
+    `;
+
+    // query the database
+    const { rowCount } = await db.query(sql, [state.data.division_id]);
+
+    if (rowCount !== 1)
+      throw new Error("Sorry, there was an issue publishing this division.");
+
+    publishSuccessful = true;
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        ...state,
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      ...state,
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
+
+  if (publishSuccessful && state.link) redirect(state.link);
+}
+
 const DivisionJoinCodeSchema = z.object({
   join_code: z
     .string()

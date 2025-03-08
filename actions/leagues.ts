@@ -444,6 +444,66 @@ export async function editLeague(
   if (redirectLink) redirect(redirectLink);
 }
 
+export async function publishLeague(state: {
+  status?: number;
+  message?: string;
+  data: { league_id: number };
+  noRedirect?: boolean;
+}) {
+  // Verify user session
+  await verifySession();
+
+  let redirectLink: string | undefined = undefined;
+
+  try {
+    if (!state.data) throw new Error("Sorry, something when wrong.");
+
+    // set check for whether user has permission to publish
+    const { canEdit } = await canEditLeague(state.data.league_id);
+
+    if (!canEdit) {
+      // failed both user role check and league role check, shortcut out
+      return {
+        message: "You do not have permission to publish this league.",
+        status: 401,
+      };
+    }
+
+    // create update sql statement
+    const sql = `
+      UPDATE league_management.leagues
+      SET
+        status = 'public'
+      WHERE league_id = $1
+      RETURNING
+        slug
+    `;
+    // query the database
+    const { rows } = await db.query<{ slug: string }>(sql, [
+      state.data.league_id,
+    ]);
+
+    if (!rows[0]) throw new Error("There was a problem publishing league.");
+
+    redirectLink = createDashboardUrl({ l: rows[0].slug });
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+        ...state,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      ...state,
+    };
+  }
+
+  if (redirectLink && !state.noRedirect) redirect(redirectLink);
+}
+
 /* ---------- DELETE ---------- */
 
 export async function deleteLeague(state: { data: { league_id: number } }) {
