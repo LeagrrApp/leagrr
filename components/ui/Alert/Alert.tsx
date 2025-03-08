@@ -3,7 +3,7 @@ import css from "./alert.module.css";
 
 interface AlertProps {
   alert: string | string[];
-  type?: string;
+  type?: ColorOptions | string;
   fontSize?: FontSizeOptions;
   marginStart?: SizeOptions;
   marginEnd?: SizeOptions;

@@ -286,11 +286,15 @@ export async function getSeasonsByLeague(
     // build select statement to get all seasons for associated league
     const seasonsSql = `
       SELECT
+        s.season_id,
         s.slug,
         s.name,
         s.status,
         s.start_date,
-        s.end_date
+        s.end_date,
+        s.league_id,
+        l.name as league,
+        l.slug as league_slug
       FROM
         league_management.seasons AS s
       JOIN
@@ -435,6 +439,66 @@ export async function editSeason(
 
   // Redirect to the season page
   if (redirectLink) redirect(redirectLink);
+}
+
+export async function publishSeason(state: {
+  link?: string;
+  data: {
+    season_id: number;
+    league_id: number;
+  };
+  noRedirect?: boolean;
+}) {
+  // Verify user session
+  await verifySession();
+
+  try {
+    if (!state.data) throw new Error("Sorry, unable to publish season.");
+
+    // set check for whether user has permission to publish
+    const { canEdit } = await canEditLeague(state.data.league_id);
+
+    if (!canEdit) {
+      // failed both user role check and league role check, shortcut out
+      return {
+        ...state,
+        message: "You do not have permission to publish this season.",
+        status: 401,
+        data: state.data,
+      };
+    }
+
+    // create update sql statement
+    const sql = `
+      UPDATE league_management.seasons
+      SET
+        status = 'public'
+      WHERE season_id = $1
+    `;
+
+    // query the database
+    const { rowCount } = await db.query(sql, [state.data.season_id]);
+
+    if (rowCount !== 1)
+      throw new Error("There was a problem publishing the season.");
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        ...state,
+        message: err.message,
+        status: 400,
+        data: state.data,
+      };
+    }
+    return {
+      ...state,
+      message: "Something went wrong",
+      status: 500,
+      data: state.data,
+    };
+  }
+
+  if (state.link && !state.noRedirect) redirect(state.link);
 }
 
 /* ---------- DELETE ---------- */

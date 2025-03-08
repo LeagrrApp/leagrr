@@ -1,14 +1,17 @@
 "use client";
 
+import { publishSeason } from "@/actions/seasons";
+import Badge from "@/components/ui/Badge/Badge";
 import Button from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
+import HighlightBox from "@/components/ui/HighlightBox/HighlightBox";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { apply_classes } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useRef } from "react";
+import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
 import css from "./seasonSelector.module.css";
-import Badge from "@/components/ui/Badge/Badge";
-import { apply_classes } from "@/utils/helpers/html-attributes";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
 
 interface SeasonSelectorProps {
   seasons: SeasonData[];
@@ -27,6 +30,8 @@ export default function SeasonSelector({
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const { league, season } = params;
+
+  console.log(currentSeason);
 
   if (
     !currentSeason ||
@@ -56,7 +61,30 @@ export default function SeasonSelector({
             Edit Season
           </Button>
         )}
-        {currentSeason.status && currentSeason.status !== "public" && (
+        {/* {currentSeason.status === "draft" && (
+          <ModalConfirmAction
+            defaultState={{
+              link: createDashboardUrl({ l: league, s: season }),
+              data: {
+                league_id: currentSeason.league_id,
+                season_id: currentSeason.season_id,
+              },
+            }}
+            actionFunction={publishSeason}
+            confirmationHeading={`Are you sure you want to publish ${currentSeason.name}?`}
+            confirmationByline={`This will publish both the current season and the league that it belongs to.`}
+            confirmationButtonVariant="primary"
+            trigger={{
+              icon: "publish",
+              label: "Publish Season",
+              buttonStyles: {
+                variant: "warning",
+                size: "xs",
+              },
+            }}
+          />
+        )} */}
+        {currentSeason.status !== "public" && (
           <Badge
             text={currentSeason.status}
             fontSize="xs"
@@ -88,6 +116,33 @@ export default function SeasonSelector({
           </>
         )}
       </Dialog>
+
+      {currentSeason.status === "draft" && (
+        <HighlightBox type="warning" padding={["m", "base"]}>
+          Ready to publish this season?
+          <ModalConfirmAction
+            defaultState={{
+              link: createDashboardUrl({ l: league, s: season }),
+              data: {
+                league_id: currentSeason.league_id,
+                season_id: currentSeason.season_id,
+              },
+            }}
+            actionFunction={publishSeason}
+            confirmationHeading={`Are you sure you want to publish ${currentSeason.name}?`}
+            confirmationByline={`This will publish both the current season and the league that it belongs to.`}
+            confirmationButtonVariant="primary"
+            trigger={{
+              icon: "publish",
+              label: "Publish Season",
+              buttonStyles: {
+                variant: "warning",
+                size: "xs",
+              },
+            }}
+          />
+        </HighlightBox>
+      )}
     </>
   );
 }

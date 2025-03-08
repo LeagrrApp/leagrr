@@ -142,7 +142,7 @@ type SeasonData = {
   description?: string;
   start_date?: Date | string;
   end_date?: Date | string;
-  status?: string;
+  status: string;
   divisions?: DivisionData[];
   league_id: number;
   league_slug?: string;

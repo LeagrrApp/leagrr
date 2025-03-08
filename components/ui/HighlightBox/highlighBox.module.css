@@ -1,0 +1,16 @@
+.highlight_box {
+  padding: var(--hb-padding, var(--spacer-em-s) var(--spacer-em-m));
+  margin: 0;
+  border: 0.0625rem solid var(--hb-color, var(--color-primary));
+  border-radius: var(--spacer-em-s);
+  background-color: var(--hb-bg, var(--color-primary-lightest));
+  font-size: var(--hb-font-size, var(--type-scale-s));
+  margin-block: var(--hb-margin-start, 0) var(--hb-margin-end, 0);
+
+  &:has([class^="button"]) {
+    display: flex;
+    align-items: center;
+    gap: var(--spacer-base);
+    justify-content: space-between;
+  }
+}
