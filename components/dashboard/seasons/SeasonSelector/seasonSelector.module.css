@@ -13,8 +13,10 @@
   }
 
   & a {
-    display: inline-block;
+    display: inline-flex;
     text-decoration: none;
+    align-items: center;
+    gap: var(--spacer-m);
 
     &:where(:hover, :focus-visible) {
       scale: 1.05;

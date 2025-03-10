@@ -31,8 +31,6 @@ export default function SeasonSelector({
 
   const { league, season } = params;
 
-  console.log(currentSeason);
-
   if (
     !currentSeason ||
     typeof league !== "string" ||
@@ -61,29 +59,6 @@ export default function SeasonSelector({
             Edit Season
           </Button>
         )}
-        {/* {currentSeason.status === "draft" && (
-          <ModalConfirmAction
-            defaultState={{
-              link: createDashboardUrl({ l: league, s: season }),
-              data: {
-                league_id: currentSeason.league_id,
-                season_id: currentSeason.season_id,
-              },
-            }}
-            actionFunction={publishSeason}
-            confirmationHeading={`Are you sure you want to publish ${currentSeason.name}?`}
-            confirmationByline={`This will publish both the current season and the league that it belongs to.`}
-            confirmationButtonVariant="primary"
-            trigger={{
-              icon: "publish",
-              label: "Publish Season",
-              buttonStyles: {
-                variant: "warning",
-                size: "xs",
-              },
-            }}
-          />
-        )} */}
         {currentSeason.status !== "public" && (
           <Badge
             text={currentSeason.status}
@@ -103,6 +78,13 @@ export default function SeasonSelector({
                 onClick={() => dialogRef?.current?.close()}
               >
                 {season.name}
+                {season.status !== "public" && (
+                  <Badge
+                    text={season.status}
+                    fontSize="s"
+                    type={season.status === "draft" ? "warning" : "danger"}
+                  />
+                )}
               </Link>
             </li>
           ))}
@@ -117,7 +99,7 @@ export default function SeasonSelector({
         )}
       </Dialog>
 
-      {currentSeason.status === "draft" && (
+      {hasAdminRole && currentSeason.status === "draft" && (
         <HighlightBox type="warning" padding={["m", "base"]}>
           Ready to publish this season?
           <ModalConfirmAction

@@ -27,7 +27,7 @@ export default function LeagueHeader({ league, canEdit }: LeagueHeaderProps) {
       className={css.league_header}
       containerClassName={css.league_header_container}
     >
-      {league.status === "draft" && (
+      {canEdit && league.status === "draft" && (
         <HighlightBox type="warning" padding={["m", "base"]}>
           Ready to publish this league?
           <ModalConfirmAction

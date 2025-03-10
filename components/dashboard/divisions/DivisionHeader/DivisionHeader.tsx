@@ -42,7 +42,7 @@ export default function DivisionHeader({
 
   return (
     <>
-      {division.status === "draft" && (
+      {canEdit && division.status === "draft" && (
         <HighlightBox type="warning" marginEnd="base" padding={["m", "base"]}>
           Ready to publish this division?
           <ModalConfirmAction

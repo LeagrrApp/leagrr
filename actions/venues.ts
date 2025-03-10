@@ -54,8 +54,6 @@ export async function createVenue(
     league_id: parseInt(formData.get("league_id") as string),
   };
 
-  console.log(submittedData);
-
   const validatedFields = VenueCreateSchema.safeParse(submittedData);
 
   // If any form fields are invalid, return early
