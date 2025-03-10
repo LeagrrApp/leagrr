@@ -3,6 +3,7 @@ import { deleteSeason, getSeason, getSeasonMetaData } from "@/actions/seasons";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
 import EditSeason from "@/components/dashboard/seasons/EditSeason";
 import BackButton from "@/components/ui/BackButton/BackButton";
+import Card from "@/components/ui/Card/Card";
 import Container from "@/components/ui/Container/Container";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
@@ -39,33 +40,35 @@ export default async function Page({ params }: PageProps) {
     <Container>
       <BackButton label="Back to season" href={backLink} />
 
-      <h2 className="push">Edit Season</h2>
-      <EditSeason backLink={backLink} season={seasonData} />
+      <Card padding="l">
+        <h2 className="push">Edit Season</h2>
+        <EditSeason backLink={backLink} season={seasonData} />
 
-      <ModalConfirmAction
-        defaultState={{
-          link: createDashboardUrl({ l: league }),
-          data: {
-            season_id: seasonData.season_id,
-            league_id: seasonData.league_id,
-          },
-        }}
-        actionFunction={deleteSeason}
-        confirmationHeading={`Are you sure you want to delete ${seasonData.name}?`}
-        confirmationByline={`This action is permanent cannot be undone. Consider setting the season's status to "Archived" instead.`}
-        trigger={{
-          icon: "delete",
-          label: "Delete Season",
-          buttonStyles: {
-            variant: "danger",
-            fullWidth: true,
-          },
-        }}
-        typeToConfirm={{
-          type: "season",
-          confirmString: `${league}/${season}`,
-        }}
-      />
+        <ModalConfirmAction
+          defaultState={{
+            link: createDashboardUrl({ l: league }),
+            data: {
+              season_id: seasonData.season_id,
+              league_id: seasonData.league_id,
+            },
+          }}
+          actionFunction={deleteSeason}
+          confirmationHeading={`Are you sure you want to delete ${seasonData.name}?`}
+          confirmationByline={`This action is permanent cannot be undone. Consider setting the season's status to "Archived" instead.`}
+          trigger={{
+            icon: "delete",
+            label: "Delete Season",
+            buttonStyles: {
+              variant: "danger",
+              fullWidth: true,
+            },
+          }}
+          typeToConfirm={{
+            type: "season",
+            confirmString: `${league}/${season}`,
+          }}
+        />
+      </Card>
     </Container>
   );
 }

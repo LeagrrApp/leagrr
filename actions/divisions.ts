@@ -163,11 +163,14 @@ export async function getDivision(
   season_slug: string,
   league_slug: string,
 ): Promise<ResultProps<DivisionData>> {
-  try {
-    // check user is logged in
-    await verifySession();
+  // check user is logged in
+  await verifySession();
 
-    const divisionSql = `
+  try {
+    // check if user has league role or is admin by checking if canEdit
+    const { canEdit } = await canEditLeague(league_slug);
+
+    let divisionSql = `
       SELECT
         d.division_id,
         d.name,
@@ -198,6 +201,15 @@ export async function getDivision(
         AND
         l.slug = $3
     `;
+
+    // if does not have league role or league admin, add restriction to public league only
+    if (!canEdit) {
+      divisionSql = `
+        ${divisionSql}
+        AND
+        d.status = 'public'
+      `;
+    }
 
     const { rows } = await db.query<DivisionData>(divisionSql, [
       division_slug,
@@ -596,7 +608,12 @@ export async function getDivisionStatLeaders(
   };
 }
 
-export async function getDivisionsBySeason(season_id: number) {
+export async function getDivisionsBySeason(
+  season_id: number,
+  options?: {
+    publicOnly?: boolean;
+  },
+) {
   // check user is logged in
   await verifySession();
 
@@ -613,7 +630,10 @@ export async function getDivisionsBySeason(season_id: number) {
         season_id,
         status,
         join_code
-      FROM league_management.divisions WHERE season_id = $1
+      FROM league_management.divisions
+      WHERE
+        season_id = $1
+        ${options?.publicOnly ? `AND status = 'public'` : ""}
       ORDER BY gender, tier
     `;
 

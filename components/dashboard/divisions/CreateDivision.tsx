@@ -10,7 +10,7 @@ import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { gender_options } from "@/lib/definitions";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react";
 
 interface CreateDivisionProps {
   season: SeasonData;
@@ -19,10 +19,6 @@ interface CreateDivisionProps {
 export default function CreateDivision({ season }: CreateDivisionProps) {
   const [state, action, pending] = useActionState(createDivision, undefined);
   const router = useRouter();
-
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
 
   return (
     <form action={action}>

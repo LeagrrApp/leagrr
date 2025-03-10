@@ -8,14 +8,10 @@ import Input from "@/components/ui/forms/Input";
 import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react";
 
 export default function JoinTeamByCode() {
   const [state, action, pending] = useActionState(joinTeamByCode, undefined);
-
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
 
   return (
     <Card padding="l">

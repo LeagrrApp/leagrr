@@ -1,4 +1,8 @@
-import { getLeagueIdFromSlug, getLeagueMetaData } from "@/actions/leagues";
+import {
+  canEditLeague,
+  getLeagueIdFromSlug,
+  getLeagueMetaData,
+} from "@/actions/leagues";
 import CreateSeason from "@/components/dashboard/seasons/CreateSeason";
 import Card from "@/components/ui/Card/Card";
 import Container from "@/components/ui/Container/Container";
@@ -24,6 +28,10 @@ export default async function Page({ params }: PageProps) {
   await verifySession();
 
   const { league } = await params;
+
+  const { canEdit } = await canEditLeague(league);
+
+  if (!canEdit) notFound();
 
   const { data } = await getLeagueIdFromSlug(league);
 

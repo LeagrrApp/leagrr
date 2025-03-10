@@ -158,21 +158,33 @@ export async function getLeague(
   // Verify user session
   await verifySession();
 
+  // check if user has league role or is admin by checking if canEdit
+  const { canEdit } = await canEditLeague(identifier);
+
   try {
     // build league select statement
-    const leagueSql = `
-    SELECT
-      league_id,
-      slug,
-      name,
-      description,
-      sport,
-      status
-    FROM
-      league_management.leagues as l
-    WHERE
-      ${typeof identifier === "string" ? `l.slug` : `l.league_id`} = $1
-  `;
+    let leagueSql = `
+      SELECT
+        league_id,
+        slug,
+        name,
+        description,
+        sport,
+        status
+      FROM
+        league_management.leagues as l
+      WHERE
+        ${typeof identifier === "string" ? `l.slug` : `l.league_id`} = $1
+    `;
+
+    // if does not have league role or league admin, add restriction to public league only
+    if (!canEdit) {
+      leagueSql = `
+        ${leagueSql}
+        AND
+        status = 'public'
+      `;
+    }
 
     // make request to database for leagues
     const { rows: leagueRows } = await db.query<LeagueData>(leagueSql, [

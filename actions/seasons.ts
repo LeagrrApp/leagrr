@@ -159,9 +159,12 @@ export async function getSeason(
   // Verify user session
   await verifySession();
 
+  // check if user has league role or is admin by checking if canEdit
+  const { canEdit } = await canEditLeague(league_slug);
+
   try {
     // build the select statement to get the season information
-    const seasonSql = `
+    let seasonSql = `
       SELECT
         s.name,
         s.description,
@@ -184,6 +187,15 @@ export async function getSeason(
         l.slug = $2
     `;
 
+    // if does not have league role or league admin, add restriction to public league only
+    if (!canEdit) {
+      seasonSql = `
+        ${seasonSql}
+        AND
+        s.status = 'public'
+      `;
+    }
+
     const { rows: seasonRows } = await db.query<SeasonData>(seasonSql, [
       season_slug,
       league_slug,
@@ -195,7 +207,9 @@ export async function getSeason(
     const season = seasonRows[0];
 
     if (options?.includeDivisions) {
-      const { data: divisions } = await getDivisionsBySeason(season.season_id);
+      const { data: divisions } = await getDivisionsBySeason(season.season_id, {
+        publicOnly: !canEdit,
+      });
 
       if (divisions && divisions.length > 0) {
         season.divisions = divisions;
@@ -283,6 +297,9 @@ export async function getSeasonsByLeague(
   league: string | number,
 ): Promise<ResultProps<SeasonData[]>> {
   try {
+    // check if user has league role or is admin by checking if canEdit
+    const { canEdit } = await canEditLeague(league);
+
     // build select statement to get all seasons for associated league
     const seasonsSql = `
       SELECT
@@ -303,11 +320,14 @@ export async function getSeasonsByLeague(
         s.league_id = l.league_id
       WHERE
         ${typeof league === "string" ? `l.slug` : `l.league_id`} = $1
+        ${!canEdit ? `AND s.status = 'public'` : ``}
       ORDER BY s.end_date DESC
     `;
 
     // make request to database for seasons
-    const { rows } = await db.query<SeasonData>(seasonsSql, [league]);
+    const result = await db.query<SeasonData>(seasonsSql, [league]);
+
+    const { rows } = result;
 
     return {
       message: "Seasons retrieved",

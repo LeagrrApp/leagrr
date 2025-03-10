@@ -1154,8 +1154,6 @@ export async function getGameFeed(game_id: number): Promise<
         return transformedItem;
       });
 
-    console.log(gameFeedItems);
-
     const gameFeed: {
       period1: StatsData[];
       period2: StatsData[];
@@ -1173,7 +1171,6 @@ export async function getGameFeed(game_id: number): Promise<
       data: gameFeed,
     };
   } catch (err) {
-    console.log(err);
     if (err instanceof Error) {
       return {
         message: err.message,

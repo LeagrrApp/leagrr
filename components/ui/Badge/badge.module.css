@@ -1,4 +1,5 @@
 .badge {
+  color: var(--color-foreground);
   display: inline-block;
   padding: var(--spacer-em-s);
   border: 0.0625rem solid var(--badge-color, var(--color-primary));
