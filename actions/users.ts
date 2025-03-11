@@ -70,6 +70,138 @@ export async function getUser(
   }
 }
 
+export async function getUsers(options?: {
+  limit?: number;
+  offset?: number;
+  search?: string;
+  user_role?: number;
+  status?: string;
+}): Promise<
+  ResultProps<{
+    users: UserData[];
+    perPage: number;
+    page: number;
+    total: number;
+  }>
+> {
+  // verify session
+  await verifySession();
+
+  try {
+    const limit = options?.limit || 10;
+    const offset = options?.offset || 0;
+    const search = options?.search || undefined;
+    const user_role = options?.user_role || undefined;
+    const status = options?.status;
+
+    console.log("status", status);
+
+    let where: string | undefined = undefined;
+
+    const additionalParams = [];
+
+    if (search) {
+      where = `WHERE
+          (
+            username ILIKE $1
+            OR
+            first_name ILIKE $1
+            OR
+            last_name ILIKE $1
+          )
+      `;
+
+      additionalParams.push(`%${search}%`);
+    }
+
+    if (user_role) {
+      if (!where) {
+        where = `WHERE`;
+      } else {
+        where = `AND`;
+      }
+      where = `
+          user_role = $${additionalParams.length + 1}`;
+      additionalParams.push(user_role);
+    }
+
+    if (status) {
+      console.log(where);
+      if (!where) {
+        where = `WHERE`;
+      } else {
+        where = `AND`;
+      }
+      where = `${where}
+          status = $${additionalParams.length + 1}`;
+      additionalParams.push(status);
+    }
+
+    const usersSql = `
+        SELECT
+          user_id,
+          username,
+          email,
+          first_name,
+          last_name,
+          gender,
+          pronouns,
+          user_role,
+          img,
+          status
+        FROM
+          admin.users
+        ${where}
+        ORDER BY last_name ASC, first_name ASC, username ASC, user_id ASC
+        LIMIT $${additionalParams.length + 1}
+        OFFSET $${additionalParams.length + 2}
+      `;
+
+    console.log(usersSql);
+
+    const { rows: users } = await db.query<UserData>(usersSql, [
+      ...additionalParams,
+      limit,
+      offset,
+    ]);
+
+    const countSql = `
+        SELECT
+          count(*)::int
+        FROM
+          admin.users
+        ${where}
+      `;
+
+    const { rows: countRows } = await db.query<{ count: number }>(
+      countSql,
+      additionalParams.length > 0 ? additionalParams : undefined,
+    );
+
+    return {
+      message: "Users loaded.",
+      status: 200,
+      data: {
+        users,
+        perPage: limit,
+        page: offset / limit + 1,
+        total: countRows[0].count,
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
+}
+
 export async function getUserMetaData(
   username: string,
   options?: {

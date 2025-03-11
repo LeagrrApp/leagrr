@@ -79,48 +79,6 @@ export default function Menu({ userData, menuData }: MenuProps) {
           menuOpen ? `${css.menu_nav} ${css.menu_nav_open}` : css.menu_nav
         }`}
       >
-        <h2 className={css.menu_heading}>Teams</h2>
-        <ul className={css.menu_list}>
-          {teams.map((team) => (
-            <li key={team.slug}>
-              <Link
-                className={css.menu_item}
-                href={createDashboardUrl({ t: team.slug })}
-                aria-current={
-                  pathname.includes(createDashboardUrl({ t: team.slug })) ||
-                  undefined
-                }
-                // onClick={() => setMenuOpen(false)}
-              >
-                {team.img ? (
-                  <Image
-                    className={css.menu_item_pic}
-                    src={team.img}
-                    alt={team.name}
-                    width="50"
-                    height="50"
-                  />
-                ) : (
-                  <span className={css.menu_item_letters}>
-                    {team.name.substring(0, 1)}
-                  </span>
-                )}
-                <span>{team.name}</span>
-              </Link>
-            </li>
-          ))}
-          <li>
-            <Icon
-              className={css.menu_item}
-              icon="add_circle"
-              label="Add a team"
-              href="/dashboard/t/"
-              aria-current={pathname === `/dashboard/t` || undefined}
-              // onClick={() => setMenuOpen(false)}
-            />
-          </li>
-        </ul>
-
         {showLeaguesList && (
           <>
             <h2 className={css.menu_heading}>Leagues</h2>
@@ -170,6 +128,48 @@ export default function Menu({ userData, menuData }: MenuProps) {
           </>
         )}
 
+        <h2 className={css.menu_heading}>Teams</h2>
+        <ul className={css.menu_list}>
+          {teams.map((team) => (
+            <li key={team.slug}>
+              <Link
+                className={css.menu_item}
+                href={createDashboardUrl({ t: team.slug })}
+                aria-current={
+                  pathname.includes(createDashboardUrl({ t: team.slug })) ||
+                  undefined
+                }
+                // onClick={() => setMenuOpen(false)}
+              >
+                {team.img ? (
+                  <Image
+                    className={css.menu_item_pic}
+                    src={team.img}
+                    alt={team.name}
+                    width="50"
+                    height="50"
+                  />
+                ) : (
+                  <span className={css.menu_item_letters}>
+                    {team.name.substring(0, 1)}
+                  </span>
+                )}
+                <span>{team.name}</span>
+              </Link>
+            </li>
+          ))}
+          <li>
+            <Icon
+              className={css.menu_item}
+              icon="add_circle"
+              label="Add a team"
+              href="/dashboard/t/"
+              aria-current={pathname === `/dashboard/t` || undefined}
+              // onClick={() => setMenuOpen(false)}
+            />
+          </li>
+        </ul>
+
         <ul className={apply_classes([css.menu_list, css.menu_actions])}>
           {user_role === 1 && (
             <li>
@@ -183,7 +183,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
               />
             </li>
           )}
-          <li>
+          {/* <li>
             <Icon
               href="/dashboard/settings"
               className={css.menu_item}
@@ -192,7 +192,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
               aria-current={pathname === `/dashboard/settings` || undefined}
               onClick={() => setMenuOpen(false)}
             />
-          </li>
+          </li> */}
           <li>
             <ModalConfirmAction
               actionFunction={logOut}

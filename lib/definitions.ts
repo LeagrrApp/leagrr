@@ -47,6 +47,14 @@ export const color_options: readonly [string, ...string[]] = [
   "yellow",
 ];
 
+export const user_roles = new Map<number, RoleData>();
+
+user_roles.set(1, { role: 1, title: "Admin" });
+user_roles.set(2, { role: 2, title: "Commissioner" });
+user_roles.set(3, { role: 3, title: "User" });
+
+export const user_roles_options = convert_roles_to_select_choices(user_roles);
+
 export const league_roles = new Map<number, RoleData>();
 
 league_roles.set(1, { role: 1, title: "Commissioner" });

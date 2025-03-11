@@ -10,6 +10,7 @@ export function createDashboardUrl(
     g?: string | number;
     t?: string;
     u?: string;
+    admin?: string;
   },
   additional?: string,
 ): string {
@@ -37,6 +38,10 @@ export function createDashboardUrl(
 
   if (dirs.u) {
     url = `${url}/u/${dirs.u}`;
+  }
+
+  if (dirs.admin) {
+    url = `${url}/admin/${dirs.admin}`;
   }
 
   if (additional) {

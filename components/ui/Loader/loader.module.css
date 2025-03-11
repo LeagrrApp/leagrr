@@ -6,6 +6,10 @@
   margin-inline-end: 2rem;
 }
 
+.loader_centered {
+  place-self: center center;
+}
+
 .loader_spinner {
   & circle {
     fill: none;
