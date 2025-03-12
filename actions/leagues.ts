@@ -54,7 +54,8 @@ export async function createLeague(
   // Verify user session
   const { user_id } = await verifySession();
 
-  // TODO: add user role permission check
+  // user role permission check
+  const isBaseUser = await verifyUserRole(3);
 
   // insert data from form into object that can be checked for errors
   const submittedData = {
@@ -74,11 +75,19 @@ export async function createLeague(
     };
   }
 
+  // initialize status code
+  let status = 400;
+
   // initialize redirect link
   let redirectLink: string | undefined = undefined;
 
   // no validation errors, submit data to database
   try {
+    if (isBaseUser) {
+      status = 401;
+      throw new Error("Sorry, you do not have permission to add leagues.");
+    }
+
     // Build insert sql statement
     const leagueInsertSql = `
       INSERT INTO league_management.leagues
@@ -121,9 +130,14 @@ export async function createLeague(
 
     // Failed to add user as league admin, delete the league and return error
     if (!adminRows[0]) {
-      // TODO: delete the league on this error
+      const leagueDeleteSql = `
+        DELETE FROM league_management.leagues
+        WHERE league_id = $1
+      `;
 
-      throw new Error("Unable to set user as league admin.");
+      await db.query(leagueDeleteSql, [league_id]);
+
+      throw new Error("Sorry, there was a problem setting up the league.");
     }
 
     // set redirect link
@@ -132,7 +146,7 @@ export async function createLeague(
     if (err instanceof Error) {
       return {
         message: err.message,
-        status: 400,
+        status,
         data: submittedData,
       };
     }
