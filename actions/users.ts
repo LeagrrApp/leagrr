@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/db/pg";
+import { user_status_options } from "@/lib/definitions";
 import { createSession, verifySession } from "@/lib/session";
 import {
   createDashboardUrl,
@@ -94,8 +95,6 @@ export async function getUsers(options?: {
     const user_role = options?.user_role || undefined;
     const status = options?.status;
 
-    console.log("status", status);
-
     let where: string | undefined = undefined;
 
     const additionalParams = [];
@@ -108,6 +107,8 @@ export async function getUsers(options?: {
             first_name ILIKE $1
             OR
             last_name ILIKE $1
+            OR
+            CONCAT(first_name, ' ', last_name) ILIKE $1
           )
       `;
 
@@ -120,13 +121,12 @@ export async function getUsers(options?: {
       } else {
         where = `AND`;
       }
-      where = `
+      where = `${where}
           user_role = $${additionalParams.length + 1}`;
       additionalParams.push(user_role);
     }
 
     if (status) {
-      console.log(where);
       if (!where) {
         where = `WHERE`;
       } else {
@@ -156,8 +156,6 @@ export async function getUsers(options?: {
         LIMIT $${additionalParams.length + 1}
         OFFSET $${additionalParams.length + 2}
       `;
-
-    console.log(usersSql);
 
     const { rows: users } = await db.query<UserData>(usersSql, [
       ...additionalParams,
@@ -1043,6 +1041,8 @@ export async function userSearch(query: string) {
         first_name ILIKE $1
         OR
         last_name ILIKE $1
+        OR
+        CONCAT(first_name, ' ', last_name) ILIKE $1
       ORDER BY
         last_name ASC, first_name ASC
     `;
@@ -1407,6 +1407,108 @@ export async function updatePassword(
     return {
       ...state,
       errors,
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
+    };
+  }
+}
+
+const EditUserAsAdminSchema = z.object({
+  user_id: z.number().min(1),
+  status: z.enum(user_status_options),
+  user_role: z.number().min(1).max(3),
+});
+
+type EditUserAsAdminFormErrors = {
+  user_id?: string[] | undefined;
+  status?: string[] | undefined;
+  user_role?: string[] | undefined;
+};
+
+type EditUserAsAdminState = FormState<
+  EditUserAsAdminFormErrors,
+  {
+    user_id?: number;
+    status?: "active" | "inactive" | "suspended" | "banned";
+    user_role?: number;
+  }
+>;
+
+export async function editUserAsAdmin(
+  state: EditUserAsAdminState,
+  formData: FormData,
+): Promise<EditUserAsAdminState> {
+  const isAdmin = await verifyUserRole(1);
+
+  const submittedData = {
+    status: formData.get("status") as
+      | "active"
+      | "inactive"
+      | "suspended"
+      | "banned"
+      | undefined,
+    user_role: parseInt(formData.get("user_role") as string),
+    user_id: parseInt(formData.get("user_id") as string),
+  };
+
+  // initialize status code
+  let status = 400;
+
+  try {
+    if (!isAdmin) {
+      status = 401;
+      throw new Error("Sorry, you do not have permission to edit users.");
+    }
+
+    // Validate data
+    const validatedFields = EditUserAsAdminSchema.safeParse(submittedData);
+
+    // If any form fields are invalid, return early
+    if (!validatedFields.success) {
+      return {
+        ...state,
+        data: submittedData,
+        errors: validatedFields.error.flatten().fieldErrors,
+      };
+    }
+
+    const sql = `
+      UPDATE admin.users
+      SET
+        status = $1,
+        user_role = $2
+      WHERE
+        user_id = $3
+    `;
+
+    const { rowCount } = await db.query(sql, [
+      submittedData.status,
+      submittedData.user_role,
+      submittedData.user_id,
+    ]);
+
+    if (rowCount !== 1) {
+      throw new Error("Sorry, there was a problem updating the user.");
+    }
+
+    return {
+      ...state,
+      message: "User updated successfully!",
+      status: 200,
+      data: submittedData,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        ...state,
+        message: err.message,
+        status,
+        data: submittedData,
+      };
+    }
+    return {
+      ...state,
       message: "Something went wrong.",
       status: 500,
       data: submittedData,

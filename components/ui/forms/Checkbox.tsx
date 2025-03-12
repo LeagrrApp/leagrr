@@ -6,6 +6,7 @@ import Alert from "../Alert/Alert";
 import css from "./forms.module.css";
 
 interface CheckboxProps extends Partial<HTMLInputElement> {
+  name: string;
   label?: string;
   labelFirst?: boolean;
   labelAsPlaceholder?: boolean;
@@ -18,6 +19,7 @@ interface CheckboxProps extends Partial<HTMLInputElement> {
 }
 
 export default function Checkbox({
+  id,
   label,
   name,
   labelFirst,
@@ -46,7 +48,7 @@ export default function Checkbox({
         className={css.checkbox}
         type="checkbox"
         name={name}
-        id={name}
+        id={id || name}
         onChange={handleChange}
         value={value}
         required={required}

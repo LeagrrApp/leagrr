@@ -19,6 +19,7 @@ function InputWrap({
 }
 
 interface InputProps extends Partial<HTMLInputElement> {
+  id?: string;
   label: string;
   name: string;
   labelAfter?: boolean;
@@ -33,6 +34,7 @@ interface InputProps extends Partial<HTMLInputElement> {
 }
 
 export default function Input({
+  id,
   label,
   type,
   name,
@@ -83,7 +85,7 @@ export default function Input({
       {!labelAfter && (
         <Label
           label={label}
-          htmlFor={name}
+          htmlFor={id || name}
           hideLabel={hideLabel}
           required={required}
           optional={optional}
@@ -94,7 +96,7 @@ export default function Input({
           className={css.field}
           type={inputType || "text"}
           name={name}
-          id={name}
+          id={id || name}
           onChange={handleChange}
           placeholder={!noPlaceholder ? placeholderText : undefined}
           value={inputValue}
@@ -124,7 +126,7 @@ export default function Input({
       {labelAfter && (
         <Label
           label={label}
-          htmlFor={name}
+          htmlFor={id || name}
           hideLabel={hideLabel}
           required={required}
           optional={optional}

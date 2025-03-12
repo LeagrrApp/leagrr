@@ -14,6 +14,13 @@ export const status_options: readonly [string, ...string[]] = [
   "archived",
 ];
 
+export const user_status_options: readonly [string, ...string[]] = [
+  "active",
+  "inactive",
+  "suspended",
+  "banned",
+];
+
 export const game_status_options: readonly [string, ...string[]] = [
   "draft",
   "public",

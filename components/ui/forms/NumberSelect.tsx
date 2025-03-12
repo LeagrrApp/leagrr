@@ -18,6 +18,7 @@ interface NumberSelectProps extends Partial<HTMLSelectElement> {
 }
 
 export default function NumberSelect({
+  id,
   label,
   name,
   labelAfter,
@@ -49,14 +50,14 @@ export default function NumberSelect({
   return (
     <div className={forms.unit}>
       {!labelAfter && (
-        <label className={forms.label} htmlFor={name}>
+        <label className={forms.label} htmlFor={id || name}>
           {label}
         </label>
       )}
       <select
         className={forms.field}
         name={name}
-        id={name}
+        id={id || name}
         onChange={handleChange}
         required={required}
         autoCapitalize={autocapitalize}
@@ -72,7 +73,7 @@ export default function NumberSelect({
         })}
       </select>
       {labelAfter && (
-        <label className={forms.label} htmlFor={name}>
+        <label className={forms.label} htmlFor={id || name}>
           {label}
         </label>
       )}
