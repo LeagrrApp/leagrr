@@ -110,7 +110,7 @@ export async function createSeason(
       VALUES ($1, $2, $3, $4, $5)
       RETURNING
         slug,
-        (SELECT slug FROM leagues as l WHERE l.league_id = s.league_id) AS league_slug
+        (SELECT slug FROM league_management.leagues as l WHERE l.league_id = s.league_id) AS league_slug
     `;
 
     // query database

@@ -535,9 +535,9 @@ export async function getTeamsByDivisionId(division_id: number) {
         t.color,
         dt.division_team_id
       FROM
-        teams as t
+        league_management.teams as t
       JOIN
-        division_teams as dt
+        league_management.division_teams as dt
       ON
         t.team_id = dt.team_id
       WHERE

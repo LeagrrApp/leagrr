@@ -132,6 +132,11 @@ export default async function GameFeed({
             // if this period is empty and so are periods after it, return null
             if (!laterPeriodsHaveItems && gameFeed[p].length === 0) return null;
 
+            const periodRinkTrackerItems = convertGameFeedItemsToRinkItems(
+              gameFeed[p],
+              game,
+            );
+
             return (
               <li key={p} className={css.game_feed_period}>
                 <h4 className={css.game_feed_period_heading}>
@@ -181,13 +186,13 @@ export default async function GameFeed({
                       <strong>{running_home_team_score}</strong>{" "}
                       {game.home_team}
                     </p>
-                    <RinkTracker
-                      rinkItems={convertGameFeedItemsToRinkItems(
-                        gameFeed[p],
-                        game,
+                    {periodRinkTrackerItems &&
+                      periodRinkTrackerItems.length > 0 && (
+                        <RinkTracker
+                          rinkItems={periodRinkTrackerItems}
+                          linkPrefix="game-feed"
+                        />
                       )}
-                      linkPrefix="game-feed"
-                    />
                   </div>
                 )}
               </li>
@@ -256,7 +261,12 @@ export default async function GameFeed({
               </span>
             </p>
 
-            <RinkTracker rinkItems={rinkTrackerItems} linkPrefix="game-feed" />
+            {rinkTrackerItems && rinkTrackerItems.length > 0 && (
+              <RinkTracker
+                rinkItems={rinkTrackerItems}
+                linkPrefix="game-feed"
+              />
+            )}
           </div>
         )}
       </Card>

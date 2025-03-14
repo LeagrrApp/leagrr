@@ -40,7 +40,7 @@ export default function RinkTracker({
     handleAdd(`${xPercent}% ${yPercent}%`);
   }
 
-  if (!rinkItems || rinkItems.length < 1) return null;
+  // if (!rinkItems || rinkItems.length < 1) return null;
 
   return (
     <div className={css.rink_wrap}>
