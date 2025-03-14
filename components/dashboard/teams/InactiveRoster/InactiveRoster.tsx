@@ -11,7 +11,7 @@ import Grid from "@/components/ui/layout/Grid";
 import Table from "@/components/ui/Table/Table";
 import { roster_roles } from "@/lib/definitions";
 import {
-  convert_roles_to_select_choices,
+  convertRolesToChoices,
   createDashboardUrl,
   nameDisplay,
 } from "@/utils/helpers/formatting";
@@ -62,7 +62,7 @@ export default function InactiveRoster({
   const hColWidth = 40;
   const colWidth = `${(100 - hColWidth) / colHeaders.length - 1}%`;
 
-  const rosterRoleOptions = convert_roles_to_select_choices(roster_roles);
+  const rosterRoleOptions = convertRolesToChoices(roster_roles);
 
   return (
     <>

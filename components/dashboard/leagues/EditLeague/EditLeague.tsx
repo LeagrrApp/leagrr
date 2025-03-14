@@ -16,9 +16,14 @@ import css from "./editLeague.module.css";
 interface EditLeagueProps {
   league: LeagueData;
   backLink: Url;
+  isAdmin: boolean;
 }
 
-export default function EditLeague({ league, backLink }: EditLeagueProps) {
+export default function EditLeague({
+  league,
+  backLink,
+  isAdmin,
+}: EditLeagueProps) {
   const [state, action, pending] = useActionState(editLeague, undefined);
   const [sport, setSport] = useState<string>(league.sport);
 
@@ -50,7 +55,7 @@ export default function EditLeague({ league, backLink }: EditLeagueProps) {
           <Select
             label="status"
             name="status"
-            choices={status_options}
+            choices={isAdmin ? [...status_options, "locked"] : status_options}
             selected={league.status}
             errors={{ errs: state?.errors?.status, type: "danger" }}
           />

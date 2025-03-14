@@ -5,7 +5,7 @@ import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalC
 import Icon from "@/components/ui/Icon/Icon";
 import Toggle from "@/components/ui/Toggle/Toggle";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -170,7 +170,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
           </li>
         </ul>
 
-        <ul className={apply_classes([css.menu_list, css.menu_actions])}>
+        <ul className={applyClasses([css.menu_list, css.menu_actions])}>
           {user_role === 1 && (
             <li>
               <Icon

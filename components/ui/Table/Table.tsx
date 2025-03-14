@@ -1,6 +1,6 @@
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import { CSSProperties, PropsWithChildren } from "react";
 import css from "./table.module.css";
-import { apply_classes } from "@/utils/helpers/html-attributes";
 
 interface TableProps {
   hColWidth?: string;
@@ -29,7 +29,7 @@ export default function Table({
   if (flipped) classes.push(css.table_flipped);
 
   return (
-    <table style={styles} className={apply_classes(classes, className)}>
+    <table style={styles} className={applyClasses(classes, className)}>
       {children}
     </table>
   );

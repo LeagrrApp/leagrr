@@ -1,6 +1,6 @@
 "use client";
 
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import { ChangeEvent, PropsWithChildren, useEffect, useState } from "react";
 import Alert from "../Alert/Alert";
 import css from "./forms.module.css";
@@ -81,7 +81,7 @@ export default function Input({
   }
 
   return (
-    <div className={apply_classes(css.unit, className)}>
+    <div className={applyClasses(css.unit, className)}>
       {!labelAfter && (
         <Label
           label={label}

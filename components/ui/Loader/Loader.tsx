@@ -1,4 +1,4 @@
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import css from "./loader.module.css";
 
 interface LoaderProps {
@@ -12,7 +12,7 @@ export default function Loader({ className, centered }: LoaderProps) {
   if (centered) classes.push(css.loader_centered);
 
   return (
-    <div className={apply_classes(classes, className)}>
+    <div className={applyClasses(classes, className)}>
       <svg
         className={css.loader_spinner}
         xmlns="http://www.w3.org/2000/svg"

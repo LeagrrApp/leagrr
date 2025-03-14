@@ -5,7 +5,10 @@ import Badge from "@/components/ui/Badge/Badge";
 import HighlightBox from "@/components/ui/HighlightBox/HighlightBox";
 import Icon from "@/components/ui/Icon/Icon";
 import IconSport from "@/components/ui/Icon/IconSport";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import {
+  applyStatusColor,
+  createDashboardUrl,
+} from "@/utils/helpers/formatting";
 import DHeader from "../../DHeader/DHeader";
 import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
 import SeasonSelector from "../../seasons/SeasonSelector/SeasonSelector";
@@ -17,9 +20,6 @@ interface LeagueHeaderProps {
 }
 
 export default function LeagueHeader({ league, canEdit }: LeagueHeaderProps) {
-  const badgeColor: ColorOptions =
-    league.status === "archived" ? "danger" : "warning";
-
   const settingsLink = createDashboardUrl({ l: league.slug }, "settings");
 
   return (
@@ -57,7 +57,11 @@ export default function LeagueHeader({ league, canEdit }: LeagueHeaderProps) {
             gap="m"
           />
           {league.status && league.status !== "public" && (
-            <Badge text={league.status} type={badgeColor} fontSize="h4" />
+            <Badge
+              text={league.status}
+              type={applyStatusColor(league.status)}
+              fontSize="h4"
+            />
           )}
         </h1>
 

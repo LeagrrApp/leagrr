@@ -1,6 +1,6 @@
-import { apply_classes } from "@/utils/helpers/html-attributes";
-import css from "./colorIndicator.module.css";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import { CSSProperties } from "react";
+import css from "./colorIndicator.module.css";
 
 interface ColorIndicatorProps {
   color: string;
@@ -20,5 +20,5 @@ export default function ColorIndicator({ color, size }: ColorIndicatorProps) {
 
   if (size) styles["--ci-size"] = size;
 
-  return <span style={styles} className={apply_classes(classes)}></span>;
+  return <span style={styles} className={applyClasses(classes)}></span>;
 }

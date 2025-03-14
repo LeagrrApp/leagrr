@@ -1,6 +1,6 @@
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import { CSSProperties, PropsWithChildren } from "react";
 import css from "./dashboardUnitHeader.module.css";
-import { apply_classes } from "@/utils/helpers/html-attributes";
 
 interface DashboardUnitHeaderProps {
   className?: string | string[];
@@ -19,7 +19,7 @@ export default function DashboardUnitHeader({
   return (
     <div
       style={styles}
-      className={apply_classes(css.dashboard_unit_header, className)}
+      className={applyClasses(css.dashboard_unit_header, className)}
     >
       {children}
     </div>

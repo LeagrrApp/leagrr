@@ -1,4 +1,4 @@
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import { ChangeEventHandler, useEffect, useState } from "react";
 import css from "./switch.module.css";
 
@@ -28,7 +28,7 @@ export default function Switch({
   }, [checked]);
 
   return (
-    <div className={apply_classes(css.switch, className)}>
+    <div className={applyClasses(css.switch, className)}>
       <label
         className={`${css.switch_label}${
           noSpread ? ` ${css.switch_label_no_spread}` : ""

@@ -1,6 +1,6 @@
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import { ButtonHTMLAttributes } from "react";
 import css from "./toggle.module.css";
-import { apply_classes } from "@/utils/helpers/html-attributes";
 
 interface ToggleProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   active: boolean;
@@ -21,7 +21,7 @@ export default function Toggle({
   return (
     <button
       type="button"
-      className={apply_classes(classes)}
+      className={applyClasses(classes)}
       aria-label={ariaLabel}
       onClick={onClick}
     >

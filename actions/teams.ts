@@ -1,6 +1,6 @@
 "use server";
 import { db } from "@/db/pg";
-import { team_roles } from "@/lib/definitions";
+import { team_roles, team_status_options } from "@/lib/definitions";
 import { verifySession } from "@/lib/session";
 import {
   createDashboardUrl,
@@ -173,6 +173,110 @@ export async function getTeam(
       message: `Team data found!`,
       status: 200,
       data: rows[0],
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
+}
+
+export async function getTeams(options?: {
+  limit?: number;
+  offset?: number;
+  search?: string;
+  status?: string;
+}): Promise<
+  ResultProps<{
+    teams: TeamData[];
+    perPage: number;
+    page: number;
+    total: number;
+  }>
+> {
+  // verify session
+  await verifySession();
+
+  try {
+    const limit = options?.limit || 10;
+    const offset = options?.offset || 0;
+    const search = options?.search || undefined;
+    const status = options?.status;
+
+    let where: string | undefined = undefined;
+
+    const additionalParams: string[] = [];
+
+    if (search) {
+      where = `WHERE
+          name ILIKE $1
+      `;
+
+      additionalParams.push(`%${search}%`);
+    }
+
+    if (status) {
+      if (!where) {
+        where = `WHERE`;
+      } else {
+        where = `AND`;
+      }
+      where = `${where}
+          status = $${additionalParams.length + 1}`;
+      additionalParams.push(status);
+    }
+
+    const leaguesSql = `
+      SELECT
+        team_id,
+        slug,
+        name,
+        description,
+        color,
+        status
+      FROM
+        league_management.teams
+      ${where}
+      ORDER BY name ASC
+      LIMIT $${additionalParams.length + 1}
+      OFFSET $${additionalParams.length + 2}
+    `;
+
+    const { rows: teams } = await db.query<TeamData>(leaguesSql, [
+      ...additionalParams,
+      limit,
+      offset,
+    ]);
+
+    const countSql = `
+        SELECT
+          count(*)::int
+        FROM
+          league_management.teams
+        ${where}
+      `;
+
+    const { rows: countRows } = await db.query<{ count: number }>(
+      countSql,
+      additionalParams.length > 0 ? additionalParams : undefined,
+    );
+
+    return {
+      message: "Teams loaded.",
+      status: 200,
+      data: {
+        teams,
+        perPage: limit,
+        page: offset / limit + 1,
+        total: countRows[0].count,
+      },
     };
   } catch (err) {
     if (err instanceof Error) {
@@ -964,6 +1068,99 @@ export async function editTeam(
   }
 
   if (redirectLink) redirect(redirectLink);
+}
+
+const EditTeamAsAdminSchema = z.object({
+  team_id: z.number().min(1),
+  status: z.enum(team_status_options),
+});
+
+type EditTeamAsAdminErrors = {
+  team_id?: string[];
+  status?: string[];
+};
+type EditTeamAsAdminState = FormState<
+  EditTeamAsAdminErrors,
+  {
+    team_id?: number;
+    status?: "active" | "inactive" | "suspended" | "banned";
+  }
+>;
+
+export async function editTeamAsAdmin(
+  state: EditTeamAsAdminState,
+  formData: FormData,
+): Promise<EditTeamAsAdminState> {
+  // Confirm user is site admin
+  const isAdmin = await verifyUserRole(1);
+
+  const submittedData = {
+    team_id: parseInt(formData.get("team_id") as string),
+    status: formData.get("status") as
+      | "active"
+      | "inactive"
+      | "suspended"
+      | "banned",
+  };
+
+  // initialize response status code
+  let status = 400;
+
+  try {
+    if (!isAdmin) {
+      status = 401;
+      throw new Error("Sorry, you do not have admin privileges.");
+    }
+
+    // Validate data
+    const validatedFields = EditTeamAsAdminSchema.safeParse(submittedData);
+
+    // If any form fields are invalid, return early
+    if (!validatedFields.success) {
+      return {
+        ...state,
+        data: submittedData,
+        errors: validatedFields.error.flatten().fieldErrors,
+      };
+    }
+
+    // set up sql
+    const sql = `
+      UPDATE league_management.teams
+      SET status = $1
+      WHERE team_id = $2
+    `;
+
+    const { rowCount } = await db.query(sql, [
+      submittedData.status,
+      submittedData.team_id,
+    ]);
+
+    if (rowCount !== 1) {
+      throw new Error("Sorry, there was a problem updating the team.");
+    }
+
+    return {
+      message: "Team updated",
+      status: 200,
+      data: submittedData,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        ...state,
+        message: err.message,
+        status,
+        data: submittedData,
+      };
+    }
+    return {
+      ...state,
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
+    };
+  }
 }
 
 const TeamJoinCodeSchema = z.object({

@@ -1,4 +1,4 @@
-import { apply_classes_conditional } from "@/utils/helpers/html-attributes";
+import { applyClassesConditional } from "@/utils/helpers/html-attributes";
 import css from "./forms.module.css";
 
 interface LabelProps {
@@ -18,7 +18,7 @@ export default function Label({
 }: LabelProps) {
   return (
     <label
-      className={apply_classes_conditional(css.label, "srt", hideLabel)}
+      className={applyClassesConditional(css.label, "srt", hideLabel)}
       htmlFor={htmlFor}
     >
       {label}

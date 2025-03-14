@@ -1,7 +1,7 @@
 import { applyColor, makeAcronym } from "@/utils/helpers/formatting";
-import css from "./initialsCircle.module.css";
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import { CSSProperties } from "react";
+import css from "./initialsCircle.module.css";
 
 interface InitialsCircleProps {
   label: string;
@@ -51,7 +51,7 @@ export default function InitialsCircle({
   return (
     <div
       style={styles}
-      className={apply_classes(css.initials_circle, className)}
+      className={applyClasses(css.initials_circle, className)}
     >
       {labelFirst && <span className={hideLabel ? "srt" : ""}>{label}</span>}
       <span className={css.initials_circle_letters}>

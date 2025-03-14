@@ -8,7 +8,7 @@ import {
   applyAppropriateTextColor,
   createDashboardUrl,
 } from "@/utils/helpers/formatting";
-import { apply_classes_conditional } from "@/utils/helpers/html-attributes";
+import { applyClassesConditional } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
 import { CSSProperties } from "react";
 import css from "./gamePreview.module.css";
@@ -133,7 +133,7 @@ export default async function GamePreview({
       )}
       <section style={styles} className={css.game_preview}>
         <div
-          className={apply_classes_conditional(
+          className={applyClassesConditional(
             [css.game_preview_team_info, css.game_preview_team_info_away],
             highlightClass,
             winner === "away" && status === "completed",
@@ -186,7 +186,7 @@ export default async function GamePreview({
         </div>
 
         <div
-          className={apply_classes_conditional(
+          className={applyClassesConditional(
             [css.game_preview_team_info, css.game_preview_team_info_home],
             highlightClass,
             winner === "home" && status === "completed",

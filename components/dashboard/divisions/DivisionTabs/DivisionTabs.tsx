@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import css from "./divisionTabs.module.css";
-import { useParams, usePathname } from "next/navigation";
-import { apply_classes } from "@/utils/helpers/html-attributes";
 import Icon from "@/components/ui/Icon/Icon";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { applyClasses } from "@/utils/helpers/html-attributes";
+import Link from "next/link";
+import { useParams, usePathname } from "next/navigation";
+import css from "./divisionTabs.module.css";
 
 type DivisionProps = {
   divisions: DivisionData[];
@@ -40,7 +40,7 @@ export default function DivisionTabs({ divisions, canAdd }: DivisionProps) {
     tabLinkAddition = "teams";
 
   return (
-    <nav className={apply_classes(classes)}>
+    <nav className={applyClasses(classes)}>
       <ol className={css.division_tabs_list}>
         {divisions.map((div) => {
           const url = createDashboardUrl(

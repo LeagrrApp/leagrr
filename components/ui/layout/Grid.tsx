@@ -1,4 +1,4 @@
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import { CSSProperties, PropsWithChildren } from "react";
 import layout from "./layout.module.css";
 
@@ -51,7 +51,7 @@ export default function Grid({
   }
 
   return (
-    <div style={styles} className={apply_classes(layout.grid, className)}>
+    <div style={styles} className={applyClasses(layout.grid, className)}>
       {children}
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { editUserAsAdmin } from "@/actions/users";
+import { editLeagueAsAdmin } from "@/actions/leagues";
 import Alert from "@/components/ui/Alert/Alert";
 import Badge from "@/components/ui/Badge/Badge";
 import Button from "@/components/ui/Button/Button";
@@ -8,19 +8,17 @@ import Dialog from "@/components/ui/Dialog/Dialog";
 import Input from "@/components/ui/forms/Input";
 import Select from "@/components/ui/forms/Select";
 import Icon from "@/components/ui/Icon/Icon";
+import IconSport from "@/components/ui/Icon/IconSport";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import Loader from "@/components/ui/Loader/Loader";
 import PaginationControls from "@/components/ui/PaginationControls/PaginationControls";
 import Table from "@/components/ui/Table/Table";
 import { Truncate } from "@/components/ui/Truncate/Truncate";
-import {
-  user_roles,
-  user_roles_options,
-  user_status_options,
-} from "@/lib/definitions";
+import { sports_options, status_options } from "@/lib/definitions";
 import {
   applyStatusColor,
+  capitalize,
   createDashboardUrl,
 } from "@/utils/helpers/formatting";
 import Link from "next/link";
@@ -28,20 +26,22 @@ import { useSearchParams } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
 import css from "../admin.module.css";
 
-export default function UserList() {
+export default function LeagueList() {
   const searchParams = useSearchParams();
 
   const editDialogRef = useRef<HTMLDialogElement>(null);
 
   const [editState, editAction, editPending] = useActionState(
-    editUserAsAdmin,
+    editLeagueAsAdmin,
     undefined,
   );
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | undefined>(undefined);
-  const [userList, setUserList] = useState<UserData[]>([]);
-  const [userToEdit, setUserToEdit] = useState<UserData | undefined>(undefined);
+  const [leagueList, setLeagueList] = useState<LeagueData[]>([]);
+  const [leagueToEdit, setLeagueToEdit] = useState<LeagueData | undefined>(
+    undefined,
+  );
   const [count, setCount] = useState<number>(0);
   const [page, setPage] = useState<number>(
     parseInt(searchParams.get("page") || "1"),
@@ -49,10 +49,10 @@ export default function UserList() {
   const [perPage, setPerPage] = useState<number>(
     parseInt(searchParams.get("perPage") || "10"),
   );
-  const [userRole, setUserRole] = useState<number>(
-    parseInt(searchParams.get("user_role") || "0"),
+  const [sport, setSport] = useState<string>(
+    searchParams.get("sport") || "all",
   );
-  const [userStatus, setUserStatus] = useState<string>(
+  const [leagueStatus, setLeagueStatus] = useState<string>(
     searchParams.get("status") || "all",
   );
   const [searchValue, setSearchValue] = useState<string>(
@@ -73,13 +73,13 @@ export default function UserList() {
       }
 
       const response = await fetch(
-        `/api/u?${updateAbleSearchParams.toString()}`,
+        `/api/l?${updateAbleSearchParams.toString()}`,
       );
 
       const { data, message } = await response.json();
 
       if (data) {
-        setUserList(data.users);
+        setLeagueList(data.leagues);
         setCount(data.total);
       } else {
         setError(message);
@@ -93,43 +93,45 @@ export default function UserList() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (userList[0]) {
-      setUserToEdit(userList[0]);
+    if (leagueList[0]) {
+      setLeagueToEdit(leagueList[0]);
     } else {
-      setUserToEdit(undefined);
+      setLeagueToEdit(undefined);
     }
-  }, [userList]);
+  }, [leagueList]);
 
   useEffect(() => {
-    if (!userToEdit) return;
+    console.log(editState);
+    if (!leagueToEdit) return;
     if (editState && editState.status === 200) {
-      const { user_id, status, user_role } = editState.data;
+      const { league_id, status } = editState.data;
 
-      const userIndex = userList.findIndex((u) => u.user_id === user_id);
+      const leagueIndex = leagueList.findIndex(
+        (u) => u.league_id === league_id,
+      );
 
-      const updatedUserData: UserData = { ...userToEdit };
+      const updatedLeagueData: LeagueData = { ...leagueToEdit };
 
-      if (status) updatedUserData.status = status;
-      if (user_role) updatedUserData.user_role = user_role;
+      if (status) updatedLeagueData.status = status;
 
-      const userListClone = [
-        ...userList.slice(0, userIndex),
-        updatedUserData,
-        ...userList.slice(userIndex + 1),
+      const leagueListClone = [
+        ...leagueList.slice(0, leagueIndex),
+        updatedLeagueData,
+        ...leagueList.slice(leagueIndex + 1),
       ];
 
-      setUserList(userListClone);
+      setLeagueList(leagueListClone);
       editDialogRef?.current?.close();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editState]);
 
-  function handleClick(user_id: number) {
-    const user = userList.find((tm) => tm.user_id === user_id);
+  function handleClick(league_id: number) {
+    const league = leagueList.find((l) => l.league_id === league_id);
 
-    if (!user) return;
+    if (!league) return;
 
-    setUserToEdit(user);
+    setLeagueToEdit(league);
 
     editDialogRef?.current?.showModal();
   }
@@ -147,16 +149,14 @@ export default function UserList() {
   }
 
   const tableHeadings = [
-    { title: "Username", highlightCol: true },
-    { title: "First Name" },
-    { title: "Last Name" },
-    { title: "Email" },
-    { title: "Role" },
+    { title: "Name" },
+    { title: "Sport" },
+    { title: "Description", highlightCol: true },
     { title: "Status" },
-    { title: "Edit" },
+    { title: "edit" },
   ];
 
-  const hColWidth = 5;
+  const hColWidth = 20;
   const colWidth = `${(100 - hColWidth) / tableHeadings.length - 1}%`;
 
   return (
@@ -172,18 +172,18 @@ export default function UserList() {
             placeholder="Ex: Jesse Doe"
           />
           <Select
-            id="filter_user_role"
-            name="user_role"
-            label="Role"
-            choices={[{ label: "All", value: 0 }, ...user_roles_options]}
-            selected={userRole}
+            id="filter_sport"
+            name="sport"
+            label="Sport"
+            choices={["all", ...sports_options]}
+            selected={sport}
           />
           <Select
             id="filter_status"
             name="status"
             label="Status"
-            choices={["all", ...user_status_options]}
-            selected={userStatus}
+            choices={["all", ...status_options, "locked"]}
+            selected={leagueStatus}
           />
           <Select
             name="perPage"
@@ -195,12 +195,12 @@ export default function UserList() {
             <Icon icon="filter_alt" label="Apply" gap="m" />
           </Button>
           <Button
-            href={createDashboardUrl({ admin: "u" })}
+            href={createDashboardUrl({ admin: "l" })}
             variant="grey"
             onClick={() => {
               setPerPage(10);
-              setUserRole(0);
-              setUserStatus("all");
+              setSport("all");
+              setLeagueStatus("all");
               setSearchValue("");
             }}
           >
@@ -223,31 +223,24 @@ export default function UserList() {
               </tr>
             </thead>
             <tbody>
-              {userList.length > 0 ? (
-                userList.map((user) => {
-                  const {
-                    user_id,
-                    username,
-                    last_name,
-                    first_name,
-                    email,
-                    user_role,
-                    status,
-                  } = user;
+              {leagueList.length > 0 ? (
+                leagueList.map((league) => {
+                  const { league_id, slug, name, description, sport, status } =
+                    league;
 
                   return (
-                    <tr key={user_id}>
-                      <th scope="row">
-                        <Link href={createDashboardUrl({ u: username })}>
-                          @{username}
+                    <tr key={league_id}>
+                      <th scope="row" data-highlight-col>
+                        <Link href={createDashboardUrl({ l: slug })}>
+                          {name}
                         </Link>
                       </th>
-                      <td>{last_name}</td>
-                      <td>{first_name}</td>
-                      <td title={email}>
-                        <Truncate>{email}</Truncate>
+                      <td>
+                        <IconSport label={capitalize(sport)} sport={sport} />
                       </td>
-                      <td>{user_roles.get(user_role)?.title}</td>
+                      <td data-highlight-col>
+                        <Truncate>{description}</Truncate>
+                      </td>
                       <td>
                         <Badge text={status} type={applyStatusColor(status)} />
                       </td>
@@ -255,7 +248,7 @@ export default function UserList() {
                         <Button
                           style={{ position: "relative" }}
                           variant="grey"
-                          onClick={() => handleClick(user_id)}
+                          onClick={() => handleClick(league_id)}
                         >
                           <Icon icon="edit_square" label="Remove" hideLabel />
                         </Button>
@@ -265,7 +258,7 @@ export default function UserList() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={tableHeadings.length}>No users found!</td>
+                  <td colSpan={tableHeadings.length}>No leagues found!</td>
                 </tr>
               )}
             </tbody>
@@ -275,31 +268,29 @@ export default function UserList() {
           page={page}
           perPage={perPage}
           total={count}
-          baseUrl={createDashboardUrl({ admin: "u" })}
+          baseUrl={createDashboardUrl({ admin: "l" })}
         />
       </div>
-      {userToEdit && (
+      {leagueToEdit && (
         <Dialog ref={editDialogRef}>
           <form action={editAction}>
             <Grid cols={2} gap="base">
               <Col fullSpan>
-                <h3>
-                  Edit {userToEdit.first_name} {userToEdit.last_name}
-                </h3>
+                <h3>Edit {leagueToEdit.name}</h3>
               </Col>
-              <Select
-                name="user_role"
-                label="Role"
-                choices={user_roles_options}
-                selected={userToEdit.user_role}
+              <Col fullSpan>
+                <Select
+                  name="status"
+                  label="Status"
+                  choices={[...status_options, "locked"]}
+                  selected={leagueToEdit.status}
+                />
+              </Col>
+              <input
+                type="hidden"
+                name="league_id"
+                value={leagueToEdit.league_id}
               />
-              <Select
-                name="status"
-                label="Status"
-                choices={user_status_options}
-                selected={userToEdit.status}
-              />
-              <input type="hidden" name="user_id" value={userToEdit.user_id} />
               {editState?.message && editState?.status === 400 && (
                 <Col fullSpan>
                   <Alert alert={editState.message} type="danger" />

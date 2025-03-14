@@ -1,5 +1,138 @@
+export function addNumberOrdinals(number: number) {
+  const cleanedNumberToCheck = parseInt(
+    number.toString().substring(number.toString().length - 1),
+  );
+
+  switch (cleanedNumberToCheck) {
+    case 1:
+      return `${number}st`;
+    case 2:
+      return `${number}nd`;
+    case 3:
+      return `${number}rd`;
+    default:
+      return `${number}th`;
+  }
+}
+
+export function addressAsGoogleMapsLink(address: string): string {
+  return `https://www.google.com/maps/place/${address.replaceAll(" ", "+")}`;
+}
+
+export function applyAppropriateTextColor(color: string): string {
+  const lightColors = [
+    "aqua",
+    "cyan",
+    "grey",
+    "magenta",
+    "orange",
+    "pink",
+    "red",
+    "violet",
+    "white",
+    "yellow",
+  ];
+
+  if (lightColors.includes(color)) {
+    return "black";
+  }
+  return "white";
+}
+
+export const color_options = [
+  "primary",
+  "secondary",
+  "accent",
+  "success",
+  "warning",
+  "caution",
+  "danger",
+  "white",
+  "black",
+  "grey",
+];
+
+export function applyColor(
+  color: string,
+  variant?: "dark" | "darker" | "medium" | "light" | "lightest",
+): string {
+  if (color_options.includes(color)) {
+    return variant
+      ? `var(--color-${color}-${variant})`
+      : `var(--color-${color})`;
+  }
+  return color;
+}
+
+export function applyStatusColor(status: string): ColorOptions {
+  switch (status) {
+    case "inactive":
+    case "draft":
+      return "warning";
+    case "suspended":
+    case "archived":
+      return "caution";
+    case "banned":
+    case "locked":
+      return "danger";
+    default:
+      return "primary";
+  }
+}
+
 export function capitalize(string: string): string {
   return `${string.substring(0, 1).toUpperCase()}${string.substring(1)}`;
+}
+
+export function convertRolesToChoices(roles: Map<number, RoleData>) {
+  const choices: { value: number; label: string }[] = [];
+
+  roles.forEach((r) => {
+    choices.push({
+      value: r.role,
+      label: r.title,
+    });
+  });
+
+  return choices;
+}
+
+export function convertGameFeedItemsToRinkItems(
+  feedItems: StatsData[],
+  game: GameData,
+) {
+  return feedItems
+    .filter((item) => {
+      if (item.coordinates) return true;
+    })
+    .map((item) => {
+      const newRinkItem: RinkItem = {
+        item_id: item.item_id,
+        icon: "target",
+        coordinates: item.coordinates || "",
+        color:
+          item.team_id === game.home_team_id
+            ? game.home_team_color
+            : game.away_team_color,
+        type: item.type,
+      };
+
+      switch (item.type) {
+        case "goals":
+          newRinkItem.icon = "e911_emergency";
+          break;
+        // case "saves":
+        //   newRinkItem.icon = "security";
+        //   break;
+        case "penalties":
+          newRinkItem.icon = "gavel";
+          break;
+        default:
+          break;
+      }
+
+      return newRinkItem;
+    });
 }
 
 export function createDashboardUrl(
@@ -49,6 +182,56 @@ export function createDashboardUrl(
   }
 
   return url;
+}
+
+export function createPeriodTimeString(
+  minutes: number,
+  seconds: number,
+): string {
+  const period_time = `00:${minutes < 10 ? `0${minutes}` : minutes}:${
+    seconds < 10 ? `0${seconds}` : seconds
+  }`;
+  return period_time;
+}
+
+export function createMetaTitle(
+  titles: string[],
+  options?: {
+    excludeDashboard?: boolean;
+  },
+): string {
+  if (options?.excludeDashboard) {
+    return `${titles.join(" | ")} | Leagrr`;
+  }
+  return `${titles.join(" | ")} | Dashboard | Leagrr`;
+}
+
+export function formatTimePeriod(time_period: {
+  minutes: number;
+  seconds: number;
+}): string {
+  const minutes_string = time_period.minutes ? time_period.minutes : "0";
+  const seconds_string = time_period.seconds
+    ? time_period.seconds > 9
+      ? time_period.seconds
+      : `0${time_period.seconds}`
+    : "00";
+  return `${minutes_string}:${seconds_string}`;
+}
+
+export function formatDateForInput(date: string | Date): string {
+  const formattedDate = new Date(date)
+    .toLocaleString("en-CA", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: new Intl.DateTimeFormat().resolvedOptions().timeZone,
+    })
+    .replace(",", "");
+  return formattedDate;
 }
 
 export function makeAcronym(
@@ -126,171 +309,4 @@ export function nameDisplay(
       }
       return `${first_name} ${last_name}`;
   }
-}
-
-export function formatTimePeriod(time_period: {
-  minutes: number;
-  seconds: number;
-}): string {
-  const minutes_string = time_period.minutes ? time_period.minutes : "0";
-  const seconds_string = time_period.seconds
-    ? time_period.seconds > 9
-      ? time_period.seconds
-      : `0${time_period.seconds}`
-    : "00";
-  return `${minutes_string}:${seconds_string}`;
-}
-
-export function formatDateForInput(date: string | Date): string {
-  const formattedDate = new Date(date)
-    .toLocaleString("en-CA", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: false,
-      timeZone: new Intl.DateTimeFormat().resolvedOptions().timeZone,
-    })
-    .replace(",", "");
-  return formattedDate;
-}
-
-export function addNumberOrdinals(number: number) {
-  const cleanedNumberToCheck = parseInt(
-    number.toString().substring(number.toString().length - 1),
-  );
-
-  switch (cleanedNumberToCheck) {
-    case 1:
-      return `${number}st`;
-    case 2:
-      return `${number}nd`;
-    case 3:
-      return `${number}rd`;
-    default:
-      return `${number}th`;
-  }
-}
-
-export const color_options = [
-  "primary",
-  "secondary",
-  "accent",
-  "success",
-  "warning",
-  "caution",
-  "danger",
-  "white",
-  "black",
-  "grey",
-];
-
-export function applyColor(
-  color: string,
-  variant?: "dark" | "darker" | "medium" | "light" | "lightest",
-): string {
-  if (color_options.includes(color)) {
-    return variant
-      ? `var(--color-${color}-${variant})`
-      : `var(--color-${color})`;
-  }
-  return color;
-}
-
-export function createPeriodTimeString(
-  minutes: number,
-  seconds: number,
-): string {
-  const period_time = `00:${minutes < 10 ? `0${minutes}` : minutes}:${
-    seconds < 10 ? `0${seconds}` : seconds
-  }`;
-  return period_time;
-}
-
-export function createMetaTitle(
-  titles: string[],
-  options?: {
-    excludeDashboard?: boolean;
-  },
-): string {
-  if (options?.excludeDashboard) {
-    return `${titles.join(" | ")} | Leagrr`;
-  }
-  return `${titles.join(" | ")} | Dashboard | Leagrr`;
-}
-
-export function applyAppropriateTextColor(color: string): string {
-  const lightColors = [
-    "aqua",
-    "cyan",
-    "grey",
-    "magenta",
-    "orange",
-    "pink",
-    "red",
-    "violet",
-    "white",
-    "yellow",
-  ];
-
-  if (lightColors.includes(color)) {
-    return "black";
-  }
-  return "white";
-}
-
-export function convert_roles_to_select_choices(roles: Map<number, RoleData>) {
-  const choices: { value: number; label: string }[] = [];
-
-  roles.forEach((r) => {
-    choices.push({
-      value: r.role,
-      label: r.title,
-    });
-  });
-
-  return choices;
-}
-
-export function addressAsGoogleMapsLink(address: string): string {
-  return `https://www.google.com/maps/place/${address.replaceAll(" ", "+")}`;
-}
-
-export function convertGameFeedItemsToRinkItems(
-  feedItems: StatsData[],
-  game: GameData,
-) {
-  return feedItems
-    .filter((item) => {
-      if (item.coordinates) return true;
-    })
-    .map((item) => {
-      const newRinkItem: RinkItem = {
-        item_id: item.item_id,
-        icon: "target",
-        coordinates: item.coordinates || "",
-        color:
-          item.team_id === game.home_team_id
-            ? game.home_team_color
-            : game.away_team_color,
-        type: item.type,
-      };
-
-      switch (item.type) {
-        case "goals":
-          newRinkItem.icon = "e911_emergency";
-          break;
-        // case "saves":
-        //   newRinkItem.icon = "security";
-        //   break;
-        case "penalties":
-          newRinkItem.icon = "gavel";
-          break;
-        default:
-          break;
-      }
-
-      return newRinkItem;
-    });
 }

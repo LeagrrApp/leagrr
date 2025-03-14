@@ -263,7 +263,7 @@ CREATE TABLE league_management.leagues (
 );
 
 ALTER TABLE IF EXISTS league_management.leagues
-    ADD CONSTRAINT league_status_enum CHECK (status IN ('draft', 'public', 'archived'));
+    ADD CONSTRAINT league_status_enum CHECK (status IN ('draft', 'public', 'archived', 'locked'));
 
 -- ALTER TABLE league_management.leagues
 -- ADD CONSTRAINT fk_leagues_sport_id FOREIGN KEY (sport_id)

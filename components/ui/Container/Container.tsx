@@ -1,4 +1,4 @@
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import { CSSProperties, PropsWithChildren } from "react";
 import css from "./container.module.css";
 
@@ -27,7 +27,7 @@ export default function Container({
   if (maxWidth) styles["--container-width"] = maxWidth;
 
   return (
-    <div style={styles} className={apply_classes(classes, className)}>
+    <div style={styles} className={applyClasses(classes, className)}>
       {children}
     </div>
   );

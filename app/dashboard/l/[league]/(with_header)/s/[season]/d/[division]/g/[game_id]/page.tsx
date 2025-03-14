@@ -6,7 +6,7 @@ import GamePreview from "@/components/dashboard/games/GamePreview/GamePreview";
 import GameTeamStats from "@/components/dashboard/games/GameTeamStats/GameTeamStats";
 import BackButton from "@/components/ui/BackButton/BackButton";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
-import { apply_classes_conditional } from "@/utils/helpers/html-attributes";
+import { applyClassesConditional } from "@/utils/helpers/html-attributes";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import css from "./page.module.css";
@@ -79,7 +79,7 @@ export default async function Page({ params }: PageProps) {
 
       <article
         style={styles}
-        className={apply_classes_conditional(
+        className={applyClassesConditional(
           css.game,
           css.game_can_edit,
           canEdit,

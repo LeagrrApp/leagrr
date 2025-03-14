@@ -97,7 +97,7 @@ export async function getUsers(options?: {
 
     let where: string | undefined = undefined;
 
-    const additionalParams = [];
+    const additionalParams: (string | number)[] = [];
 
     if (search) {
       where = `WHERE

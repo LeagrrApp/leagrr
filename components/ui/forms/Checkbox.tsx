@@ -1,6 +1,6 @@
 "use client";
 
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import { ChangeEvent, useState } from "react";
 import Alert from "../Alert/Alert";
 import css from "./forms.module.css";
@@ -38,7 +38,7 @@ export default function Checkbox({
   }
 
   return (
-    <div className={apply_classes(css.unit, css.unit_checkbox)}>
+    <div className={applyClasses(css.unit, css.unit_checkbox)}>
       {labelFirst && (
         <label className={css.label} htmlFor={name}>
           {label}

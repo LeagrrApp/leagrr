@@ -1,6 +1,6 @@
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import { CSSProperties, PropsWithChildren } from "react";
 import css from "./card.module.css";
-import { apply_classes } from "@/utils/helpers/html-attributes";
 
 interface CardProps {
   padding?: SizeOptions;
@@ -25,7 +25,7 @@ export default function Card({
   if (isContainer) classes.push(css.as_container);
 
   return (
-    <div style={styles} className={apply_classes(classes, className)}>
+    <div style={styles} className={applyClasses(classes, className)}>
       {children}
     </div>
   );

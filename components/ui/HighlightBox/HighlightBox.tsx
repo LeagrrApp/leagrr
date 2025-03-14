@@ -1,5 +1,5 @@
 import { applyColor } from "@/utils/helpers/formatting";
-import { apply_classes, paddingString } from "@/utils/helpers/html-attributes";
+import { applyClasses, paddingString } from "@/utils/helpers/html-attributes";
 import { CSSProperties, PropsWithChildren } from "react";
 import css from "./highlighBox.module.css";
 
@@ -47,7 +47,7 @@ export default function HighlightBox({
   if (padding) styles["--hb-padding"] = paddingString(padding);
 
   return (
-    <div style={styles} className={apply_classes(css.highlight_box, className)}>
+    <div style={styles} className={applyClasses(css.highlight_box, className)}>
       {children}
     </div>
   );

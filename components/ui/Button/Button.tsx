@@ -1,4 +1,4 @@
-import { apply_classes, paddingString } from "@/utils/helpers/html-attributes";
+import { applyClasses, paddingString } from "@/utils/helpers/html-attributes";
 import { Url } from "next/dist/shared/lib/router/router";
 import Link from "next/link";
 import { CSSProperties, MouseEventHandler, PropsWithChildren } from "react";
@@ -78,7 +78,7 @@ export default function Button({
     return (
       <Link
         style={styles}
-        className={apply_classes(classes)}
+        className={applyClasses(classes)}
         href={href}
         aria-label={ariaLabel}
         onClick={onClick as MouseEventHandler<HTMLAnchorElement> | undefined}
@@ -89,7 +89,7 @@ export default function Button({
 
   if (asSpan)
     return (
-      <span style={styles} className={apply_classes(classes)}>
+      <span style={styles} className={applyClasses(classes)}>
         {children}
       </span>
     );
@@ -97,7 +97,7 @@ export default function Button({
   return (
     <button
       style={styles}
-      className={apply_classes(classes)}
+      className={applyClasses(classes)}
       type={type}
       onClick={onClick as MouseEventHandler<HTMLButtonElement> | undefined}
       aria-label={ariaLabel}

@@ -8,7 +8,7 @@ import {
   makeAcronym,
   nameDisplay,
 } from "@/utils/helpers/formatting";
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
 import css from "./gameTeamStats.module.css";
 
@@ -38,7 +38,7 @@ export default async function GameTeamStats({
 
   if (!teamGameStats)
     return (
-      <div className={apply_classes(classes)}>
+      <div className={applyClasses(classes)}>
         <Card className="push" padding="ml">
           <p>Unable to load team stats...</p>
         </Card>
@@ -47,7 +47,7 @@ export default async function GameTeamStats({
 
   if (teamGameStats.length === 0) {
     return (
-      <div className={apply_classes(classes)}>
+      <div className={applyClasses(classes)}>
         <div className={css.team_stats_block}>
           <h3 className={css.team_stats_heading}>{team.name}</h3>
           <Card className="push" padding="ml">
@@ -95,7 +95,7 @@ export default async function GameTeamStats({
   }%`;
 
   return (
-    <div className={apply_classes(classes)}>
+    <div className={applyClasses(classes)}>
       <div className={css.team_stats_block}>
         <h3 className={css.team_stats_heading}>
           Player Stats{" "}
