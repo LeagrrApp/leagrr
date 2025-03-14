@@ -1,8 +1,8 @@
 import Container from "@/components/ui/Container/Container";
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import { applyColor } from "@/utils/helpers/formatting";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import { CSSProperties, PropsWithChildren } from "react";
 import css from "./dHeader.module.css";
-import { applyColor } from "@/utils/helpers/formatting";
 
 type DHeaderProps = {
   className?: string[] | string;
@@ -27,7 +27,7 @@ export default function DHeader({
   return (
     <header
       style={styles}
-      className={apply_classes(css.dashboard_header, className)}
+      className={applyClasses(css.dashboard_header, className)}
     >
       <Container className={containerClassName}>{children}</Container>
     </header>

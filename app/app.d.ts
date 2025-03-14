@@ -125,13 +125,15 @@ type TeamRosterItem = {
   position: string;
 };
 
+type LeagueStatus = "draft" | "public" | "archived" | "locked";
+
 type LeagueData = {
   league_id: number;
   slug: string;
   name: string;
   description?: string;
   sport: "hockey" | "soccer" | "basketball" | "pickleball" | "badminton";
-  status: string;
+  status: LeagueStatus;
   seasons?: SeasonData[];
 };
 
@@ -142,7 +144,7 @@ type SeasonData = {
   description?: string;
   start_date?: Date | string;
   end_date?: Date | string;
-  status: string;
+  status: LeagueStatus;
   divisions?: DivisionData[];
   league_id: number;
   league_slug?: string;
@@ -157,7 +159,7 @@ type DivisionData = {
   gender: string;
   tier: number;
   join_code: string;
-  status: string;
+  status: LeagueStatus;
   season_slug: string;
   season_id: number;
   league_slug: string;

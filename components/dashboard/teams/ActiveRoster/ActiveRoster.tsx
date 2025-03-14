@@ -15,7 +15,7 @@ import Grid from "@/components/ui/layout/Grid";
 import Table from "@/components/ui/Table/Table";
 import { roster_roles } from "@/lib/definitions";
 import {
-  convert_roles_to_select_choices,
+  convertRolesToChoices,
   createDashboardUrl,
   makeAcronym,
   nameDisplay,
@@ -108,7 +108,7 @@ export default function ActiveRoster({
 
   const coaches = teamMembers.filter((p) => p.roster_role === 1);
 
-  const rosterRoleOptions = convert_roles_to_select_choices(roster_roles);
+  const rosterRoleOptions = convertRolesToChoices(roster_roles);
 
   return (
     <>

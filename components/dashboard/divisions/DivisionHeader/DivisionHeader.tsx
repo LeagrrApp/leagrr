@@ -4,7 +4,10 @@ import { publishDivision } from "@/actions/divisions";
 import Badge from "@/components/ui/Badge/Badge";
 import HighlightBox from "@/components/ui/HighlightBox/HighlightBox";
 import Icon from "@/components/ui/Icon/Icon";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import {
+  applyStatusColor,
+  createDashboardUrl,
+} from "@/utils/helpers/formatting";
 import { usePathname } from "next/navigation";
 import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
 import css from "./divisionHeader.module.css";
@@ -37,8 +40,7 @@ export default function DivisionHeader({
     "edit",
   );
 
-  const showStatus = status !== undefined && status !== "public";
-  const statusColor = status === "draft" ? "warning" : "danger";
+  const showStatus = status && status !== "public";
 
   return (
     <>
@@ -77,7 +79,11 @@ export default function DivisionHeader({
         <h2 className={css.division_name}>
           {name}
           {showStatus && (
-            <Badge text={status} type={statusColor} fontSize="h5" />
+            <Badge
+              text={status}
+              type={applyStatusColor(status)}
+              fontSize="h5"
+            />
           )}
           {canEdit && pathname !== editLink && (
             <Icon

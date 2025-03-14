@@ -1,0 +1,44 @@
+.pagination {
+  display: grid;
+  grid-template-areas:
+    "prev next"
+    "pages pages";
+  grid-template-columns: 1fr 1fr;
+
+  @container (width >= 30rem) {
+    grid-template-areas: "prev pages next";
+    grid-template-columns: 1fr auto 1fr;
+  }
+}
+
+.prev,
+.next {
+  color: var(--color-primary);
+
+  &:where(:hover, :focus-visible) {
+    color: var(--color-primary-dark);
+  }
+}
+
+.prev {
+  justify-self: flex-start;
+  grid-area: prev;
+}
+
+.pages {
+  grid-area: pages;
+  display: flex;
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+  gap: var(--spacer-s);
+
+  & a {
+    text-decoration: none;
+  }
+}
+
+.next {
+  justify-self: flex-end;
+  grid-area: next;
+}

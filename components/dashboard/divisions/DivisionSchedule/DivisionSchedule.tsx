@@ -5,7 +5,7 @@ import Card from "@/components/ui/Card/Card";
 import Icon from "@/components/ui/Icon/Icon";
 import Table from "@/components/ui/Table/Table";
 import Switch from "@/components/ui/forms/Switch/Switch";
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -138,7 +138,7 @@ export default function DivisionSchedule({
               }
 
               return (
-                <tr key={g.game_id} className={apply_classes(rowClasses)}>
+                <tr key={g.game_id} className={applyClasses(rowClasses)}>
                   <td>
                     {gameTime}
                     <Link href={`${pathname}/g/${g.game_id}`}>

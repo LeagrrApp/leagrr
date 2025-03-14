@@ -1,0 +1,15 @@
+.layout {
+  display: grid;
+  gap: var(--spacer-base);
+  grid-template-rows: auto 1fr auto;
+}
+
+.filters {
+  display: grid;
+  gap: var(--spacer-base);
+
+  @container (width >= 35rem) {
+    grid-template-columns: repeat(4, 1fr);
+    align-items: flex-end;
+  }
+}

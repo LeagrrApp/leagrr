@@ -1,6 +1,6 @@
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import { ChangeEventHandler, useEffect, useState } from "react";
 import css from "./switch.module.css";
-import { apply_classes } from "@/utils/helpers/html-attributes";
 
 interface SwitchProps extends Partial<HTMLInputElement> {
   label: string;
@@ -10,6 +10,7 @@ interface SwitchProps extends Partial<HTMLInputElement> {
 }
 
 export default function Switch({
+  id,
   label,
   name,
   labelRight,
@@ -27,12 +28,12 @@ export default function Switch({
   }, [checked]);
 
   return (
-    <div className={apply_classes(css.switch, className)}>
+    <div className={applyClasses(css.switch, className)}>
       <label
         className={`${css.switch_label}${
           noSpread ? ` ${css.switch_label_no_spread}` : ""
         }`}
-        htmlFor={name}
+        htmlFor={id || name}
       >
         {!labelRight && label}
         <div className={classNames}>
@@ -43,7 +44,7 @@ export default function Switch({
       <input
         type="checkbox"
         name={name}
-        id={name}
+        id={id || name}
         onChange={onChange}
         checked={checked}
       />

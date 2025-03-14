@@ -5,8 +5,11 @@ import Badge from "@/components/ui/Badge/Badge";
 import Button from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
 import HighlightBox from "@/components/ui/HighlightBox/HighlightBox";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import {
+  applyStatusColor,
+  createDashboardUrl,
+} from "@/utils/helpers/formatting";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useRef } from "react";
@@ -44,7 +47,7 @@ export default function SeasonSelector({
 
   return (
     <>
-      <div className={apply_classes(classes)}>
+      <div className={applyClasses(classes)}>
         <p>Current season:</p>
         <Button
           onClick={() => dialogRef?.current?.showModal()}
@@ -63,7 +66,7 @@ export default function SeasonSelector({
           <Badge
             text={currentSeason.status}
             fontSize="xs"
-            type={currentSeason.status === "archived" ? "danger" : "warning"}
+            type={applyStatusColor(currentSeason.status)}
           />
         )}{" "}
       </div>
@@ -71,23 +74,25 @@ export default function SeasonSelector({
       <Dialog className={css.season_modal} ref={dialogRef} closeButton={true}>
         <h2>Select a Season</h2>
         <ol>
-          {seasons?.map((season) => (
-            <li key={season.slug}>
-              <Link
-                href={createDashboardUrl({ l: league, s: season.slug })}
-                onClick={() => dialogRef?.current?.close()}
-              >
-                {season.name}
-                {season.status !== "public" && (
-                  <Badge
-                    text={season.status}
-                    fontSize="s"
-                    type={season.status === "draft" ? "warning" : "danger"}
-                  />
-                )}
-              </Link>
-            </li>
-          ))}
+          {seasons?.map((season) => {
+            return (
+              <li key={season.slug}>
+                <Link
+                  href={createDashboardUrl({ l: league, s: season.slug })}
+                  onClick={() => dialogRef?.current?.close()}
+                >
+                  {season.name}
+                  {season.status !== "public" && (
+                    <Badge
+                      text={season.status}
+                      fontSize="s"
+                      type={applyStatusColor(season.status)}
+                    />
+                  )}
+                </Link>
+              </li>
+            );
+          })}
         </ol>
         {hasAdminRole && (
           <>

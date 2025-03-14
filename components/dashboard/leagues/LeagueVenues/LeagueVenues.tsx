@@ -79,7 +79,7 @@ export default function LeagueVenues({ venues, league }: LeagueVenuesProps) {
                     target="_blank"
                     data-no-full-hover
                   >
-                    <Truncate text={v.address} />
+                    <Truncate>{v.address}</Truncate>
                   </a>
                 </td>
                 <td>{v.arenas}</td>

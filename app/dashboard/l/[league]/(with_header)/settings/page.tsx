@@ -28,7 +28,7 @@ export default async function Page({ params }: PageProps) {
   if (!leagueData) notFound();
 
   // Get users role to check league permissions
-  const { canEdit } = await canEditLeague(leagueData.league_id);
+  const { canEdit, isAdmin } = await canEditLeague(leagueData.league_id);
   const backLink = createDashboardUrl({ l: league });
 
   // If not a league admin, redirect back to league
@@ -39,7 +39,7 @@ export default async function Page({ params }: PageProps) {
       <h2 className="push">
         <Icon label="Information" icon="info" gap="em-s" />
       </h2>
-      <EditLeague league={leagueData} backLink={backLink} />
+      <EditLeague league={leagueData} backLink={backLink} isAdmin={isAdmin} />
     </>
   );
 }

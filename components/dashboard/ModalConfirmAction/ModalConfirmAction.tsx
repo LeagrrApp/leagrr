@@ -8,7 +8,7 @@ import Input from "@/components/ui/forms/Input";
 import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import { useActionState, useEffect, useRef, useState } from "react";
 import css from "./modalConfirmAction.module.css";
 
@@ -60,7 +60,7 @@ export default function ModalConfirmAction({
   return (
     <>
       <Button
-        className={trigger?.classes ? apply_classes(trigger?.classes) : ""}
+        className={trigger?.classes ? applyClasses(trigger?.classes) : ""}
         onClick={() => dialogRef?.current?.showModal()}
         variant={trigger?.buttonStyles?.variant || "transparent"}
         outline={trigger?.buttonStyles?.outline}

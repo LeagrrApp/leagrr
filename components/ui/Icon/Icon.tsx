@@ -1,4 +1,4 @@
-import { apply_classes, paddingString } from "@/utils/helpers/html-attributes";
+import { applyClasses, paddingString } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
 import { AnchorHTMLAttributes, CSSProperties } from "react";
 import css from "./icon.module.css";
@@ -41,7 +41,7 @@ export default function Icon(props: IconProps) {
     classes.push(css.icon_only);
   }
 
-  const finalClasses = apply_classes(classes, className);
+  const finalClasses = applyClasses(classes, className);
 
   if (size) styles["--icon-size"] = `var(--type-scale-${size})`;
   if (padding) styles["--icon-padding"] = paddingString(padding);

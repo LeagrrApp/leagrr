@@ -1,4 +1,4 @@
-export function apply_classes(
+export function applyClasses(
   initialClass: string | string[],
   additionalClass?: string | string[],
 ): string {
@@ -19,15 +19,15 @@ export function apply_classes(
   return combinedArray.join(" ");
 }
 
-export function apply_classes_conditional(
+export function applyClassesConditional(
   initialClass: string | string[],
   additionalClass: string | string[],
   condition: boolean | undefined,
 ): string {
   if (condition) {
-    return apply_classes(initialClass, additionalClass);
+    return applyClasses(initialClass, additionalClass);
   } else {
-    return apply_classes(initialClass);
+    return applyClasses(initialClass);
   }
 }
 

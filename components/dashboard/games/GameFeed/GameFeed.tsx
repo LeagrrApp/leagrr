@@ -6,7 +6,7 @@ import {
   addNumberOrdinals,
   convertGameFeedItemsToRinkItems,
 } from "@/utils/helpers/formatting";
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
 import GameFeedAdd from "../GameFeedAdd/GameFeedAdd";
 import RinkTracker from "../RinkTracker/RinkTracker";
@@ -227,7 +227,7 @@ export default async function GameFeed({
         )}
         {game.status === "completed" && (
           <div
-            className={apply_classes([
+            className={applyClasses([
               css.game_feed_summary,
               css.game_feed_completed,
               game_end_highlight_class,

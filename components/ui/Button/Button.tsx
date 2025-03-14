@@ -1,10 +1,10 @@
-import { apply_classes, paddingString } from "@/utils/helpers/html-attributes";
+import { applyClasses, paddingString } from "@/utils/helpers/html-attributes";
 import { Url } from "next/dist/shared/lib/router/router";
 import Link from "next/link";
-import { ButtonHTMLAttributes, CSSProperties } from "react";
+import { CSSProperties, MouseEventHandler, PropsWithChildren } from "react";
 import css from "./button.module.css";
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps {
   href?: Url;
   variant?: ColorOptions | "transparent";
   outline?: boolean;
@@ -13,6 +13,14 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   asSpan?: boolean;
   padding?: [SizeOptions, SizeOptions?];
   ariaLabel?: string | undefined;
+  onClick?:
+    | MouseEventHandler<HTMLButtonElement>
+    | MouseEventHandler<HTMLAnchorElement>
+    | undefined;
+  type?: "button" | "reset" | "submit" | undefined;
+  style?: CSSProperties;
+  className?: string | string[];
+  disabled?: boolean;
 }
 
 interface ButtonStyles extends CSSProperties {
@@ -35,10 +43,12 @@ export default function Button({
   padding,
   disabled,
   ariaLabel,
-}: ButtonProps) {
+}: PropsWithChildren<ButtonProps>) {
   const classes = [css.button];
 
-  if (className) classes.push(className);
+  if (typeof className === "string") classes.push(className);
+  if (typeof className === "object")
+    className.forEach((cn) => classes.push(cn));
 
   const styles: ButtonStyles = { ...style };
 
@@ -68,9 +78,10 @@ export default function Button({
     return (
       <Link
         style={styles}
-        className={apply_classes(classes)}
+        className={applyClasses(classes)}
         href={href}
         aria-label={ariaLabel}
+        onClick={onClick as MouseEventHandler<HTMLAnchorElement> | undefined}
       >
         {children}
       </Link>
@@ -78,7 +89,7 @@ export default function Button({
 
   if (asSpan)
     return (
-      <span style={styles} className={apply_classes(classes)}>
+      <span style={styles} className={applyClasses(classes)}>
         {children}
       </span>
     );
@@ -86,9 +97,9 @@ export default function Button({
   return (
     <button
       style={styles}
-      className={apply_classes(classes)}
+      className={applyClasses(classes)}
       type={type}
-      onClick={onClick}
+      onClick={onClick as MouseEventHandler<HTMLButtonElement> | undefined}
       aria-label={ariaLabel}
       disabled={disabled}
     >

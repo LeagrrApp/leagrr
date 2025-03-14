@@ -1,4 +1,4 @@
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import "material-symbols";
 import type { Metadata } from "next";
 import { Noto_Sans, Noto_Sans_Mono, Plus_Jakarta_Sans } from "next/font/google";
@@ -32,7 +32,7 @@ export default function RootLayout({
   return (
     <html
       lang="en-CA"
-      className={apply_classes([
+      className={applyClasses([
         notoSans.variable,
         plusJakartaSans.variable,
         notoSansMono.variable,

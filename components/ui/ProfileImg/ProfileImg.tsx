@@ -1,6 +1,6 @@
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import Image from "next/image";
 import css from "./profileImg.module.css";
-import { apply_classes } from "@/utils/helpers/html-attributes";
 
 interface ProfileImgProps {
   src?: string;
@@ -16,7 +16,7 @@ export default function ProfileImg({
   className,
 }: ProfileImgProps) {
   return (
-    <div className={apply_classes(css.profile_img, className)}>
+    <div className={applyClasses(css.profile_img, className)}>
       <Image
         src={src || "/profile-ph.jpg"}
         alt={label}

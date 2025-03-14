@@ -23,6 +23,7 @@ interface SelectProps extends Partial<HTMLSelectElement> {
 }
 
 export default function Select({
+  id,
   name,
   label,
   labelAfter,
@@ -55,7 +56,7 @@ export default function Select({
       {!labelAfter && (
         <Label
           label={label}
-          htmlFor={name}
+          htmlFor={id || name}
           hideLabel={hideLabel}
           required={required}
           optional={optional}
@@ -64,7 +65,7 @@ export default function Select({
       <select
         className={forms.field}
         name={name}
-        id={name}
+        id={id || name}
         onChange={handleChange}
         required={required}
         value={selectValue}
@@ -97,7 +98,7 @@ export default function Select({
       {labelAfter && (
         <Label
           label={label}
-          htmlFor={name}
+          htmlFor={id || name}
           hideLabel={hideLabel}
           required={required}
           optional={optional}

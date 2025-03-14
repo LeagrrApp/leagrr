@@ -19,6 +19,7 @@ interface TextAreaProps extends Partial<HTMLTextAreaElement> {
 }
 
 export default function TextArea({
+  id,
   label,
   name,
   labelAfter,
@@ -53,7 +54,7 @@ export default function TextArea({
       {!labelAfter && (
         <Label
           label={label}
-          htmlFor={name}
+          htmlFor={id || name}
           hideLabel={hideLabel}
           required={required}
           optional={optional}
@@ -62,7 +63,7 @@ export default function TextArea({
       <textarea
         className={css.field}
         name={name}
-        id={name}
+        id={id || name}
         onChange={handleChange}
         placeholder={placeholderText}
         value={textAreaValue}
@@ -72,7 +73,7 @@ export default function TextArea({
       {labelAfter && (
         <Label
           label={label}
-          htmlFor={name}
+          htmlFor={id || name}
           hideLabel={hideLabel}
           required={required}
           optional={optional}

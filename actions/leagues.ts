@@ -26,7 +26,7 @@ const LeagueFormSchema = z.object({
     .trim(),
   description: z.string().trim().optional(),
   sport: z.enum(sports_options),
-  status: z.enum(status_options).optional(),
+  status: z.enum([...status_options, "locked"]).optional(),
 });
 
 interface LeagueErrorProps {
@@ -54,7 +54,8 @@ export async function createLeague(
   // Verify user session
   const { user_id } = await verifySession();
 
-  // TODO: add user role permission check
+  // user role permission check
+  const isBaseUser = await verifyUserRole(3);
 
   // insert data from form into object that can be checked for errors
   const submittedData = {
@@ -74,11 +75,19 @@ export async function createLeague(
     };
   }
 
+  // initialize status code
+  let status = 400;
+
   // initialize redirect link
   let redirectLink: string | undefined = undefined;
 
   // no validation errors, submit data to database
   try {
+    if (isBaseUser) {
+      status = 401;
+      throw new Error("Sorry, you do not have permission to add leagues.");
+    }
+
     // Build insert sql statement
     const leagueInsertSql = `
       INSERT INTO league_management.leagues
@@ -121,9 +130,14 @@ export async function createLeague(
 
     // Failed to add user as league admin, delete the league and return error
     if (!adminRows[0]) {
-      // TODO: delete the league on this error
+      const leagueDeleteSql = `
+        DELETE FROM league_management.leagues
+        WHERE league_id = $1
+      `;
 
-      throw new Error("Unable to set user as league admin.");
+      await db.query(leagueDeleteSql, [league_id]);
+
+      throw new Error("Sorry, there was a problem setting up the league.");
     }
 
     // set redirect link
@@ -132,7 +146,7 @@ export async function createLeague(
     if (err instanceof Error) {
       return {
         message: err.message,
-        status: 400,
+        status,
         data: submittedData,
       };
     }
@@ -214,6 +228,123 @@ export async function getLeague(
       return { message: err.message, status: 400 };
     }
     return { message: "Something went wrong.", status: 500 };
+  }
+}
+
+export async function getLeagues(options?: {
+  limit?: number;
+  offset?: number;
+  search?: string;
+  status?: string;
+  sport?: string;
+}): Promise<
+  ResultProps<{
+    leagues: LeagueData[];
+    perPage: number;
+    page: number;
+    total: number;
+  }>
+> {
+  // verify session
+  await verifySession();
+
+  try {
+    const limit = options?.limit || 10;
+    const offset = options?.offset || 0;
+    const search = options?.search || undefined;
+    const status = options?.status;
+    const sport = options?.sport || undefined;
+
+    let where: string | undefined = undefined;
+
+    const additionalParams: string[] = [];
+
+    if (search) {
+      where = `WHERE
+          name ILIKE $1
+      `;
+
+      additionalParams.push(`%${search}%`);
+    }
+
+    if (sport) {
+      if (!where) {
+        where = `WHERE`;
+      } else {
+        where = `AND`;
+      }
+      where = `${where}
+          sport = $${additionalParams.length + 1}`;
+      additionalParams.push(sport);
+    }
+
+    if (status) {
+      if (!where) {
+        where = `WHERE`;
+      } else {
+        where = `AND`;
+      }
+      where = `${where}
+          status = $${additionalParams.length + 1}`;
+      additionalParams.push(status);
+    }
+
+    const leaguesSql = `
+      SELECT
+        league_id,
+        slug,
+        name,
+        description,
+        sport,
+        status
+      FROM
+        league_management.leagues
+      ${where}
+      ORDER BY name ASC
+      LIMIT $${additionalParams.length + 1}
+      OFFSET $${additionalParams.length + 2}
+    `;
+
+    const { rows: leagues } = await db.query<LeagueData>(leaguesSql, [
+      ...additionalParams,
+      limit,
+      offset,
+    ]);
+
+    const countSql = `
+        SELECT
+          count(*)::int
+        FROM
+          league_management.leagues
+        ${where}
+      `;
+
+    const { rows: countRows } = await db.query<{ count: number }>(
+      countSql,
+      additionalParams.length > 0 ? additionalParams : undefined,
+    );
+
+    return {
+      message: "Leagues loaded.",
+      status: 200,
+      data: {
+        leagues,
+        perPage: limit,
+        page: offset / limit + 1,
+        total: countRows[0].count,
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
   }
 }
 
@@ -514,6 +645,96 @@ export async function publishLeague(state: {
   }
 
   if (redirectLink && !state.noRedirect) redirect(redirectLink);
+}
+
+const EditLeagueAsAdminSchema = z.object({
+  league_id: z.number().min(1),
+  status: z.enum([...status_options, "locked"]),
+});
+
+type EditLeagueAsAdminErrors = {
+  league_id?: string[];
+  status?: string[];
+};
+
+type EditLeagueAsAdminState = FormState<
+  EditLeagueAsAdminErrors,
+  {
+    league_id?: number;
+    status?: LeagueStatus;
+  }
+>;
+
+export async function editLeagueAsAdmin(
+  state: EditLeagueAsAdminState,
+  formData: FormData,
+) {
+  // check if user is admin
+  const isAdmin = await verifyUserRole(1);
+
+  const submittedData = {
+    league_id: parseInt(formData.get("league_id") as string),
+    status: formData.get("status") as LeagueStatus,
+  };
+
+  // initialize response status code
+  let status = 400;
+
+  try {
+    if (!isAdmin) {
+      status = 401;
+      throw new Error("Sorry, you do not have admin privileges.");
+    }
+
+    // Validate data
+    const validatedFields = EditLeagueAsAdminSchema.safeParse(submittedData);
+
+    // If any form fields are invalid, return early
+    if (!validatedFields.success) {
+      return {
+        ...state,
+        data: submittedData,
+        errors: validatedFields.error.flatten().fieldErrors,
+      };
+    }
+
+    // set up sql
+    const sql = `
+        UPDATE league_management.leagues
+        SET status = $1
+        WHERE league_id = $2
+      `;
+
+    const { rowCount } = await db.query(sql, [
+      submittedData.status,
+      submittedData.league_id,
+    ]);
+
+    if (rowCount !== 1) {
+      throw new Error("Sorry, there was a problem updating the league.");
+    }
+
+    return {
+      message: "League updated",
+      status: 200,
+      data: submittedData,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        ...state,
+        message: err.message,
+        status,
+        data: submittedData,
+      };
+    }
+    return {
+      ...state,
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
+    };
+  }
 }
 
 /* ---------- DELETE ---------- */

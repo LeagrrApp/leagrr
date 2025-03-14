@@ -7,7 +7,7 @@ import {
   formatTimePeriod,
   nameDisplay,
 } from "@/utils/helpers/formatting";
-import { apply_classes } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
 import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
 import css from "./gameFeed.module.css";
@@ -87,7 +87,7 @@ export default function GameFeedItem({
   }
 
   return (
-    <li id={`game-feed-${type}-${item_id}`} className={apply_classes(classes)}>
+    <li id={`game-feed-${type}-${item_id}`} className={applyClasses(classes)}>
       <div className={css.game_feed_item_time}>
         <h5 className={css.game_feed_item_period_time}>
           {formatTimePeriod(period_time)}
@@ -157,7 +157,7 @@ export default function GameFeedItem({
         )}
       </p>
       <div
-        className={apply_classes(
+        className={applyClasses(
           css.game_feed_item_type,
           icon.highlight ? css.game_feed_item_type_highlight : "",
         )}
