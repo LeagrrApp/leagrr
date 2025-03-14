@@ -382,7 +382,7 @@ ADD CONSTRAINT fk_seasons_league_id FOREIGN KEY (league_id)
     REFERENCES league_management.leagues (league_id) ON DELETE CASCADE;
 
 ALTER TABLE IF EXISTS league_management.seasons
-    ADD CONSTRAINT season_status_enum CHECK (status IN ('draft', 'public', 'archived'));
+    ADD CONSTRAINT season_status_enum CHECK (status IN ('draft', 'public', 'archived', 'locked'));
 
 CREATE OR REPLACE FUNCTION generate_season_slug()
 RETURNS TRIGGER AS $$
@@ -503,7 +503,7 @@ ALTER TABLE IF EXISTS league_management.divisions
     ADD CONSTRAINT division_gender_enum CHECK (gender IN ('all', 'men', 'women'));
 
 ALTER TABLE IF EXISTS league_management.divisions
-    ADD CONSTRAINT division_status_enum CHECK (status IN ('draft', 'public', 'archived'));
+    ADD CONSTRAINT division_status_enum CHECK (status IN ('draft', 'public', 'archived', 'locked'));
 
 CREATE OR REPLACE FUNCTION generate_division_slug()
 RETURNS TRIGGER AS $$

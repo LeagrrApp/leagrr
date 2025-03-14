@@ -95,7 +95,6 @@ export default function TeamList() {
   }, [teamList]);
 
   useEffect(() => {
-    console.log(editState);
     if (!teamToEdit) return;
     if (editState && editState.status === 200) {
       const { team_id, status } = editState.data;

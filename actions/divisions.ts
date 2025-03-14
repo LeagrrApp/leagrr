@@ -525,9 +525,9 @@ export async function getDivisionStandings(
             ELSE 0
             END
           ) as goals_against
-        FROM division_teams dt
-        LEFT JOIN teams t ON dt.team_id = t.team_id
-        LEFT JOIN games g ON (t.team_id = g.away_team_id OR t.team_id = g.home_team_id)
+        FROM league_management.division_teams dt
+        LEFT JOIN league_management.teams t ON dt.team_id = t.team_id
+        LEFT JOIN league_management.games g ON (t.team_id = g.away_team_id OR t.team_id = g.home_team_id)
         WHERE dt.division_id = $1
         GROUP BY t.team_id
       )
@@ -677,7 +677,7 @@ export async function editDivision(
     tier: parseInt(formData.get("tier") as string),
     gender: formData.get("gender") as string,
     join_code: formData.get("join_code") as string,
-    status: formData.get("status") as string,
+    status: formData.get("status") as LeagueStatus,
   };
 
   // Check to see if the user is allowed to create a season for this league
