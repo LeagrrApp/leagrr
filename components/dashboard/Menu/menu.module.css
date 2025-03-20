@@ -58,13 +58,19 @@
   padding-block: var(--spacer-em-ml);
   gap: var(--spacer-em-base);
 
-  &:where([aria-current="true"]) {
+  &:where([aria-current="true"]:not(.menu_item_profile)) {
     background-color: var(--color-primary-medium);
   }
 
   &:where(a:hover, a:focus-visible) {
     @media only screen and (width >= 60rem) {
       background-color: var(--color-primary-dark);
+    }
+  }
+
+  @media only screen and (width >= 60rem) {
+    &:where([aria-current="true"]) {
+      background-color: var(--color-primary-medium);
     }
   }
 }
