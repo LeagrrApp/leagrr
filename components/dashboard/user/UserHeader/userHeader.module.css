@@ -1,8 +1,13 @@
 .user_header_container {
-  --display: flex;
+  --display: grid;
 
-  align-items: flex-end;
-  gap: var(--spacer-l);
+  gap: var(--spacer-base);
+
+  @container (width >= 45rem) {
+    grid-template-columns: auto 1fr;
+    align-items: flex-end;
+    gap: var(--spacer-l);
+  }
 }
 
 .user_headline {

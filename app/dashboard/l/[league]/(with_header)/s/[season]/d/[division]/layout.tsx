@@ -2,11 +2,9 @@ import { getDivision } from "@/actions/divisions";
 import { canEditLeague } from "@/actions/leagues";
 import { getSeason } from "@/actions/seasons";
 import DivisionHeader from "@/components/dashboard/divisions/DivisionHeader/DivisionHeader";
-import DivisionTabs from "@/components/dashboard/divisions/DivisionTabs/DivisionTabs";
 import Container from "@/components/ui/Container/Container";
 import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
-import css from "./layout.module.css";
 
 export default async function Layout({
   children,
@@ -33,14 +31,16 @@ export default async function Layout({
 
   return (
     <Container>
-      {seasonData.divisions && seasonData.divisions.length !== 0 && (
+      {/* {seasonData.divisions && seasonData.divisions.length !== 0 && (
         <DivisionTabs divisions={seasonData.divisions} canAdd={canEdit} />
-      )}
+      )} */}
 
-      <div className={css.division}>
-        <DivisionHeader division={divisionData} canEdit={canEdit} />
-        {children}
-      </div>
+      <DivisionHeader
+        divisions={seasonData.divisions}
+        division={divisionData}
+        canEdit={canEdit}
+      />
+      {children}
     </Container>
   );
 }

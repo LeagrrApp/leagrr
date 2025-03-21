@@ -1,11 +1,4 @@
-.season_info {
-  display: flex;
-  align-items: center;
-  gap: var(--spacer-s);
-  flex-wrap: wrap;
-}
-
-.season_modal {
+.division_modal {
   text-align: center;
 
   & h2 {

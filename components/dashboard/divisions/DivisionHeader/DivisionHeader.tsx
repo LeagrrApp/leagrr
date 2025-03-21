@@ -10,14 +10,17 @@ import {
 } from "@/utils/helpers/formatting";
 import { usePathname } from "next/navigation";
 import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
+import DivisionSelector from "../DivisionSelector/DivisionSelector";
 import css from "./divisionHeader.module.css";
 
 interface DivisionHeaderProps {
+  divisions?: DivisionData[];
   division: DivisionData;
   canEdit: boolean;
 }
 
 export default function DivisionHeader({
+  divisions,
   division,
   canEdit,
 }: DivisionHeaderProps) {
@@ -85,6 +88,10 @@ export default function DivisionHeader({
               fontSize="h5"
             />
           )}
+        </h2>
+        {description && <p className={css.division_desc}>{description}</p>}
+        <div className={css.division_options}>
+          <DivisionSelector divisions={divisions} canEdit={canEdit} />
           {canEdit && pathname !== editLink && (
             <Icon
               icon="edit_square"
@@ -94,8 +101,7 @@ export default function DivisionHeader({
               size="h4"
             />
           )}
-        </h2>
-        {description && <p>{description}</p>}
+        </div>
       </div>
     </>
   );

@@ -5,6 +5,7 @@ import Badge from "@/components/ui/Badge/Badge";
 import Button from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
 import HighlightBox from "@/components/ui/HighlightBox/HighlightBox";
+import Icon from "@/components/ui/Icon/Icon";
 import {
   applyStatusColor,
   createDashboardUrl,
@@ -29,7 +30,7 @@ export default function SeasonSelector({
 }: SeasonSelectorProps) {
   const params = useParams();
   const pathName = usePathname();
-  const currentSeason = seasons.filter((s) => s.slug === params.season)[0];
+  const currentSeason = seasons.find((s) => s.slug === params.season);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const { league, season } = params;
@@ -58,8 +59,20 @@ export default function SeasonSelector({
           {currentSeason.name}
         </Button>
         {hasAdminRole && pathName !== editLink && (
-          <Button href={editLink} variant="grey" outline size="xs">
-            Edit Season
+          // <Icon
+          //   href={editLink}
+          //   icon="edit_square"
+          //   label="Edit Season"
+          //   hideLabel
+          // />
+          <Button
+            href={editLink}
+            variant="grey"
+            outline
+            size="xs"
+            padding={["em-m"]}
+          >
+            <Icon icon="edit_square" label="Edit Season" hideLabel />
           </Button>
         )}
         {currentSeason.status !== "public" && (
@@ -75,11 +88,16 @@ export default function SeasonSelector({
         <h2>Select a Season</h2>
         <ol>
           {seasons?.map((season) => {
+            const seasonUrl = createDashboardUrl({ l: league, s: season.slug });
+
             return (
               <li key={season.slug}>
                 <Link
-                  href={createDashboardUrl({ l: league, s: season.slug })}
+                  href={seasonUrl}
                   onClick={() => dialogRef?.current?.close()}
+                  aria-current={
+                    params.season === season.slug ? "page" : undefined
+                  }
                 >
                   {season.name}
                   {season.status !== "public" && (
