@@ -294,6 +294,7 @@ textarea:not([rows]) {
   clip-path: polygon(0 0, 0.1% 0, 0.1% 0.1%, 0 0.1%);
   width: 1px;
   height: 1px;
+  overflow: hidden;
 }
 
 /* ---------- Typography ---------- */
