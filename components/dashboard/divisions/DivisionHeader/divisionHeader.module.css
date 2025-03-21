@@ -3,6 +3,8 @@
   display: grid;
   gap: var(--spacer-m) var(--spacer-base);
   grid-template-columns: 1fr auto;
+  border-block-end: 0.125rem solid var(--color-grey);
+  padding-block-end: var(--spacer-ml);
 
   @container (width >= 35rem) {
     gap: 0 var(--spacer-base);

@@ -1,11 +1,13 @@
 .dashboard_unit_header {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: var(--spacer-m) var(--spacer-base);
   margin-block-end: var(--spacer-m);
+  justify-content: space-between;
+  align-items: center;
 
+  /* 
   @container (min-width: 30rem) {
     flex-direction: row;
-    justify-content: space-between;
-  }
+  } */
 }
