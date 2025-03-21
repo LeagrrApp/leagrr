@@ -20,16 +20,17 @@
 
 .rink_wrap {
   position: relative;
-  margin: var(--spacer-l) var(--spacer-base) var(--spacer-base);
 }
 
 .rink_marker {
+  --rm-size: clamp(1rem, 2.5cqi, 1.5rem);
+
   position: absolute;
   inset-block-start: var(--rm-top);
   inset-inline-start: var(--rm-left);
   translate: -50% -50%;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: var(--rm-size);
+  height: var(--rm-size);
   background-color: var(--rm-color, var(--color-primary));
   border-radius: 50%;
   color: #fff;
@@ -40,6 +41,6 @@
   text-decoration: none;
 
   & i {
-    --icon-size: 1em;
+    --icon-size: calc(var(--rm-size) * 0.75);
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import Icon from "@/components/ui/Icon/Icon";
+import { capitalize } from "@/utils/helpers/formatting";
 import { CSSProperties, useRef } from "react";
 import css from "./rinkTracker.module.css";
 
@@ -192,13 +193,13 @@ export default function RinkTracker({
               key={i}
               className={css.rink_marker}
             >
-              <Icon icon={item.icon} label="Example" hideLabel />
+              <Icon icon={item.icon} label={capitalize(item.type)} hideLabel />
             </a>
           );
 
         return (
           <span style={styles} key={i} className={css.rink_marker}>
-            <Icon icon={item.icon} label="Example" hideLabel />
+            <Icon icon={item.icon} label="Marker" hideLabel />
           </span>
         );
       })}

@@ -9,7 +9,6 @@ import NumberSelect from "@/components/ui/forms/NumberSelect";
 import Select from "@/components/ui/forms/Select";
 import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
-import Grid from "@/components/ui/layout/Grid";
 import { nameDisplay } from "@/utils/helpers/formatting";
 import { usePathname } from "next/navigation";
 import { useActionState, useEffect, useMemo, useState } from "react";
@@ -261,7 +260,10 @@ export default function GameFeedAdd({
         />
         <input type="hidden" name="goalie_id" value={goalie} />
         <Col fullSpan>
-          <h5 className="push-m">Play Tracker</h5>
+          <h5>Play Tracker</h5>
+          <p className="type-scale-s push-m">
+            Mark where on the ice the event took place.
+          </p>
           {state?.errors?.coordinates && (
             <div className="push-m">
               <Alert alert={state.errors.coordinates} type="danger" />
@@ -277,21 +279,19 @@ export default function GameFeedAdd({
             <Alert alert={state.message} type="danger" />
           </Col>
         )}
-        <Col fullSpan>
-          <Grid cols={2} gap="base">
-            <Button type="submit" disabled={pending}>
-              <Icon label="Add to feed" icon="dynamic_feed" />
-            </Button>
-            <Button
-              type="button"
-              onClick={() => setAdding(false)}
-              variant="grey"
-              disabled={pending}
-            >
-              <Icon label="Cancel" icon="cancel" />
-            </Button>
-          </Grid>
-        </Col>
+        <div className={css.game_feed_add_buttons}>
+          <Button type="submit" disabled={pending}>
+            <Icon label="Add to feed" icon="dynamic_feed" />
+          </Button>
+          <Button
+            type="button"
+            onClick={() => setAdding(false)}
+            variant="grey"
+            disabled={pending}
+          >
+            <Icon label="Cancel" icon="cancel" />
+          </Button>
+        </div>
       </form>
     );
   }

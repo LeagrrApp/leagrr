@@ -188,10 +188,12 @@ export default async function GameFeed({
                     </p>
                     {periodRinkTrackerItems &&
                       periodRinkTrackerItems.length > 0 && (
-                        <RinkTracker
-                          rinkItems={periodRinkTrackerItems}
-                          linkPrefix="game-feed"
-                        />
+                        <div className={css.rink_tracker_wrap}>
+                          <RinkTracker
+                            rinkItems={periodRinkTrackerItems}
+                            linkPrefix="game-feed"
+                          />
+                        </div>
                       )}
                   </div>
                 )}
@@ -262,10 +264,12 @@ export default async function GameFeed({
             </p>
 
             {rinkTrackerItems && rinkTrackerItems.length > 0 && (
-              <RinkTracker
-                rinkItems={rinkTrackerItems}
-                linkPrefix="game-feed"
-              />
+              <div className={css.rink_tracker_wrap}>
+                <RinkTracker
+                  rinkItems={rinkTrackerItems}
+                  linkPrefix="game-feed"
+                />
+              </div>
             )}
           </div>
         )}

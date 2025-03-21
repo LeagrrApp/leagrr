@@ -347,6 +347,10 @@ h6,
   font-size: var(--type-scale-base);
 }
 
+.type-scale-s {
+  font-size: var(--type-scale-s);
+}
+
 h1,
 h2,
 h3 {

@@ -1,6 +1,18 @@
 .game_controls_card {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: 1fr 3fr 1fr;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "edit score"
+    "feed feed";
   gap: var(--spacer-base);
+
+  @container (width >= 50rem) {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "edit feed score";
+  }
+}
+
+.game_controls_feed {
+  grid-area: feed;
 }
