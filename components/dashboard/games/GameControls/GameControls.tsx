@@ -2,9 +2,9 @@
 
 import Button from "@/components/ui/Button/Button";
 import Icon from "@/components/ui/Icon/Icon";
+import { usePathname } from "next/navigation";
 import GameQuickScore from "../GameQuickScore/GameQuickScore";
 import css from "./gameControls.module.css";
-import { usePathname } from "next/navigation";
 
 interface GameControlsProps {
   game: GameData;
@@ -20,6 +20,7 @@ export default function GameControls({ game }: GameControlsProps) {
       </Button>
       {/* Add to game feed */}
       <Button
+        className={css.game_controls_feed}
         href="#game-feed"
         variant="grey"
         size="h5"

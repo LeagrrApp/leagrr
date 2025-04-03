@@ -41,7 +41,7 @@ export default function Menu({ userData, menuData }: MenuProps) {
       </Link>
 
       <Link
-        className={css.menu_item}
+        className={applyClasses(css.menu_item, css.menu_item_profile)}
         href={createDashboardUrl({ u: username })}
         aria-current={
           pathname.includes(createDashboardUrl({ u: username })) || undefined

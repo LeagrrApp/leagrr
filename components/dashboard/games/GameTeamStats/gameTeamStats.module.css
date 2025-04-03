@@ -1,7 +1,11 @@
 .team_stats {
-  grid-row: span 2;
+  grid-row: span 3;
   display: grid;
   grid-template-rows: subgrid;
+
+  @container (width >= 50rem) {
+    grid-row: span 2;
+  }
 }
 
 .team_stats_block {
@@ -15,15 +19,23 @@
   font-size: var(--type-scale-h5);
 }
 
+.team_stats_home {
+  @container (width >= 50rem) {
+    .team_stats_heading {
+      text-align: end;
+    }
+  }
+}
+
 .team_stats_team_name {
-  font-size: var(--type-scale-s);
-  font-weight: normal;
-  display: block;
+  border-block-end: 0.125rem solid var(--color-grey);
+  padding-block: var(--spacer-base) var(--spacer-m);
 
   @container (width >= 50rem) {
     position: absolute;
     white-space: nowrap;
     clip-path: polygon(0 0, 0.1% 0, 0.1% 0.1%, 0 0.1%);
+    overflow: hidden;
     width: 1px;
     height: 1px;
   }

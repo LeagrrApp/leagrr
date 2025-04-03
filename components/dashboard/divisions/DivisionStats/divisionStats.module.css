@@ -5,7 +5,7 @@
   grid-template-columns: repeat(var(--cols), 1fr);
   gap: var(--spacer-base);
 
-  @container (width >= 30rem) {
+  @container (width >= 25rem) {
     --cols: 2;
   }
 }

@@ -7,11 +7,11 @@
   background-color: var(--color-grey-light);
   padding: var(--spacer-base);
 
-  @container (min-width: 25rem) {
+  @container (width >= 25rem) {
     --cols: 2;
   }
 
-  @container (min-width: 45rem) {
+  @container (width >= 45rem) {
     --cols: 3;
   }
 }
@@ -24,5 +24,15 @@
   & label {
     font-size: var(--type-scale-xs);
     text-transform: none;
+  }
+}
+
+.game_feed_add_buttons {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--spacer-m) var(--spacer-base);
+
+  @container (width >= 25rem) {
+    grid-template-columns: 1fr 1fr;
   }
 }

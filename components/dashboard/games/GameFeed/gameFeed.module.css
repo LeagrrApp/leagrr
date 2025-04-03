@@ -10,10 +10,11 @@
 
 .game_feed_periods {
   display: grid;
-  gap: var(--spacer-l) var(--spacer-base);
+  gap: var(--spacer-l) var(--spacer-m);
   grid-template-columns: auto auto 1fr auto;
 
   @container (min-width: 45rem) {
+    gap: var(--spacer-l) var(--spacer-base);
     grid-template-columns: auto auto 1fr 4rem 1fr auto auto;
   }
 }
@@ -63,6 +64,7 @@
 
 .game_feed_item {
   --color-feed: var(--color-away);
+  --feed-rotation: 135deg;
 
   border: 0.0625rem solid var(--color-grey);
   border-radius: var(--spacer-s);
@@ -71,12 +73,13 @@
   grid-template-columns: subgrid;
   grid-template-areas: "time team player type";
   align-items: center;
-  gap: var(--spacer-base);
+
+  /* gap: var(--spacer-base); */
   isolation: isolate;
   position: relative;
   background: linear-gradient(
-    135deg,
-    hsla(from var(--color-away, var(--color-white)) h s l / 0.25),
+    var(--feed-rotation),
+    hsla(from var(--color-feed, var(--color-white)) h s l / 0.25),
     transparent 20%
   );
   transition: box-shadow var(--transition);
@@ -93,12 +96,13 @@
 
 .game_feed_home {
   --color-feed: var(--color-home);
+  --feed-rotation: 45deg;
 
-  background: linear-gradient(
+  /* background: linear-gradient(
     225deg,
     hsla(from var(--color-home, var(--color-white)) h s l / 0.25),
     transparent 20%
-  );
+  ); */
 
   @container (min-width: 45rem) {
     --feed-rotation: 315deg;
@@ -119,7 +123,8 @@
 
 .game_feed_item_period_time {
   font-weight: bold;
-  font-size: var(--type-scale-h5);
+
+  /* font-size: var(--type-scale-h5); */
 }
 
 .game_feed_item_period {
@@ -131,6 +136,8 @@
 }
 
 .game_feed_item_player_info {
+  font-size: var(--type-scale-s);
+  line-height: 1.2;
   padding-block: var(--spacer-ml);
   grid-area: player;
 
@@ -199,8 +206,6 @@
 }
 
 .game_feed_item_delete {
-  /* grid-column: 1 / -1; */
-
   position: absolute;
   inset: 0;
   opacity: 0;
@@ -227,4 +232,8 @@
       inset: auto calc(100% + var(--spacer-base)) auto auto;
     }
   }
+}
+
+.rink_tracker_wrap {
+  padding: var(--spacer-base);
 }

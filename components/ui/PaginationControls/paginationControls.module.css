@@ -1,14 +1,8 @@
 .pagination {
   display: grid;
-  grid-template-areas:
-    "prev next"
-    "pages pages";
-  grid-template-columns: 1fr 1fr;
-
-  @container (width >= 30rem) {
-    grid-template-areas: "prev pages next";
-    grid-template-columns: 1fr auto 1fr;
-  }
+  grid-template-areas: "prev pages next";
+  grid-template-columns: 1fr auto 1fr;
+  align-items: baseline;
 }
 
 .prev,
@@ -32,9 +26,24 @@
   margin: 0;
   list-style-type: none;
   gap: var(--spacer-s);
+  justify-content: center;
 
   & a {
     text-decoration: none;
+  }
+
+  .pre_page,
+  .post_page,
+  .ellipse {
+    @container (width < 25rem) {
+      display: none;
+    }
+  }
+
+  .slash {
+    @container (width >= 25rem) {
+      display: none;
+    }
   }
 }
 

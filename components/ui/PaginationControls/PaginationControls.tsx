@@ -76,19 +76,24 @@ export default function PaginationControls({
           className={css.prev}
           href={`${baseUrl}?${queryParams}${page !== 2 ? `&page=${page - 1}` : ""}`}
           icon="chevron_left"
-          label="Previous"
+          label="Prev"
           gap="m"
+          aria-label="Previous page"
         />
       )}
       <ol className={css.pages}>
         {page !== 1 && (
-          <li>
+          <li className={css.pre_page}>
             <Link href={`${baseUrl}?${queryParams}`}>1</Link>
           </li>
         )}
-        {prePages[0] > 2 && <li aria-hidden="true">...</li>}
+        {prePages[0] > 2 && (
+          <li className={css.ellipse} aria-hidden="true">
+            ...
+          </li>
+        )}
         {prePages.map((p) => (
-          <li key={p}>
+          <li className={css.pre_page} key={p}>
             <Link href={`${baseUrl}?${queryParams}&page=${p}`}>{p}</Link>
           </li>
         ))}
@@ -96,19 +101,26 @@ export default function PaginationControls({
           <strong>{page}</strong>
         </li>
         {postPages.map((p) => (
-          <li key={p} style={{ color: "red" }}>
+          <li className={css.post_page} key={p} style={{ color: "red" }}>
             <Link href={`${baseUrl}?${queryParams}&page=${p}`}>{p}</Link>
           </li>
         ))}
         {postPages[postPages.length - 1] < maxPageNum - 1 && (
-          <li aria-hidden="true">...</li>
+          <li className={css.ellipse} aria-hidden="true">
+            ...
+          </li>
         )}
         {maxPageNum !== page && (
-          <li>
-            <Link href={`${baseUrl}?${queryParams}&page=${maxPageNum}`}>
-              {maxPageNum}
-            </Link>
-          </li>
+          <>
+            <li className={css.slash} aria-hidden="true">
+              /
+            </li>
+            <li>
+              <Link href={`${baseUrl}?${queryParams}&page=${maxPageNum}`}>
+                {maxPageNum}
+              </Link>
+            </li>
+          </>
         )}
       </ol>
       {page * perPage < total && (
@@ -119,6 +131,7 @@ export default function PaginationControls({
           label="Next"
           gap="m"
           labelFirst
+          aria-label="Next page"
         />
       )}
     </nav>

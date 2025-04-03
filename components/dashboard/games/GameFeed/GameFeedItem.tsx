@@ -89,9 +89,9 @@ export default function GameFeedItem({
   return (
     <li id={`game-feed-${type}-${item_id}`} className={applyClasses(classes)}>
       <div className={css.game_feed_item_time}>
-        <h5 className={css.game_feed_item_period_time}>
+        <p className={css.game_feed_item_period_time}>
           {formatTimePeriod(period_time)}
-        </h5>
+        </p>
         <span className={css.game_feed_item_period}>
           {addNumberOrdinals(period)}
         </span>

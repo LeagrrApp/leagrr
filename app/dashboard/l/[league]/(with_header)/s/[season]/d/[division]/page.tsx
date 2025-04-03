@@ -86,8 +86,9 @@ export default async function Page({ params }: PageProps) {
                 { l: league, s: season, d: division },
                 "teams",
               )}
+              ariaLabel="Manage Teams"
             >
-              <Icon icon="groups" label="Manage Teams" />
+              <Icon icon="groups" label="Teams" />
             </Button>
           )}
         </DashboardUnitHeader>
