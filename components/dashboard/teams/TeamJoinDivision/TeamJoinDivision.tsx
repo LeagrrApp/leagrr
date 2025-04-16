@@ -21,9 +21,7 @@ export default function TeamJoinDivision({
   team_id,
   team_slug,
 }: TeamJoinDivisionProps) {
-  const [joinCodeValue, setJoinCodeValue] = useState<string>(
-    "c778816a-2c26-44e6-af7a-fa68417803c7",
-  );
+  const [joinCodeValue, setJoinCodeValue] = useState<string>("");
 
   const [divisionToJoin, setDivisionToJoin] = useState<
     DivisionData | undefined
