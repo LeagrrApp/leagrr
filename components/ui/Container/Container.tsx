@@ -7,6 +7,7 @@ interface ContainerProps {
   flex?: boolean;
   className?: string | string[];
   grid?: boolean;
+  noPadding?: boolean;
 }
 
 interface ContainerStyles extends CSSProperties {
@@ -18,6 +19,7 @@ export default function Container({
   maxWidth,
   className,
   grid,
+  noPadding,
 }: PropsWithChildren<ContainerProps>) {
   const styles: ContainerStyles = {};
   const classes: string[] = [css.container];
@@ -25,6 +27,8 @@ export default function Container({
   if (grid) classes.push(css.container_grid);
 
   if (maxWidth) styles["--container-width"] = maxWidth;
+
+  if (noPadding) classes.push(css.container_no_padding);
 
   return (
     <div style={styles} className={applyClasses(classes, className)}>

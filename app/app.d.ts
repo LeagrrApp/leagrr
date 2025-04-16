@@ -162,8 +162,10 @@ type DivisionData = {
   status: LeagueStatus;
   season_slug: string;
   season_id: number;
+  season_name?: string;
   league_slug: string;
   league_id: number;
+  league_name?: string;
   teams?: TeamStandingsData[];
   games?: GameData[];
 };

@@ -1,4 +1,9 @@
-import { getDivisionsByTeam, getTeam, getTeamMetaData } from "@/actions/teams";
+import {
+  canEditTeam,
+  getDivisionsByTeam,
+  getTeam,
+  getTeamMetaData,
+} from "@/actions/teams";
 import Button from "@/components/ui/Button/Button";
 import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { notFound, redirect } from "next/navigation";
@@ -34,10 +39,23 @@ export default async function Page({ params }: PageProps) {
   const { data: divisions } = await getDivisionsByTeam(team_id);
 
   if (!divisions || divisions.length === 0) {
+    const { canEdit } = await canEditTeam(team);
+
+    if (canEdit) {
+      return (
+        <>
+          <h2>This team is not in any divisions yet.</h2>
+          <Button href={createDashboardUrl({ t: team }, "d/join")}>
+            Join a division
+          </Button>
+        </>
+      );
+    }
+
     return (
       <>
         <h2>This team is not in any divisions yet.</h2>
-        <Button href="#">Join a division</Button>
+        <p>A team admin will add your team to your first division soon!</p>
       </>
     );
   }

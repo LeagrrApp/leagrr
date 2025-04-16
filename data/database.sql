@@ -67,7 +67,7 @@ CREATE TABLE admin.users (
 );
 
 ALTER TABLE IF EXISTS admin.users
-    ADD CONSTRAINT user_privacy_enum CHECK (status IN ('public', 'team', 'private'));
+    ADD CONSTRAINT user_privacy_enum CHECK (privacy IN ('public', 'team', 'private'));
 
 ALTER TABLE IF EXISTS admin.users
     ADD CONSTRAINT user_status_enum CHECK (status IN ('active', 'inactive', 'suspended', 'banned'));

@@ -1,8 +1,11 @@
 .container {
   display: var(--display, block);
-  padding-inline: var(--spacer-base);
   margin-inline: auto;
   width: min(var(--container-width, var(--container)), 100%);
+
+  &:where(:not(.container_no_padding)) {
+    padding-inline: var(--spacer-base);
+  }
 
   @media only screen and (width >= 60rem) {
     padding-inline: var(--spacer-l);
