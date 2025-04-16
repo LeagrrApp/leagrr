@@ -12,6 +12,12 @@
   }
 }
 
+.division_name {
+  display: inline-flex;
+  gap: var(--spacer-m);
+  align-items: center;
+}
+
 .division_desc {
   grid-column: 1 / -1;
 

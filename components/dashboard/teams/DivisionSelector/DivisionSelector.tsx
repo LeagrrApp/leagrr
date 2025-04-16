@@ -27,6 +27,8 @@ export default function DivisionSelector({
 
   if (!currentDiv) return null;
 
+  const joinDivisionLink = createDashboardUrl({ t: team as string, d: "join" });
+
   let hrefAddition: string | undefined = undefined;
 
   if (pathname.includes("roster")) hrefAddition = "roster";
@@ -76,7 +78,7 @@ export default function DivisionSelector({
         {canEdit && (
           <>
             <p>or</p>
-            <Link href="#">Join a division</Link>
+            <Link href={joinDivisionLink}>Join a division</Link>
           </>
         )}
       </Dialog>

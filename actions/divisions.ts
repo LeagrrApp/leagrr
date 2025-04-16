@@ -385,6 +385,70 @@ export async function getDivisionUrlById(
   }
 }
 
+export async function getDivisionByJoinCode(
+  join_code: string,
+): Promise<ResultProps<DivisionData>> {
+  // check user is logged in
+  await verifySession();
+
+  try {
+    const divisionSql = `
+      SELECT
+        d.division_id,
+        d.name,
+        d.description,
+        d.slug,
+        d.gender,
+        d.tier,
+        d.join_code,
+        d.status,
+        s.slug AS season_slug,
+        s.season_id,
+        s.name AS season_name,
+        l.slug AS league_slug,
+        l.league_id,
+        l.name AS league_name
+      FROM
+        league_management.divisions AS d
+      JOIN
+        league_management.seasons AS s
+      ON
+        s.season_id = d.season_id
+        JOIN
+        league_management.leagues AS l
+      ON
+        s.league_id = l.league_id
+      WHERE
+        d.join_code = $1
+        AND
+        d.status = 'public'
+    `;
+
+    const { rows } = await db.query<DivisionData>(divisionSql, [join_code]);
+
+    if (!rows[0]) throw new Error("Division not found.");
+
+    const division = rows[0];
+
+    return {
+      message: "Division loaded.",
+      status: 200,
+      data: division,
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status: 400,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+    };
+  }
+}
+
 export async function getDivisionOptionsForGames(
   division_id: number,
 ): Promise<ResultProps<AddGameData>> {
@@ -656,6 +720,109 @@ export async function getDivisionsBySeason(
     return {
       message: "Something went wrong.",
       status: 500,
+    };
+  }
+}
+
+const DivisionToJoinAsTeamSchema = z.object({
+  team_id: z.number().min(1),
+  join_code: z.string(),
+});
+
+type DivisionToJoinAsTeamErrorProps = {
+  team_id?: string[];
+  join_code?: string[];
+};
+
+type DivisionToJoinAsTeamFormState = FormState<
+  DivisionToJoinAsTeamErrorProps,
+  {
+    team_id?: number;
+    join_code?: string;
+    division?: DivisionData;
+    inDivision?: boolean;
+  }
+>;
+
+export async function getDivisionToJoinAsTeam(
+  state: DivisionToJoinAsTeamFormState,
+  formData: FormData,
+): Promise<DivisionToJoinAsTeamFormState> {
+  const submittedData = {
+    team_id: parseInt(formData.get("team_id") as string),
+    join_code: formData.get("join_code") as string,
+  };
+
+  // Validate form fields
+  const validatedFields = DivisionToJoinAsTeamSchema.safeParse(submittedData);
+
+  // If any form fields are invalid, return early
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      data: submittedData,
+    };
+  }
+
+  // set initial response code status
+  let status = 400;
+
+  try {
+    // check if can edit team
+    const { canEdit } = await canEditTeam(submittedData.team_id);
+
+    if (!canEdit) {
+      status = 401;
+      throw new Error(
+        "Sorry, you do not have manager permissions for this team.",
+      );
+    }
+
+    // get division data
+    const { data: division } = await getDivisionByJoinCode(
+      submittedData.join_code,
+    );
+
+    if (!division) {
+      status = 404;
+      throw new Error("Sorry, division not found.");
+    }
+
+    // check if team is already in division
+    const sql = `
+      SELECT
+        *
+      FROM
+        league_management.division_teams
+      WHERE
+        division_id = $1
+        AND
+        team_id = $2
+    `;
+
+    const { rowCount } = await db.query(sql, [
+      division.division_id,
+      submittedData.team_id,
+    ]);
+
+    return {
+      data: {
+        division,
+        inDivision: rowCount && rowCount > 0 ? true : false,
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        message: err.message,
+        status,
+        data: submittedData,
+      };
+    }
+    return {
+      message: "Something went wrong.",
+      status: 500,
+      data: submittedData,
     };
   }
 }
