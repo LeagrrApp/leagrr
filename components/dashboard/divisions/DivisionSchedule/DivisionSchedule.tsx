@@ -134,7 +134,18 @@ export default function DivisionSchedule({
               //   timeZone,
               // });
 
-              const gameTime = moment(g.date_time).format("MMM D - k:mm");
+              console.log(g.date_time);
+
+              const gameTime = moment(g.date_time)
+                .utcOffset(-4)
+                .format("MMM D - k:mm");
+              console.log(moment(g.date_time).format("MMM D - k:mm"));
+              console.log(
+                moment(g.date_time).utcOffset(1).format("MMM D - k:mm"),
+              );
+              console.log(
+                moment(g.date_time).utcOffset(-1).format("MMM D - k:mm"),
+              );
 
               const rowClasses = [];
               if (g.status !== "public" && g.status !== "completed") {
