@@ -121,6 +121,7 @@ export default function DivisionSchedule({
           </thead>
           <tbody>
             {gameList.map((g) => {
+              console.log(g.date_time);
               const gameTime = g.date_time.toLocaleString("en-CA", {
                 month: "short",
                 day: "2-digit",

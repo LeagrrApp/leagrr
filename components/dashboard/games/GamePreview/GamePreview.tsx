@@ -54,6 +54,8 @@ export default async function GamePreview({
 
   const { data: gameUrl } = gameUrlResult;
 
+  console.log(date_time);
+
   const gameDate = date_time.toLocaleString("en-CA", {
     weekday: "short",
     month: "short",
