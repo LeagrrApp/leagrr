@@ -70,6 +70,8 @@ export default function DivisionSchedule({
     setGameCount(updatedGamesList.length);
   }, [showPastGames, gameListOffset, games]);
 
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   return (
     <DashboardUnit gridArea="schedule">
       <DashboardUnitHeader>
@@ -121,13 +123,13 @@ export default function DivisionSchedule({
           </thead>
           <tbody>
             {gameList.map((g) => {
-              console.log(g.date_time);
               const gameTime = g.date_time.toLocaleString("en-CA", {
                 month: "short",
                 day: "2-digit",
                 hour: "numeric",
                 minute: "2-digit",
-                // hour12: false,
+                hour12: false,
+                timeZone,
               });
 
               const rowClasses = [];
