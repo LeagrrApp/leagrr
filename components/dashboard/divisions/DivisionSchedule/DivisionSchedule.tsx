@@ -126,7 +126,7 @@ export default function DivisionSchedule({
                 day: "2-digit",
                 hour: "numeric",
                 minute: "2-digit",
-                hour12: false,
+                // hour12: false,
               });
 
               const rowClasses = [];
