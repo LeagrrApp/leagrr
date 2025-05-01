@@ -6,6 +6,7 @@ import Icon from "@/components/ui/Icon/Icon";
 import Table from "@/components/ui/Table/Table";
 import Switch from "@/components/ui/forms/Switch/Switch";
 import { applyClasses } from "@/utils/helpers/html-attributes";
+import moment from "moment";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -124,14 +125,16 @@ export default function DivisionSchedule({
           </thead>
           <tbody>
             {gameList.map((g) => {
-              const gameTime = new Date(g.date_time).toLocaleString("en-CA", {
-                month: "short",
-                day: "2-digit",
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: false,
-                timeZone,
-              });
+              // const gameTime = new Date(g.date_time).toLocaleString("en-CA", {
+              //   month: "short",
+              //   day: "2-digit",
+              //   hour: "numeric",
+              //   minute: "2-digit",
+              //   hour12: false,
+              //   timeZone,
+              // });
+
+              const gameTime = moment(g.date_time).format("MMM D - k:mm");
 
               const rowClasses = [];
               if (g.status !== "public" && g.status !== "completed") {
