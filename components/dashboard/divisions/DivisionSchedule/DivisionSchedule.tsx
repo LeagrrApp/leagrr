@@ -71,6 +71,7 @@ export default function DivisionSchedule({
   }, [showPastGames, gameListOffset, games]);
 
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  console.log(timeZone);
 
   return (
     <DashboardUnit gridArea="schedule">
