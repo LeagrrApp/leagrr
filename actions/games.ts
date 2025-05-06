@@ -110,6 +110,9 @@ export async function createGame(
         },
       };
 
+    const tz_offset = parseInt(formData.get("tz_offset") as string) * -1;
+    const date_string = `${(formData.get("date_time") as string).replace("T", " ")}:00${tz_offset < 0 ? tz_offset : `+${tz_offset}`}`;
+
     const insertSql = `
       INSERT INTO league_management.games
         (home_team_id, away_team_id, division_id, date_time, arena_id, status)
@@ -122,7 +125,7 @@ export async function createGame(
       submittedData.home_team_id,
       submittedData.away_team_id,
       submittedData.division_id,
-      submittedData.date_time,
+      date_string,
       submittedData.arena_id,
       submittedData.status,
     ]);

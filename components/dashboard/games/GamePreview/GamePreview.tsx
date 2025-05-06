@@ -60,6 +60,7 @@ export default async function GamePreview({
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZone: "America/Toronto",
   });
 
   const showStatus = status !== "public" && status !== "completed";
@@ -126,6 +127,7 @@ export default async function GamePreview({
               day: "numeric",
               hour: "numeric",
               minute: "2-digit",
+              timeZone: "America/Toronto",
             })}{" "}
             at {venue} arena {arena}.
           </span>
