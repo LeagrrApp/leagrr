@@ -16,15 +16,21 @@
   gap: var(--spacer-l);
   padding-block-end: var(--spacer-l);
 
+  &:has(> header) {
+    grid-template-rows: auto 1fr;
+    gap: var(--spacer-xl);
+    padding-block-end: var(--spacer-xl);
+  }
+
   @media only screen and (width >= 60rem) {
     position: relative;
     box-shadow: -0.25rem 0 0.5rem
       hsla(from var(--color-grey-darker) h s calc(l - 40) / 0.5);
 
-    &:has(> header) {
+    /* &:has(> header) {
       grid-template-rows: auto 1fr;
       gap: var(--spacer-xl);
       padding-block-end: var(--spacer-xl);
-    }
+    } */
   }
 }

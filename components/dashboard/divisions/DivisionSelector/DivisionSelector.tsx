@@ -83,7 +83,7 @@ export default function DivisionSelector({
         {canEdit && (
           <>
             <p>or</p>
-            <Link href={createDashboardUrl({ l: league }, "s")}>
+            <Link href={createDashboardUrl({ l: league, s: season }, "d")}>
               Add New Division
             </Link>
           </>

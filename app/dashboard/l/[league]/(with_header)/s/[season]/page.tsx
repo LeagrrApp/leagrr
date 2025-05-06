@@ -41,7 +41,7 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <Container>
-      <h2 className="push">
+      <h2 className="push" style={{ width: "min(45rem, 100%)" }}>
         It looks like this season does not have any divisions yet.
       </h2>
       {canEdit && (

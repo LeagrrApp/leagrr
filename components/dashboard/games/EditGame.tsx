@@ -48,6 +48,8 @@ export default function EditGame({
     });
   });
 
+  const tz_offset = new Date(Date.now()).getTimezoneOffset() / 60;
+
   return (
     <form action={action}>
       <Grid cols={{ xs: 1, m: 2 }} gap="base">
@@ -122,6 +124,7 @@ export default function EditGame({
         </Col>
         <input type="hidden" name="game_id" value={game_id} />
         <input type="hidden" name="league_id" value={league_id} />
+        <input type="hidden" name="tz_offset" value={tz_offset} />
         {state?.message && state.status !== 200 && (
           <Col fullSpan>
             <Alert alert={state.message} type="danger" />

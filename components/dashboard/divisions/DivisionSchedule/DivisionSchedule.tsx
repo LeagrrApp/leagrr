@@ -1,13 +1,15 @@
 "use client";
 
+import Button from "@/components/ui/Button/Button";
 import ButtonInvis from "@/components/ui/ButtonInvis/ButtonInvis";
 import Card from "@/components/ui/Card/Card";
 import Icon from "@/components/ui/Icon/Icon";
 import Table from "@/components/ui/Table/Table";
 import Switch from "@/components/ui/forms/Switch/Switch";
+import { createDashboardUrl } from "@/utils/helpers/formatting";
 import { applyClasses } from "@/utils/helpers/html-attributes";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import DashboardUnit from "../../DashboardUnit/DashboardUnit";
 import DashboardUnitHeader from "../../DashboardUnitHeader/DashboardUnitHeader";
@@ -23,6 +25,7 @@ export default function DivisionSchedule({
   canEdit,
 }: DivisionGamesProps) {
   const pathname = usePathname();
+  const { league, season, division } = useParams();
 
   const [showPastGames, setShowPastGames] = useState(false);
   const [gameList, setGameList] = useState<GameData[]>(() => {
@@ -99,114 +102,134 @@ export default function DivisionSchedule({
         />
       </DashboardUnitHeader>
       <Card className="push-m" padding="ml">
-        <Table className={css.division_schedule}>
-          <thead>
-            <tr>
-              <th className={css.division_schedule_narrow} scope="col">
-                Date
-              </th>
-              <th
-                className={css.division_schedule_wide}
-                scope="col"
-                title="Away Team"
-              >
-                <span aria-hidden="true">Away</span>
-              </th>
-              <th
-                className={css.division_schedule_wide}
-                scope="col"
-                title="Home Team"
-              >
-                <span aria-hidden="true">Home</span>
-              </th>
-              <th className={css.division_schedule_narrow}>Location</th>
-            </tr>
-          </thead>
-          <tbody>
-            {gameList.map((g) => {
-              const gameTime = new Date(g.date_time).toLocaleString("en-CA", {
-                month: "short",
-                day: "2-digit",
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: false,
-              });
+        {gameList && gameList.length > 0 ? (
+          <Table className={css.division_schedule}>
+            <thead>
+              <tr>
+                <th className={css.division_schedule_narrow} scope="col">
+                  Date
+                </th>
+                <th
+                  className={css.division_schedule_wide}
+                  scope="col"
+                  title="Away Team"
+                >
+                  <span aria-hidden="true">Away</span>
+                </th>
+                <th
+                  className={css.division_schedule_wide}
+                  scope="col"
+                  title="Home Team"
+                >
+                  <span aria-hidden="true">Home</span>
+                </th>
+                <th className={css.division_schedule_narrow}>Location</th>
+              </tr>
+            </thead>
+            <tbody>
+              {gameList.map((g) => {
+                const gameTime = new Date(g.date_time).toLocaleString("en-CA", {
+                  month: "short",
+                  day: "2-digit",
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: false,
+                });
 
-              // console.log(g.date_time);
+                // console.log(g.date_time);
 
-              // const gameTime = moment(g.date_time)
-              //   .utcOffset(-4)
-              //   .format("MMM D - k:mm");
-              // console.log(moment(g.date_time).format("MMM D - k:mm"));
-              // console.log(
-              //   moment(g.date_time).utcOffset(1).format("MMM D - k:mm"),
-              // );
-              // console.log(
-              //   moment(g.date_time).utcOffset(-1).format("MMM D - k:mm"),
-              // );
+                // const gameTime = moment(g.date_time)
+                //   .utcOffset(-4)
+                //   .format("MMM D - k:mm");
+                // console.log(moment(g.date_time).format("MMM D - k:mm"));
+                // console.log(
+                //   moment(g.date_time).utcOffset(1).format("MMM D - k:mm"),
+                // );
+                // console.log(
+                //   moment(g.date_time).utcOffset(-1).format("MMM D - k:mm"),
+                // );
 
-              const rowClasses = [];
-              if (g.status !== "public" && g.status !== "completed") {
-                rowClasses.push(
-                  css.game_list_flag,
-                  css[`game_list_flag_${g.status}`],
+                const rowClasses = [];
+                if (g.status !== "public" && g.status !== "completed") {
+                  rowClasses.push(
+                    css.game_list_flag,
+                    css[`game_list_flag_${g.status}`],
+                  );
+                }
+
+                return (
+                  <tr key={g.game_id} className={applyClasses(rowClasses)}>
+                    <td>
+                      {gameTime}
+                      <Link href={`${pathname}/g/${g.game_id}`}>
+                        <span className="srt">
+                          View game between {g.away_team} and
+                          {g.home_team} taking place {gameTime}
+                        </span>
+                      </Link>
+                    </td>
+                    <td
+                      className={
+                        g.away_team_score > g.home_team_score &&
+                        g.status === "completed"
+                          ? css.division_winner
+                          : undefined
+                      }
+                    >
+                      {g.away_team}{" "}
+                      {g.status === "completed" && (
+                        <strong>{g.away_team_score}</strong>
+                      )}
+                    </td>
+                    <td
+                      className={
+                        g.home_team_score > g.away_team_score &&
+                        g.status === "completed"
+                          ? css.division_winner
+                          : undefined
+                      }
+                    >
+                      {g.status === "completed" && (
+                        <strong>{g.home_team_score}</strong>
+                      )}{" "}
+                      {g.home_team}
+                    </td>
+                    <td title={`${g.arena} - ${g.venue}`}>
+                      {g.arena && g.venue ? (
+                        <>
+                          {g.arena} - {g.venue}
+                        </>
+                      ) : (
+                        <>
+                          <span aria-hidden="true">TBD</span>
+                          <span className="srt">Location to be determined</span>
+                        </>
+                      )}
+                    </td>
+                  </tr>
                 );
-              }
-
-              return (
-                <tr key={g.game_id} className={applyClasses(rowClasses)}>
-                  <td>
-                    {gameTime}
-                    <Link href={`${pathname}/g/${g.game_id}`}>
-                      <span className="srt">
-                        View game between {g.away_team} and
-                        {g.home_team} taking place {gameTime}
-                      </span>
-                    </Link>
-                  </td>
-                  <td
-                    className={
-                      g.away_team_score > g.home_team_score &&
-                      g.status === "completed"
-                        ? css.division_winner
-                        : undefined
-                    }
-                  >
-                    {g.away_team}{" "}
-                    {g.status === "completed" && (
-                      <strong>{g.away_team_score}</strong>
-                    )}
-                  </td>
-                  <td
-                    className={
-                      g.home_team_score > g.away_team_score &&
-                      g.status === "completed"
-                        ? css.division_winner
-                        : undefined
-                    }
-                  >
-                    {g.status === "completed" && (
-                      <strong>{g.home_team_score}</strong>
-                    )}{" "}
-                    {g.home_team}
-                  </td>
-                  <td title={`${g.arena} - ${g.venue}`}>
-                    {g.arena && g.venue ? (
-                      <>
-                        {g.arena} - {g.venue}
-                      </>
-                    ) : (
-                      <>
-                        <span aria-hidden="true">TBD</span>
-                        <span className="srt">Location to be determined</span>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </Table>
+              })}
+            </tbody>
+          </Table>
+        ) : (
+          <>
+            <p className="push">There are no upcoming games schedule!</p>
+            {canEdit && (
+              <Button
+                href={createDashboardUrl(
+                  {
+                    l: league as string,
+                    s: season as string,
+                    d: division as string,
+                  },
+                  "g",
+                )}
+              >
+                Add games
+              </Button>
+            )}
+          </>
+        )}
       </Card>
       {gameCount > gamesPerPage && (
         <div className={css.division_schedule_controls}>

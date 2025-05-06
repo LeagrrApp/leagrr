@@ -57,7 +57,9 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <Container>
-      <h2>It looks like this league doesn&apos;t have any seasons yet...</h2>
+      <h2 className="push" style={{ width: "min(45rem, 100%)" }}>
+        It looks like this league doesn&apos;t have any seasons yet...
+      </h2>
       <Button href={`./${league}/s/`}>Add Season</Button>
     </Container>
   );

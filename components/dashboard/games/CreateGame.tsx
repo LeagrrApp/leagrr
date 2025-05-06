@@ -46,9 +46,7 @@ export default function CreateGame({
     });
   });
 
-  const now = new Date(Date.now());
-
-  const tz_offset = now.getTimezoneOffset() / 60;
+  const tz_offset = new Date(Date.now()).getTimezoneOffset() / 60;
 
   return (
     <form action={action}>

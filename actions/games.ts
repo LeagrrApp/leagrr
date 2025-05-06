@@ -1330,6 +1330,9 @@ export async function editGame(
         data: returnableStateData,
       };
 
+    const tz_offset = parseInt(formData.get("tz_offset") as string) * -1;
+    const date_string = `${(formData.get("date_time") as string).replace("T", " ")}:00${tz_offset < 0 ? tz_offset : `+${tz_offset}`}`;
+
     const updateSql = `
       UPDATE
         league_management.games
@@ -1347,7 +1350,7 @@ export async function editGame(
       submittedData.home_team_id,
       submittedData.away_team_id,
       submittedData.arena_id,
-      submittedData.date_time,
+      date_string,
       submittedData.status,
       submittedData.game_id,
     ]);
