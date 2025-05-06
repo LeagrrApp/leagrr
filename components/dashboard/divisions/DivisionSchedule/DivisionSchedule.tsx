@@ -6,7 +6,6 @@ import Icon from "@/components/ui/Icon/Icon";
 import Table from "@/components/ui/Table/Table";
 import Switch from "@/components/ui/forms/Switch/Switch";
 import { applyClasses } from "@/utils/helpers/html-attributes";
-import moment from "moment";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -71,8 +70,8 @@ export default function DivisionSchedule({
     setGameCount(updatedGamesList.length);
   }, [showPastGames, gameListOffset, games]);
 
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  console.log(timeZone);
+  // const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  // console.log(timeZone);
 
   return (
     <DashboardUnit gridArea="schedule">
@@ -125,27 +124,26 @@ export default function DivisionSchedule({
           </thead>
           <tbody>
             {gameList.map((g) => {
-              // const gameTime = new Date(g.date_time).toLocaleString("en-CA", {
-              //   month: "short",
-              //   day: "2-digit",
-              //   hour: "numeric",
-              //   minute: "2-digit",
-              //   hour12: false,
-              //   timeZone,
-              // });
+              const gameTime = new Date(g.date_time).toLocaleString("en-CA", {
+                month: "short",
+                day: "2-digit",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: false,
+              });
 
-              console.log(g.date_time);
+              // console.log(g.date_time);
 
-              const gameTime = moment(g.date_time)
-                .utcOffset(-4)
-                .format("MMM D - k:mm");
-              console.log(moment(g.date_time).format("MMM D - k:mm"));
-              console.log(
-                moment(g.date_time).utcOffset(1).format("MMM D - k:mm"),
-              );
-              console.log(
-                moment(g.date_time).utcOffset(-1).format("MMM D - k:mm"),
-              );
+              // const gameTime = moment(g.date_time)
+              //   .utcOffset(-4)
+              //   .format("MMM D - k:mm");
+              // console.log(moment(g.date_time).format("MMM D - k:mm"));
+              // console.log(
+              //   moment(g.date_time).utcOffset(1).format("MMM D - k:mm"),
+              // );
+              // console.log(
+              //   moment(g.date_time).utcOffset(-1).format("MMM D - k:mm"),
+              // );
 
               const rowClasses = [];
               if (g.status !== "public" && g.status !== "completed") {
