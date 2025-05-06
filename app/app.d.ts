@@ -22,7 +22,9 @@ type UserSessionData = Required<
     UserData,
     "user_id" | "user_role" | "username" | "first_name" | "last_name" | "img"
   >
->;
+> & {
+  time_zone: string;
+};
 
 type UserRosterData = {
   division_roster_id: number;

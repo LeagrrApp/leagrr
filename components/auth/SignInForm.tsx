@@ -12,6 +12,9 @@ import { useActionState } from "react";
 
 export default function SignInForm() {
   const [state, action, pending] = useActionState(signIn, undefined);
+
+  const time_zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   return (
     <form action={action}>
       <Grid gap="base">
@@ -21,6 +24,7 @@ export default function SignInForm() {
         </Grid>
         <Input name="identifier" label="Username or Email" required />
         <Input name="password" label="Password" type="password" required />
+        <input type="hidden" name="time_zone" value={time_zone} />
         {state?.message && state?.status !== 200 && (
           <Col fullSpan>
             <Alert alert={state.message} type="danger" />

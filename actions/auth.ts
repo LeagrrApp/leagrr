@@ -44,6 +44,7 @@ export async function signUp(state: UserFormState, formData: FormData) {
     first_name: formData.get("first_name") as string,
     last_name: formData.get("last_name") as string,
     password: formData.get("password") as string,
+    time_zone: formData.get("time_zone") as string,
   };
 
   // initialize errors
@@ -113,6 +114,7 @@ export async function signUp(state: UserFormState, formData: FormData) {
       first_name,
       last_name,
       img,
+      time_zone: submittedData.time_zone,
     });
 
     success = true;
@@ -153,6 +155,7 @@ export async function signIn(
 ): Promise<SignInFormState> {
   const identifier = (formData.get("identifier") as string).toLowerCase();
   const password = formData.get("password") as string;
+  const time_zone = formData.get("time_zone") as string;
 
   if (!identifier || !password) return;
 
@@ -218,6 +221,7 @@ export async function signIn(
       first_name,
       last_name,
       img,
+      time_zone,
     });
 
     success = true;

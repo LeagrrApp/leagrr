@@ -4,6 +4,7 @@ import Badge from "@/components/ui/Badge/Badge";
 import Card from "@/components/ui/Card/Card";
 import Indicator from "@/components/ui/Indicator/Indicator";
 import InitialsCircle from "@/components/ui/InitialsCircle/InitialsCircle";
+import { verifySession } from "@/lib/session";
 import {
   applyAppropriateTextColor,
   createDashboardUrl,
@@ -50,6 +51,8 @@ export default async function GamePreview({
     status,
   } = game;
 
+  const { time_zone } = await verifySession();
+
   const gameUrlResult = await getGameUrl(game_id);
 
   const { data: gameUrl } = gameUrlResult;
@@ -60,8 +63,10 @@ export default async function GamePreview({
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZone: "America/Toronto",
+    timeZone: time_zone,
   });
+
+  console.log(time_zone);
 
   const showStatus = status !== "public" && status !== "completed";
   let statusColor: ColorOptions = "grey";

@@ -13,6 +13,8 @@ import Alert from "../ui/Alert/Alert";
 export default function SignUpForm() {
   const [state, action, pending] = useActionState(signUp, undefined);
 
+  const time_zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   return (
     <form action={action}>
       <Grid gap="base" cols={{ xs: 1, m: 2 }}>
@@ -61,6 +63,8 @@ export default function SignUpForm() {
           errors={{ errs: state?.errors?.password_confirm, type: "danger" }}
           required
         />
+        <input type="hidden" name="time_zone" value={time_zone} />
+
         {state?.message && state?.status !== 200 && (
           <Col fullSpan>
             <Alert alert={state.message} type="danger" />
