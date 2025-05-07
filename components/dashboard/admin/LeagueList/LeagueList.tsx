@@ -101,7 +101,6 @@ export default function LeagueList() {
   }, [leagueList]);
 
   useEffect(() => {
-    console.log(editState);
     if (!leagueToEdit) return;
     if (editState && editState.status === 200) {
       const { league_id, status } = editState.data;

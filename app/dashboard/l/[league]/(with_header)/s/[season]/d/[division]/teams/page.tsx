@@ -43,8 +43,6 @@ export default async function Page({ params }: PageProps) {
     { excludeDivision: divisionData.division_id },
   );
 
-  console.log(divisionTeams);
-
   return (
     <div className={css.layout}>
       <div className={css.division_teams}>

@@ -42,7 +42,6 @@ export default function TeamJoinDivision({
   });
 
   useEffect(() => {
-    console.log(findState);
     if (findState?.data.division) {
       setDivisionToJoin(findState?.data.division);
     } else {

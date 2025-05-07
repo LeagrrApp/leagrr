@@ -66,8 +66,6 @@ export default async function GamePreview({
     timeZone: time_zone,
   });
 
-  console.log(time_zone);
-
   const showStatus = status !== "public" && status !== "completed";
   let statusColor: ColorOptions = "grey";
 

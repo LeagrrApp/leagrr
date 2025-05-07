@@ -113,6 +113,9 @@ export default function ActiveRoster({
   return (
     <>
       <h3 className="push">Active Roster</h3>
+      {coaches.length === 0 && players.length === 0 && spares.length === 0 && (
+        <p>There are no active members of this roster.</p>
+      )}
       {coaches && coaches.length >= 1 && (
         <>
           <h4 className="push-m">Coaches</h4>

@@ -216,11 +216,11 @@ export async function joinTeam(
         t: teamRows[0].slug,
         d: submittedData.division_id,
       });
+    } else {
+      // if user was just joining a team, not a division roster,
+      // redirect to team page
+      redirectLink = createDashboardUrl({ t: teamRows[0].slug });
     }
-
-    // if user was just joining a team, not a division roster,
-    // redirect to team page
-    redirectLink = createDashboardUrl({ t: teamRows[0].slug });
   } catch (err) {
     if (err instanceof Error) {
       return {

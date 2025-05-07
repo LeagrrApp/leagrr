@@ -87,7 +87,7 @@ export default function JoinDivision({
               </Col>
               <Input
                 name="name"
-                label="Team"
+                label="Division"
                 defaultValue={name}
                 disabled={true}
               />

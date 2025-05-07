@@ -73,9 +73,6 @@ export default function DivisionSchedule({
     setGameCount(updatedGamesList.length);
   }, [showPastGames, gameListOffset, games]);
 
-  // const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  // console.log(timeZone);
-
   return (
     <DashboardUnit gridArea="schedule">
       <DashboardUnitHeader>
@@ -135,19 +132,6 @@ export default function DivisionSchedule({
                   minute: "2-digit",
                   hour12: false,
                 });
-
-                // console.log(g.date_time);
-
-                // const gameTime = moment(g.date_time)
-                //   .utcOffset(-4)
-                //   .format("MMM D - k:mm");
-                // console.log(moment(g.date_time).format("MMM D - k:mm"));
-                // console.log(
-                //   moment(g.date_time).utcOffset(1).format("MMM D - k:mm"),
-                // );
-                // console.log(
-                //   moment(g.date_time).utcOffset(-1).format("MMM D - k:mm"),
-                // );
 
                 const rowClasses = [];
                 if (g.status !== "public" && g.status !== "completed") {
