@@ -4,6 +4,7 @@ import { addToGameFeed } from "@/actions/games";
 import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
 import Checkbox from "@/components/ui/forms/Checkbox";
+import IconRadios from "@/components/ui/forms/IconRadios/IconRadios";
 import Input from "@/components/ui/forms/Input";
 import NumberSelect from "@/components/ui/forms/NumberSelect";
 import Select from "@/components/ui/forms/Select";
@@ -158,14 +159,29 @@ export default function GameFeedAdd({
         <Col fullSpan>
           <h4>Add to Game Feed</h4>
         </Col>
-        <Select
+        {/* <Select
           name="type"
           label="Type"
           choices={["shot", "goal", "penalty"]}
           onChange={(e) => setType(e.target.value)}
           selected={type}
+        /> */}
+        <IconRadios
+          label="Type"
+          name="type"
+          value={type}
+          updateValue={setType}
+          choices={[
+            {
+              value: "shot",
+              icon: "target",
+            },
+            { value: "goal", icon: "e911_emergency" },
+            { value: "penalty", icon: "gavel" },
+          ]}
         />
         <Select
+          className={css.game_feed_input}
           name="team_id"
           label="Team"
           choices={team_choices}
@@ -173,6 +189,7 @@ export default function GameFeedAdd({
           selected={team}
         />
         <Select
+          className={css.game_feed_input}
           name="user_id"
           label="Player"
           choices={team === game.home_team_id ? home_players : away_players}
@@ -182,6 +199,7 @@ export default function GameFeedAdd({
         <fieldset className={css.game_feed_add_game_time}>
           <legend className="label">Game Time</legend>
           <NumberSelect
+            className={css.game_feed_input}
             name="period"
             label="Period"
             min={1}
@@ -191,6 +209,7 @@ export default function GameFeedAdd({
             required
           />
           <NumberSelect
+            className={css.game_feed_input}
             name="minutes"
             label="Minutes"
             min={0}
@@ -200,6 +219,7 @@ export default function GameFeedAdd({
             required
           />
           <NumberSelect
+            className={css.game_feed_input}
             name="seconds"
             label="Seconds"
             min={0}
@@ -228,7 +248,13 @@ export default function GameFeedAdd({
               <label htmlFor="assists" className="label push-s">
                 Assists
               </label>
-              <select name="assists" id="assists" multiple title="Assists">
+              <select
+                className={css.game_feed_input}
+                name="assists"
+                id="assists"
+                multiple
+                title="Assists"
+              >
                 {canAssist.map((p) => (
                   <option key={p.value} value={p.value}>
                     {p.label}
@@ -241,13 +267,19 @@ export default function GameFeedAdd({
         {type === "penalty" && (
           <>
             <Input
+              className={css.game_feed_input}
               name="penalty_minutes"
               label="Length"
               type="number"
               defaultValue="2"
               required
             />
-            <Input name="infraction" label="Infraction" required />
+            <Input
+              className={css.game_feed_input}
+              name="infraction"
+              label="Infraction"
+              required
+            />
           </>
         )}
         <input type="hidden" name="game_id" value={game.game_id} />

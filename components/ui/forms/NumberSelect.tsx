@@ -1,5 +1,6 @@
 "use client";
 
+import { applyClasses } from "@/utils/html-attributes";
 import { ChangeEvent, useState } from "react";
 import Alert from "../Alert/Alert";
 import forms from "./forms.module.css";
@@ -36,6 +37,7 @@ export default function NumberSelect({
   errors,
   disabled,
   optional,
+  className,
 }: NumberSelectProps) {
   const [selectValue, setSelectValue] = useState<string | number | undefined>(
     selected || "",
@@ -54,7 +56,7 @@ export default function NumberSelect({
   }
 
   return (
-    <div className={forms.unit}>
+    <div className={applyClasses(forms.unit, className)}>
       {!labelAfter && (
         <Label
           label={label}

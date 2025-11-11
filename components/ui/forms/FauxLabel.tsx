@@ -1,3 +1,4 @@
+import { applyClasses } from "@/utils/html-attributes";
 import css from "./forms.module.css";
 
 interface LabelProps {
@@ -5,11 +6,17 @@ interface LabelProps {
   hideLabel?: boolean;
   required?: boolean;
   optional?: boolean;
+  className?: string;
 }
 
-export default function FauxLabel({ label, required, optional }: LabelProps) {
+export default function FauxLabel({
+  label,
+  required,
+  optional,
+  className,
+}: LabelProps) {
   return (
-    <p className={css.label}>
+    <p className={applyClasses(css.label, className)}>
       {label}
       {required && (
         <span className={css.label_required} aria-hidden="true">
