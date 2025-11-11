@@ -5,8 +5,8 @@ import Grid from "@/components/ui/layout/Grid";
 import {
   addNumberOrdinals,
   convertGameFeedItemsToRinkItems,
-} from "@/utils/helpers/formatting";
-import { applyClasses } from "@/utils/helpers/html-attributes";
+} from "@/utils/formatting";
+import { applyClasses } from "@/utils/html-attributes";
 import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
 import GameFeedAdd from "../GameFeedAdd/GameFeedAdd";
 import RinkTracker from "../RinkTracker/RinkTracker";

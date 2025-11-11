@@ -1,6 +1,6 @@
 import Card from "@/components/ui/Card/Card";
 import Table from "@/components/ui/Table/Table";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import Link from "next/link";
 
 type DivisionStandingsProps = {

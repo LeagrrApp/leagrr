@@ -16,10 +16,7 @@ import PaginationControls from "@/components/ui/PaginationControls/PaginationCon
 import Table from "@/components/ui/Table/Table";
 import { Truncate } from "@/components/ui/Truncate/Truncate";
 import { team_status_options } from "@/lib/definitions";
-import {
-  applyStatusColor,
-  createDashboardUrl,
-} from "@/utils/helpers/formatting";
+import { applyStatusColor, createDashboardUrl } from "@/utils/formatting";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";

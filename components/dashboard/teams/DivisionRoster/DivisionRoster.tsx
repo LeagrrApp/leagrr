@@ -1,14 +1,14 @@
 import Card from "@/components/ui/Card/Card";
-import css from "./divisionRoster.module.css";
+import Indicator from "@/components/ui/Indicator/Indicator";
 import Table from "@/components/ui/Table/Table";
 import { verifySession } from "@/lib/session";
-import Link from "next/link";
 import {
   createDashboardUrl,
   makeAcronym,
   nameDisplay,
-} from "@/utils/helpers/formatting";
-import Indicator from "@/components/ui/Indicator/Indicator";
+} from "@/utils/formatting";
+import Link from "next/link";
+import css from "./divisionRoster.module.css";
 
 interface DivisionRosterProps {
   divisionRoster: PlayerStats[];

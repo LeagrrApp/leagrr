@@ -1,4 +1,4 @@
-import { applyClasses, paddingString } from "@/utils/helpers/html-attributes";
+import { applyClasses, paddingString } from "@/utils/html-attributes";
 import { Url } from "next/dist/shared/lib/router/router";
 import Link from "next/link";
 import { CSSProperties, MouseEventHandler, PropsWithChildren } from "react";

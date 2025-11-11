@@ -2,7 +2,7 @@ import { getLeagueAdmins } from "@/actions/leagueAdmins";
 import { canEditLeague, getLeague, getLeagueMetaData } from "@/actions/leagues";
 import LeagueAdmins from "@/components/dashboard/leagues/LeagueAdmins/LeagueAdmins";
 import Icon from "@/components/ui/Icon/Icon";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound, redirect } from "next/navigation";
 
 type PageProps = {

@@ -10,7 +10,7 @@ import Select from "@/components/ui/forms/Select";
 import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
-import { applyColor } from "@/utils/helpers/formatting";
+import { applyColor } from "@/utils/formatting";
 import { CSSProperties, useActionState } from "react";
 import css from "./joinTeam.module.css";
 

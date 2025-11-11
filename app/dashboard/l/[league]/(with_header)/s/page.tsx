@@ -7,7 +7,7 @@ import CreateSeason from "@/components/dashboard/seasons/CreateSeason";
 import Card from "@/components/ui/Card/Card";
 import Container from "@/components/ui/Container/Container";
 import { verifySession } from "@/lib/session";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound } from "next/navigation";
 
 type PageProps = {

@@ -1,6 +1,6 @@
 import SignUpForm from "@/components/auth/SignUpForm";
 import Container from "@/components/ui/Container/Container";
-import { createMetaTitle } from "@/utils/helpers/formatting";
+import { createMetaTitle } from "@/utils/formatting";
 import page from "./page.module.css";
 
 export const metadata = {
@@ -10,9 +10,12 @@ export const metadata = {
 export default function Page() {
   return (
     <main className={page.sign_up}>
-      <Container maxWidth="35rem">
-        <SignUpForm />
-      </Container>
+      <div className={page.sign_up_wrap}>
+        <Container maxWidth="35rem">
+          <SignUpForm />
+        </Container>
+      </div>
+      <div className={page.sign_up_image}></div>
     </main>
   );
 }

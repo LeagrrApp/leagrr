@@ -1,5 +1,5 @@
 import LeagueList from "@/components/dashboard/admin/LeagueList/LeagueList";
-import { createMetaTitle } from "@/utils/helpers/formatting";
+import { createMetaTitle } from "@/utils/formatting";
 
 export async function generateMetadata() {
   return {

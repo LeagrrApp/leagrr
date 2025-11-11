@@ -1,6 +1,6 @@
 import Container from "@/components/ui/Container/Container";
-import { applyColor } from "@/utils/helpers/formatting";
-import { applyClasses } from "@/utils/helpers/html-attributes";
+import { applyColor } from "@/utils/formatting";
+import { applyClasses } from "@/utils/html-attributes";
 import { CSSProperties, PropsWithChildren } from "react";
 import css from "./dHeader.module.css";
 

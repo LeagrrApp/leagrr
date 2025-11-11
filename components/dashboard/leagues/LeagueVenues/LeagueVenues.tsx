@@ -9,7 +9,7 @@ import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import Table from "@/components/ui/Table/Table";
 import { Truncate } from "@/components/ui/Truncate/Truncate";
-import { addressAsGoogleMapsLink } from "@/utils/helpers/formatting";
+import { addressAsGoogleMapsLink } from "@/utils/formatting";
 import { usePathname } from "next/navigation";
 import { useActionState, useRef, useState } from "react";
 import LeagueVenueAdd from "./LeagueVenueAdd/LeagueVenueAdd";

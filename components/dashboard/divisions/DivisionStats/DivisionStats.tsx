@@ -1,10 +1,10 @@
+import Card from "@/components/ui/Card/Card";
 import Icon from "@/components/ui/Icon/Icon";
+import ProfileImg from "@/components/ui/ProfileImg/ProfileImg";
+import { capitalize } from "@/utils/formatting";
 import DashboardUnit from "../../DashboardUnit/DashboardUnit";
 import DashboardUnitHeader from "../../DashboardUnitHeader/DashboardUnitHeader";
 import css from "./divisionStats.module.css";
-import Card from "@/components/ui/Card/Card";
-import { capitalize } from "@/utils/helpers/formatting";
-import ProfileImg from "@/components/ui/ProfileImg/ProfileImg";
 
 type DivisionStatsProps = {
   statLeaders: {

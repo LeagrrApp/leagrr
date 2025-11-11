@@ -2,7 +2,7 @@ import { canEditLeague, getLeague, getLeagueMetaData } from "@/actions/leagues";
 import { getVenuesByLeagueId } from "@/actions/venues";
 import LeagueVenues from "@/components/dashboard/leagues/LeagueVenues/LeagueVenues";
 import Icon from "@/components/ui/Icon/Icon";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound, redirect } from "next/navigation";
 
 type PageProps = {

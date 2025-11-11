@@ -1,7 +1,7 @@
 "use client";
 import IconSport from "@/components/ui/Icon/IconSport";
 import { sports_options } from "@/lib/definitions";
-import { capitalize } from "@/utils/helpers/formatting";
+import { capitalize } from "@/utils/formatting";
 import { useEffect, useState } from "react";
 import css from "./sportPicker.module.css";
 

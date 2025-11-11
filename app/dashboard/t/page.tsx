@@ -3,7 +3,7 @@ import CreateTeam from "@/components/dashboard/teams/CreateTeam";
 import JoinTeamByCode from "@/components/dashboard/teams/JoinTeamByCode/JoinTeamByCode";
 import Container from "@/components/ui/Container/Container";
 import { verifySession } from "@/lib/session";
-import { createMetaTitle } from "@/utils/helpers/formatting";
+import { createMetaTitle } from "@/utils/formatting";
 import { Metadata } from "next";
 import css from "./page.module.css";
 

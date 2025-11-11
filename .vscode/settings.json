@@ -1,4 +1,9 @@
 {
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "tsconfig.json": "tsconfig*, env.d.ts",
+    "package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, .eslint*, eslint*, .oxlint*, oxlint*, .prettier*, prettier*, .editorconfig, .stylelint*, next*"
+  },
   "workbench.colorCustomizations": {
     "titleBar.activeBackground": "#056cf2",
     "titleBar.activeForeground": "#fff",

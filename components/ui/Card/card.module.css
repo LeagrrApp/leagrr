@@ -4,6 +4,7 @@
   box-shadow: var(--shadow);
   padding: var(--card-padding, 0);
   overflow: hidden;
+  min-height: var(--card-min-height, auto);
 }
 
 .as_container {

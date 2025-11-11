@@ -2,7 +2,7 @@
 
 import { db } from "@/db/pg";
 import { verifySession } from "@/lib/session";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { canEditTeam, verifyTeamRoleLevel } from "./teams";

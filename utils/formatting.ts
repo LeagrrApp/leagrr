@@ -234,6 +234,68 @@ export function formatDateForInput(date: string | Date): string {
   return formattedDate;
 }
 
+export function formatDateTimeSelectAsDate(opts: {
+  date: string;
+  hour: string;
+  minute: string;
+  am_pm: "AM" | "PM";
+  tz_offset?: number;
+  as_string?: boolean;
+}): Date | string {
+  const { date, hour, minute, am_pm, as_string, tz_offset } = opts;
+
+  let transformed_hour = hour;
+
+  if (hour === "12" && am_pm === "AM") {
+    transformed_hour = "00";
+  } else if (hour === "12" && am_pm === "PM") {
+    transformed_hour = "12";
+  } else if (am_pm === "PM") {
+    transformed_hour = (parseInt(hour) + 12).toString();
+  }
+
+  let date_string = `${date}T${transformed_hour}:${minute}:00`;
+
+  if (as_string) {
+    if (tz_offset) {
+      date_string = `${date_string.replace("T", " ")}${tz_offset < 0 ? tz_offset : `+${tz_offset}`}`;
+    }
+
+    return date_string;
+  }
+  return new Date(date_string);
+}
+
+export function getSelectDateValuesFromDate(date_time: string | Date): {
+  date: string;
+  hour: string;
+  minute: string;
+  am_pm: "AM" | "PM";
+} {
+  const working_date_string = formatDateForInput(date_time).split(" ");
+  const date = working_date_string[0];
+  const time = working_date_string[1].split(":");
+  const hour_as_num = parseInt(time[0]);
+  let hour = hour_as_num.toString();
+
+  if (hour_as_num === 0) {
+    hour = "12";
+  } else if (hour_as_num > 12) {
+    hour = (hour_as_num - 12).toString();
+  }
+
+  const minute = time[1];
+
+  console.log(working_date_string);
+
+  return {
+    date,
+    hour,
+    minute,
+    am_pm: hour_as_num >= 12 ? "PM" : "AM",
+  };
+}
+
 export function makeAcronym(
   string: string,
   settings?: {
@@ -309,4 +371,31 @@ export function nameDisplay(
       }
       return `${first_name} ${last_name}`;
   }
+}
+
+export function numberStringArray(
+  min: number,
+  max: number,
+  opts?: { leading_zeros?: boolean; step?: number },
+) {
+  const { leading_zeros, step } = opts || {};
+
+  const max_num_digits = max.toString().length;
+
+  let num_array = Array.from(
+    { length: max - min + 1 },
+    (_, index) => index + min,
+  ).map((num) => {
+    let n = num.toString();
+    if (leading_zeros && n.length < max_num_digits) {
+      n = "0".repeat(max_num_digits - n.length) + n;
+    }
+    return n;
+  });
+
+  if (step) {
+    num_array = num_array.filter((num) => parseInt(num) % step === 0);
+  }
+
+  return num_array;
 }

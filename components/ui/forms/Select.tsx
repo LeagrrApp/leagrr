@@ -1,6 +1,6 @@
 "use client";
 
-import { capitalize } from "@/utils/helpers/formatting";
+import { capitalize } from "@/utils/formatting";
 import { ChangeEvent, useEffect, useState } from "react";
 import Alert from "../Alert/Alert";
 import forms from "./forms.module.css";

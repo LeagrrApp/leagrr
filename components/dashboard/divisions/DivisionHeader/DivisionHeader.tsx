@@ -4,10 +4,7 @@ import { publishDivision } from "@/actions/divisions";
 import Badge from "@/components/ui/Badge/Badge";
 import HighlightBox from "@/components/ui/HighlightBox/HighlightBox";
 import Icon from "@/components/ui/Icon/Icon";
-import {
-  applyStatusColor,
-  createDashboardUrl,
-} from "@/utils/helpers/formatting";
+import { applyStatusColor, createDashboardUrl } from "@/utils/formatting";
 import { usePathname } from "next/navigation";
 import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
 import DivisionSelector from "../DivisionSelector/DivisionSelector";

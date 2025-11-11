@@ -1,7 +1,7 @@
 import Card from "@/components/ui/Card/Card";
 import Icon from "@/components/ui/Icon/Icon";
 import Table from "@/components/ui/Table/Table";
-import { applyColor, createDashboardUrl } from "@/utils/helpers/formatting";
+import { applyColor, createDashboardUrl } from "@/utils/formatting";
 import Link from "next/link";
 import { CSSProperties } from "react";
 import css from "./userRosterItem.module.css";

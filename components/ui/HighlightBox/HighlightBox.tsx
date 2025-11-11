@@ -1,5 +1,5 @@
-import { applyColor } from "@/utils/helpers/formatting";
-import { applyClasses, paddingString } from "@/utils/helpers/html-attributes";
+import { applyColor } from "@/utils/formatting";
+import { applyClasses, paddingString } from "@/utils/html-attributes";
 import { CSSProperties, PropsWithChildren } from "react";
 import css from "./highlighBox.module.css";
 

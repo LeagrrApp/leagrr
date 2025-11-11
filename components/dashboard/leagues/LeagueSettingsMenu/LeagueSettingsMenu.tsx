@@ -2,7 +2,7 @@
 
 import { deleteLeague } from "@/actions/leagues";
 import Icon from "@/components/ui/Icon/Icon";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { usePathname } from "next/navigation";
 import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
 

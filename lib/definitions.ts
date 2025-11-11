@@ -1,4 +1,4 @@
-import { convertRolesToChoices } from "@/utils/helpers/formatting";
+import { convertRolesToChoices } from "@/utils/formatting";
 
 export const sports_options: readonly [string, ...string[]] = [
   "hockey",

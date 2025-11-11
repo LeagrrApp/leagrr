@@ -7,10 +7,7 @@ import {
   status_options,
 } from "@/lib/definitions";
 import { verifySession } from "@/lib/session";
-import {
-  createDashboardUrl,
-  createMetaTitle,
-} from "@/utils/helpers/formatting";
+import { createDashboardUrl, createMetaTitle } from "@/utils/formatting";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getLeagueAdminData } from "./leagueAdmins";

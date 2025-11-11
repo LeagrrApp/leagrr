@@ -19,7 +19,7 @@ export default function SignInForm() {
     <form action={action}>
       <Grid gap="base">
         <Grid gap="m">
-          <h1 className="type-scale-xxl">Welcome to Leagrr!</h1>
+          <h1 className="type-scale-xxl">Welcome to back Leagrr!</h1>
           <p>Please sign in to continue.</p>
         </Grid>
         <Input name="identifier" label="Username or Email" required />

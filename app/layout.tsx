@@ -1,4 +1,4 @@
-import { applyClasses } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/html-attributes";
 import "material-symbols";
 import type { Metadata } from "next";
 import { Noto_Sans, Noto_Sans_Mono, Plus_Jakarta_Sans } from "next/font/google";

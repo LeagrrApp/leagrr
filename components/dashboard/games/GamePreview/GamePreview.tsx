@@ -8,8 +8,8 @@ import { verifySession } from "@/lib/session";
 import {
   applyAppropriateTextColor,
   createDashboardUrl,
-} from "@/utils/helpers/formatting";
-import { applyClassesConditional } from "@/utils/helpers/html-attributes";
+} from "@/utils/formatting";
+import { applyClassesConditional } from "@/utils/html-attributes";
 import Link from "next/link";
 import { CSSProperties } from "react";
 import css from "./gamePreview.module.css";

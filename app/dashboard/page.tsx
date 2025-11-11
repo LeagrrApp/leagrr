@@ -1,6 +1,6 @@
 import { getDashboardMenuData } from "@/actions/users";
 import { verifySession } from "@/lib/session";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { redirect } from "next/navigation";
 
 export default async function Page() {

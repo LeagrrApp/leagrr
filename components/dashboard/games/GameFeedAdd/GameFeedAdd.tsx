@@ -9,7 +9,7 @@ import NumberSelect from "@/components/ui/forms/NumberSelect";
 import Select from "@/components/ui/forms/Select";
 import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
-import { nameDisplay } from "@/utils/helpers/formatting";
+import { nameDisplay } from "@/utils/formatting";
 import { usePathname } from "next/navigation";
 import { useActionState, useEffect, useMemo, useState } from "react";
 import RinkTracker from "../RinkTracker/RinkTracker";

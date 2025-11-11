@@ -1,7 +1,4 @@
-import {
-  createDashboardUrl,
-  createMetaTitle,
-} from "@/utils/helpers/formatting";
+import { createDashboardUrl, createMetaTitle } from "@/utils/formatting";
 import { redirect } from "next/navigation";
 
 export async function generateMetadata() {
