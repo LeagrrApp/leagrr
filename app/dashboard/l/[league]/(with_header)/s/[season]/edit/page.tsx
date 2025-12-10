@@ -5,7 +5,7 @@ import EditSeason from "@/components/dashboard/seasons/EditSeason";
 import BackButton from "@/components/ui/BackButton/BackButton";
 import Card from "@/components/ui/Card/Card";
 import Container from "@/components/ui/Container/Container";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound, redirect } from "next/navigation";
 
 type PageProps = {

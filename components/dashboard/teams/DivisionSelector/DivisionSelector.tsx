@@ -2,7 +2,7 @@
 
 import Button from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useRef } from "react";

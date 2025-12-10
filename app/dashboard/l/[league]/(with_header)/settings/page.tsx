@@ -1,7 +1,7 @@
 import { canEditLeague, getLeague, getLeagueMetaData } from "@/actions/leagues";
 import EditLeague from "@/components/dashboard/leagues/EditLeague/EditLeague";
 import Icon from "@/components/ui/Icon/Icon";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound, redirect } from "next/navigation";
 
 type PageProps = {

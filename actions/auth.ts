@@ -2,7 +2,7 @@
 
 import { db } from "@/db/pg";
 import { createSession } from "@/lib/session";
-import { isObjectEmpty } from "@/utils/helpers/objects";
+import { isObjectEmpty } from "@/utils/objects";
 import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";

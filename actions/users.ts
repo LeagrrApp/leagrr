@@ -7,8 +7,8 @@ import {
   createDashboardUrl,
   createMetaTitle,
   nameDisplay,
-} from "@/utils/helpers/formatting";
-import { isObjectEmpty } from "@/utils/helpers/objects";
+} from "@/utils/formatting";
+import { isObjectEmpty } from "@/utils/objects";
 import bcrypt from "bcrypt";
 import { redirect } from "next/navigation";
 import { z } from "zod";

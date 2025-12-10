@@ -36,3 +36,11 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+.game_feed_input {
+  & input,
+  & select,
+  & textarea {
+    padding: var(--spacer-ml);
+  }
+}

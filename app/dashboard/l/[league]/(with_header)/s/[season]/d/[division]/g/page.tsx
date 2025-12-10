@@ -4,10 +4,10 @@ import {
   getDivisionOptionsForGames,
 } from "@/actions/divisions";
 import { canEditLeague } from "@/actions/leagues";
-import CreateGame from "@/components/dashboard/games/CreateGame";
+import CreateGame from "@/components/dashboard/games/CreateGame/CreateGame";
 import BackButton from "@/components/ui/BackButton/BackButton";
 import Card from "@/components/ui/Card/Card";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 

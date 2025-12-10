@@ -1,5 +1,5 @@
-import { applyColor, makeAcronym } from "@/utils/helpers/formatting";
-import { applyClasses } from "@/utils/helpers/html-attributes";
+import { applyColor, makeAcronym } from "@/utils/formatting";
+import { applyClasses } from "@/utils/html-attributes";
 import { CSSProperties } from "react";
 import css from "./initialsCircle.module.css";
 

@@ -20,7 +20,7 @@ import {
   applyStatusColor,
   capitalize,
   createDashboardUrl,
-} from "@/utils/helpers/formatting";
+} from "@/utils/formatting";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";

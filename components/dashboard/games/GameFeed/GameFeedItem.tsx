@@ -6,8 +6,8 @@ import {
   createDashboardUrl,
   formatTimePeriod,
   nameDisplay,
-} from "@/utils/helpers/formatting";
-import { applyClasses } from "@/utils/helpers/html-attributes";
+} from "@/utils/formatting";
+import { applyClasses } from "@/utils/html-attributes";
 import Link from "next/link";
 import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
 import css from "./gameFeed.module.css";

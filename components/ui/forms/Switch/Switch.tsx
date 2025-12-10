@@ -1,4 +1,4 @@
-import { applyClasses } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/html-attributes";
 import { ChangeEventHandler, useEffect, useState } from "react";
 import css from "./switch.module.css";
 

@@ -2,11 +2,8 @@
 import { db } from "@/db/pg";
 import { team_roles, team_status_options } from "@/lib/definitions";
 import { verifySession } from "@/lib/session";
-import {
-  createDashboardUrl,
-  createMetaTitle,
-} from "@/utils/helpers/formatting";
-import { check_string_is_color_hex } from "@/utils/helpers/validators";
+import { createDashboardUrl, createMetaTitle } from "@/utils/formatting";
+import { check_string_is_color_hex } from "@/utils/validators";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getDivisionStandings } from "./divisions";

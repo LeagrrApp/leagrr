@@ -1,8 +1,8 @@
 "use client";
 
 import Icon from "@/components/ui/Icon/Icon";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
-import { applyClasses } from "@/utils/helpers/html-attributes";
+import { createDashboardUrl } from "@/utils/formatting";
+import { applyClasses } from "@/utils/html-attributes";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import css from "./divisionTabs.module.css";

@@ -1,4 +1,4 @@
-import { applyClasses } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/html-attributes";
 import { CSSProperties, PropsWithChildren } from "react";
 import css from "./layout.module.css";
 

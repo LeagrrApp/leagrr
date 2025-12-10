@@ -1,12 +1,12 @@
 "use client";
 
-import { nameDisplay } from "@/utils/helpers/formatting";
-import DHeader from "../../DHeader/DHeader";
-import ProfileImg from "@/components/ui/ProfileImg/ProfileImg";
-import css from "./userHeader.module.css";
 import Badge from "@/components/ui/Badge/Badge";
 import Icon from "@/components/ui/Icon/Icon";
+import ProfileImg from "@/components/ui/ProfileImg/ProfileImg";
+import { nameDisplay } from "@/utils/formatting";
 import { usePathname } from "next/navigation";
+import DHeader from "../../DHeader/DHeader";
+import css from "./userHeader.module.css";
 
 interface UserHeaderProps {
   user: UserData;

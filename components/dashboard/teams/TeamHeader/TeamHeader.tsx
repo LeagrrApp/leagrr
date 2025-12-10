@@ -3,7 +3,7 @@
 import Badge from "@/components/ui/Badge/Badge";
 import Button from "@/components/ui/Button/Button";
 import Icon from "@/components/ui/Icon/Icon";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { usePathname } from "next/navigation";
 import DHeader from "../../DHeader/DHeader";
 import DivisionSelector from "../DivisionSelector/DivisionSelector";

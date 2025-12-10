@@ -4,10 +4,7 @@ import Badge from "@/components/ui/Badge/Badge";
 import Button from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
 import Icon from "@/components/ui/Icon/Icon";
-import {
-  applyStatusColor,
-  createDashboardUrl,
-} from "@/utils/helpers/formatting";
+import { applyStatusColor, createDashboardUrl } from "@/utils/formatting";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useRef } from "react";

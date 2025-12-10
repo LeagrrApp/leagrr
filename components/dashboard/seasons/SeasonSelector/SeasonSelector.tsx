@@ -6,11 +6,8 @@ import Button from "@/components/ui/Button/Button";
 import Dialog from "@/components/ui/Dialog/Dialog";
 import HighlightBox from "@/components/ui/HighlightBox/HighlightBox";
 import Icon from "@/components/ui/Icon/Icon";
-import {
-  applyStatusColor,
-  createDashboardUrl,
-} from "@/utils/helpers/formatting";
-import { applyClasses } from "@/utils/helpers/html-attributes";
+import { applyStatusColor, createDashboardUrl } from "@/utils/formatting";
+import { applyClasses } from "@/utils/html-attributes";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useRef } from "react";

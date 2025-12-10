@@ -251,6 +251,11 @@ textarea,
 select {
   font-family: inherit;
   font-size: inherit;
+  cursor: pointer;
+}
+
+label {
+  cursor: pointer;
 }
 
 /* Make sure textareas without a rows attribute are not tiny */

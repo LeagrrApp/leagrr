@@ -13,7 +13,7 @@ import DivisionRoster from "@/components/dashboard/teams/DivisionRoster/Division
 import Button from "@/components/ui/Button/Button";
 import Card from "@/components/ui/Card/Card";
 import Icon from "@/components/ui/Icon/Icon";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
 

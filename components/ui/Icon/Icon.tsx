@@ -1,4 +1,4 @@
-import { applyClasses, paddingString } from "@/utils/helpers/html-attributes";
+import { applyClasses, paddingString } from "@/utils/html-attributes";
 import Link from "next/link";
 import { AnchorHTMLAttributes, CSSProperties } from "react";
 import css from "./icon.module.css";

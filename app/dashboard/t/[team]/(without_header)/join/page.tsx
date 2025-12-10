@@ -1,6 +1,6 @@
 import { getTeam } from "@/actions/teams";
 import JoinTeam from "@/components/dashboard/teams/JoinTeam/JoinTeam";
-import { createMetaTitle } from "@/utils/helpers/formatting";
+import { createMetaTitle } from "@/utils/formatting";
 import { notFound } from "next/navigation";
 
 type PageParams = {

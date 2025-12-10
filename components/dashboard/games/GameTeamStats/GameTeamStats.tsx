@@ -7,8 +7,8 @@ import {
   createDashboardUrl,
   makeAcronym,
   nameDisplay,
-} from "@/utils/helpers/formatting";
-import { applyClasses } from "@/utils/helpers/html-attributes";
+} from "@/utils/formatting";
+import { applyClasses } from "@/utils/html-attributes";
 import Link from "next/link";
 import css from "./gameTeamStats.module.css";
 

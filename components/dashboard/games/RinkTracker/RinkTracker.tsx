@@ -1,7 +1,7 @@
 "use client";
 
 import Icon from "@/components/ui/Icon/Icon";
-import { capitalize } from "@/utils/helpers/formatting";
+import { capitalize } from "@/utils/formatting";
 import { CSSProperties, useRef } from "react";
 import css from "./rinkTracker.module.css";
 

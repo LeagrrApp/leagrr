@@ -4,7 +4,7 @@ import DivisionInvite from "@/components/dashboard/divisions/DivisionInvite/Divi
 import DivisionTeams from "@/components/dashboard/divisions/DivisionTeams/DivisionTeams";
 import LeagueTeams from "@/components/dashboard/divisions/LeagueTeams/LeagueTeams";
 import BackButton from "@/components/ui/BackButton/BackButton";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
 

@@ -6,8 +6,8 @@ import Card from "@/components/ui/Card/Card";
 import Icon from "@/components/ui/Icon/Icon";
 import Table from "@/components/ui/Table/Table";
 import Switch from "@/components/ui/forms/Switch/Switch";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
-import { applyClasses } from "@/utils/helpers/html-attributes";
+import { createDashboardUrl } from "@/utils/formatting";
+import { applyClasses } from "@/utils/html-attributes";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -27,7 +27,16 @@ export default function DivisionSchedule({
   const pathname = usePathname();
   const { league, season, division } = useParams();
 
-  const [showPastGames, setShowPastGames] = useState(false);
+  const [showPastGames, setShowPastGames] = useState(() => {
+    return (
+      games.filter((g) => {
+        const gameTime = new Date(g.date_time);
+        const now = new Date(Date.now());
+
+        return gameTime > now;
+      }).length === 0
+    );
+  });
   const [gameList, setGameList] = useState<GameData[]>(() => {
     return games
       .filter((g) => {
@@ -67,7 +76,9 @@ export default function DivisionSchedule({
         updatedGamesList.slice(gameListOffset, gameListOffset + gamesPerPage),
       );
     } else {
-      setGameList(updatedGamesList);
+      setGameList(
+        updatedGamesList.slice(gameListOffset, gameListOffset + gamesPerPage),
+      );
     }
 
     setGameCount(updatedGamesList.length);
@@ -93,12 +104,19 @@ export default function DivisionSchedule({
           name="showPastGames"
           label="Show past games"
           checked={showPastGames}
-          onChange={() => setShowPastGames(!showPastGames)}
+          onChange={() => {
+            setShowPastGames(!showPastGames);
+            setGameListOffset(0);
+          }}
           noSpread
           className={css.division_schedule_switch}
         />
       </DashboardUnitHeader>
-      <Card className="push-m" padding="ml">
+      <Card
+        className={css.division_schedule_card}
+        padding="ml"
+        minHeight="25.0833rem"
+      >
         {gameList && gameList.length > 0 ? (
           <Table className={css.division_schedule}>
             <thead>
@@ -196,8 +214,8 @@ export default function DivisionSchedule({
             </tbody>
           </Table>
         ) : (
-          <>
-            <p className="push">There are no upcoming games schedule!</p>
+          <div className={css.division_schedule_no_games}>
+            <p className="push">There are no upcoming games scheduled!</p>
             {canEdit && (
               <Button
                 href={createDashboardUrl(
@@ -212,33 +230,33 @@ export default function DivisionSchedule({
                 Add games
               </Button>
             )}
-          </>
+          </div>
+        )}
+        {gameCount > 0 && (
+          <div className={css.division_schedule_controls}>
+            {gameListOffset !== 0 && (
+              <ButtonInvis
+                className={css.game_list_prev}
+                onClick={() => setGameListOffset(gameListOffset - 10)}
+              >
+                <Icon icon="chevron_left" label="Prev" gap="xs" />
+              </ButtonInvis>
+            )}
+            <div className={css.game_list_count}>
+              {gameListOffset / gamesPerPage + 1} /{" "}
+              {Math.ceil(gameCount / gamesPerPage)}
+            </div>
+            {gameListOffset < gameCount - 10 && (
+              <ButtonInvis
+                className={css.game_list_next}
+                onClick={() => setGameListOffset(gameListOffset + 10)}
+              >
+                <Icon icon="chevron_right" label="Next" labelFirst gap="xs" />
+              </ButtonInvis>
+            )}
+          </div>
         )}
       </Card>
-      {gameCount > gamesPerPage && (
-        <div className={css.division_schedule_controls}>
-          {gameListOffset !== 0 && (
-            <ButtonInvis
-              className={css.game_list_prev}
-              onClick={() => setGameListOffset(gameListOffset - 10)}
-            >
-              <Icon icon="chevron_left" label="Prev" gap="xs" />
-            </ButtonInvis>
-          )}
-          <div className={css.game_list_count}>
-            {gameListOffset / gamesPerPage + 1} /{" "}
-            {Math.ceil(gameCount / gamesPerPage)}
-          </div>
-          {gameListOffset < gameCount - 10 && (
-            <ButtonInvis
-              className={css.game_list_next}
-              onClick={() => setGameListOffset(gameListOffset + 10)}
-            >
-              <Icon icon="chevron_right" label="Next" labelFirst gap="xs" />
-            </ButtonInvis>
-          )}
-        </div>
-      )}
     </DashboardUnit>
   );
 }

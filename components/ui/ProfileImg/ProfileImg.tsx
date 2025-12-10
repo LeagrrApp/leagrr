@@ -1,4 +1,4 @@
-import { applyClasses } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/html-attributes";
 import Image from "next/image";
 import css from "./profileImg.module.css";
 

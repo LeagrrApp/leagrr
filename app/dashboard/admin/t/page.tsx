@@ -1,5 +1,5 @@
 import TeamList from "@/components/dashboard/admin/TeamList/TeamList";
-import { createMetaTitle } from "@/utils/helpers/formatting";
+import { createMetaTitle } from "@/utils/formatting";
 
 export async function generateMetadata() {
   return {

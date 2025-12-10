@@ -1,10 +1,6 @@
 import Container from "@/components/ui/Container/Container";
 import Grid from "@/components/ui/layout/Grid";
-import {
-  applyColor,
-  capitalize,
-  color_options,
-} from "@/utils/helpers/formatting";
+import { applyColor, capitalize, color_options } from "@/utils/formatting";
 
 export default function Page() {
   const variants: ("dark" | "darker" | "medium" | "light" | "lightest")[] = [

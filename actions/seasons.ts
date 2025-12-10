@@ -2,11 +2,8 @@
 
 import { db } from "@/db/pg";
 import { verifySession } from "@/lib/session";
-import {
-  createDashboardUrl,
-  createMetaTitle,
-} from "@/utils/helpers/formatting";
-import { isObjectEmpty } from "@/utils/helpers/objects";
+import { createDashboardUrl, createMetaTitle } from "@/utils/formatting";
+import { isObjectEmpty } from "@/utils/objects";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getDivisionsBySeason } from "./divisions";

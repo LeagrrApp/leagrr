@@ -2,7 +2,7 @@ import { canEditUser, getUser, getUserMetaData } from "@/actions/users";
 import EditUser from "@/components/dashboard/user/EditUser";
 import UpdatePassword from "@/components/dashboard/user/UpdatePassword";
 import BackButton from "@/components/ui/BackButton/BackButton";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound, redirect } from "next/navigation";
 import css from "./page.module.css";
 

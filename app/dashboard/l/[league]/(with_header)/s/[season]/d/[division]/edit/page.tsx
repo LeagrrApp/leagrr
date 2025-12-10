@@ -8,7 +8,7 @@ import EditDivision from "@/components/dashboard/divisions/EditDivision";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
 import BackButton from "@/components/ui/BackButton/BackButton";
 import Card from "@/components/ui/Card/Card";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound, redirect } from "next/navigation";
 
 type PageProps = {

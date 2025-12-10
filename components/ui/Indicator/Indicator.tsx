@@ -1,4 +1,4 @@
-import { applyColor } from "@/utils/helpers/formatting";
+import { applyColor } from "@/utils/formatting";
 
 interface IndicatorProps {
   color?: string;

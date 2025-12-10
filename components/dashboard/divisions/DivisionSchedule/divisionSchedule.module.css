@@ -1,5 +1,6 @@
 .division_schedule {
   table-layout: fixed;
+  margin-block-end: var(--spacer-ml);
 
   & td {
     white-space: nowrap;
@@ -25,6 +26,23 @@
   margin-inline-end: auto;
 }
 
+.division_schedule_card {
+  &:not(:has(table)) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &:has(table) {
+    display: grid;
+    grid-template-rows: 1fr auto;
+
+    & > :first-child {
+      align-self: flex-start;
+    }
+  }
+}
+
 .division_schedule .division_schedule_narrow {
   width: 20%;
 
@@ -37,6 +55,18 @@
 
 .division_schedule .division_schedule_wide {
   width: 30%;
+}
+
+.division_schedule_no_games {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  & p {
+    font-size: var(--type-scale-h4);
+    font-weight: bold;
+  }
 }
 
 .division_winner {
@@ -116,6 +146,7 @@
 
 .game_list_prev {
   grid-area: prev;
+  justify-self: start;
 }
 
 .game_list_count {
@@ -125,5 +156,5 @@
 
 .game_list_next {
   grid-area: next;
-  justify-items: flex-end;
+  justify-self: flex-end;
 }

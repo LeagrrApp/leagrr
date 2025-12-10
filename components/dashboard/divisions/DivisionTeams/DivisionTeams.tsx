@@ -9,7 +9,7 @@ import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import Table from "@/components/ui/Table/Table";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useActionState, useRef, useState } from "react";

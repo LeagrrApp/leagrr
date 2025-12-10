@@ -12,7 +12,7 @@ import DivisionStats from "@/components/dashboard/divisions/DivisionStats/Divisi
 import Button from "@/components/ui/Button/Button";
 import Card from "@/components/ui/Card/Card";
 import Icon from "@/components/ui/Icon/Icon";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
 
@@ -60,7 +60,7 @@ export default async function Page({ params }: PageProps) {
             </h3>
           </DashboardUnitHeader>
           <Card padding="base">
-            <p className="push">There are no upcoming games schedule!</p>
+            <p className="push">There are no upcoming games scheduled!</p>
             {canEdit && (
               <Button
                 href={createDashboardUrl(

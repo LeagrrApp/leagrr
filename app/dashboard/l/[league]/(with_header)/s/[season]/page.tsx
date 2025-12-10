@@ -2,7 +2,7 @@ import { canEditLeague } from "@/actions/leagues";
 import { getSeason, getSeasonMetaData } from "@/actions/seasons";
 import Button from "@/components/ui/Button/Button";
 import Container from "@/components/ui/Container/Container";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound, redirect } from "next/navigation";
 
 type PageProps = {

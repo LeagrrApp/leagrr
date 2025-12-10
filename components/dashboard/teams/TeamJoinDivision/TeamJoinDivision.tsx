@@ -9,7 +9,7 @@ import Input from "@/components/ui/forms/Input";
 import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { useActionState, useEffect, useState } from "react";
 
 interface TeamJoinDivisionProps {

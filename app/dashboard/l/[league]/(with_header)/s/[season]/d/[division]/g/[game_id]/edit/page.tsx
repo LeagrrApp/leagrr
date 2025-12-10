@@ -9,7 +9,7 @@ import EditGame from "@/components/dashboard/games/EditGame";
 import ModalConfirmAction from "@/components/dashboard/ModalConfirmAction/ModalConfirmAction";
 import BackButton from "@/components/ui/BackButton/BackButton";
 import Grid from "@/components/ui/layout/Grid";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound, redirect } from "next/navigation";
 
 interface PageProps {

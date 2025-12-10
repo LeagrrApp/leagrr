@@ -2,7 +2,7 @@ import { canEditUser, getUser } from "@/actions/users";
 import UserHeader from "@/components/dashboard/user/UserHeader/UserHeader";
 import Container from "@/components/ui/Container/Container";
 import { verifySession } from "@/lib/session";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
 

@@ -1,4 +1,4 @@
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { redirect } from "next/navigation";
 
 type PageParams = {

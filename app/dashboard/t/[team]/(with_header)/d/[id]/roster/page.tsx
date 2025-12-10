@@ -13,8 +13,8 @@ import InactiveRoster from "@/components/dashboard/teams/InactiveRoster/Inactive
 import TeamInvite from "@/components/dashboard/teams/TeamInvite/TeamInvite";
 import Alert from "@/components/ui/Alert/Alert";
 import BackButton from "@/components/ui/BackButton/BackButton";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
-import { get_unique_items_by_key } from "@/utils/helpers/objects";
+import { createDashboardUrl } from "@/utils/formatting";
+import { get_unique_items_by_key } from "@/utils/objects";
 import { notFound, redirect } from "next/navigation";
 import css from "./page.module.css";
 

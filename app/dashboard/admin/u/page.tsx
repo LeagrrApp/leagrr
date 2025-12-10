@@ -1,5 +1,5 @@
 import UserList from "@/components/dashboard/admin/UserList/UserList";
-import { createMetaTitle } from "@/utils/helpers/formatting";
+import { createMetaTitle } from "@/utils/formatting";
 
 export async function generateMetadata() {
   return {

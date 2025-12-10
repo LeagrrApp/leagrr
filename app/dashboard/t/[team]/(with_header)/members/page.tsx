@@ -4,7 +4,7 @@ import TeamInvite from "@/components/dashboard/teams/TeamInvite/TeamInvite";
 import TeamMembers from "@/components/dashboard/teams/TeamMembers/TeamMembers";
 import Alert from "@/components/ui/Alert/Alert";
 import BackButton from "@/components/ui/BackButton/BackButton";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound } from "next/navigation";
 import css from "./page.module.css";
 

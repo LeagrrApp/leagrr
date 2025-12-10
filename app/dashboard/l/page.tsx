@@ -3,7 +3,7 @@ import Badge from "@/components/ui/Badge/Badge";
 import Button from "@/components/ui/Button/Button";
 import Container from "@/components/ui/Container/Container";
 import { verifySession } from "@/lib/session";
-import { createMetaTitle } from "@/utils/helpers/formatting";
+import { createMetaTitle } from "@/utils/formatting";
 
 export async function generateMetadata() {
   return {

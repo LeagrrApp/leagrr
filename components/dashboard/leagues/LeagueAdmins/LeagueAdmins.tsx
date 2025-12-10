@@ -10,7 +10,7 @@ import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import Table from "@/components/ui/Table/Table";
 import { league_roles, league_roles_options } from "@/lib/definitions";
-import { nameDisplay } from "@/utils/helpers/formatting";
+import { nameDisplay } from "@/utils/formatting";
 import { useActionState, useEffect, useRef, useState } from "react";
 import LeagueAdminsAdd from "./LeagueAdminsAdd/LeagueAdminsAdd";
 

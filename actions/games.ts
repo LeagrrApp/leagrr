@@ -7,8 +7,9 @@ import {
   createDashboardUrl,
   createMetaTitle,
   createPeriodTimeString,
-} from "@/utils/helpers/formatting";
-import { isObjectEmpty } from "@/utils/helpers/objects";
+  formatDateTimeSelectAsDate,
+} from "@/utils/formatting";
+import { isObjectEmpty } from "@/utils/objects";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { canEditLeague } from "./leagues";
@@ -21,7 +22,10 @@ const GameCreateFormSchema = z.object({
   home_team_id: z.number().min(1),
   away_team_id: z.number().min(1),
   arena_id: z.number().min(1),
-  date_time: z.date(),
+  date: z.string(),
+  hour: z.string(),
+  minute: z.string(),
+  am_pm: z.string(),
   status: z.enum(game_status_options).optional(),
 });
 
@@ -31,7 +35,10 @@ type GameErrorProps = {
   home_team_id?: string[] | undefined;
   away_team_id?: string[] | undefined;
   arena_id?: string[] | undefined;
-  date_time?: string[] | undefined;
+  date?: string[] | undefined;
+  hour?: string[] | undefined;
+  minute?: string[] | undefined;
+  am_pm?: string[] | undefined;
   status?: string[] | undefined;
 };
 
@@ -41,7 +48,10 @@ type GameFormState = FormState<
     home_team_id?: number;
     away_team_id?: number;
     arena_id?: number;
-    date_time?: Date | string;
+    date?: Date | string;
+    hour?: string | number;
+    minute?: string | number;
+    am_pm?: "AM" | "PM";
     status?: string;
   }
 >;
@@ -59,7 +69,10 @@ export async function createGame(
     home_team_id: parseInt(formData.get("home_team_id") as string),
     away_team_id: parseInt(formData.get("away_team_id") as string),
     arena_id: parseInt(formData.get("arena_id") as string),
-    date_time: new Date(formData.get("date_time") as string),
+    date: formData.get("date") as string,
+    hour: formData.get("hour") as string,
+    minute: formData.get("minute") as string,
+    am_pm: formData.get("am_pm") as "AM" | "PM",
     status: formData.get("status") as string,
   };
 
@@ -96,6 +109,16 @@ export async function createGame(
       }
     }
 
+    const tz_offset = parseInt(formData.get("tz_offset") as string) * -1;
+    const date_string = formatDateTimeSelectAsDate({
+      date: submittedData.date,
+      hour: submittedData.hour,
+      minute: submittedData.minute,
+      am_pm: submittedData.am_pm,
+      tz_offset,
+      as_string: true,
+    });
+
     // if there are any validation errors, return errors
     if (!isObjectEmpty(errors))
       return {
@@ -105,13 +128,13 @@ export async function createGame(
           home_team_id: submittedData.home_team_id,
           away_team_id: submittedData.away_team_id,
           arena_id: submittedData.arena_id,
-          date_time: formData.get("date_time") as string,
+          date: submittedData.date,
+          hour: submittedData.hour,
+          minute: submittedData.minute,
+          am_pm: submittedData.am_pm,
           status: submittedData.status,
         },
       };
-
-    const tz_offset = parseInt(formData.get("tz_offset") as string) * -1;
-    const date_string = `${(formData.get("date_time") as string).replace("T", " ")}:00${tz_offset < 0 ? tz_offset : `+${tz_offset}`}`;
 
     const insertSql = `
       INSERT INTO league_management.games
@@ -1259,7 +1282,10 @@ const GameEditFormSchema = z.object({
   home_team_id: z.number().min(1),
   away_team_id: z.number().min(1),
   arena_id: z.number().min(1),
-  date_time: z.date(),
+  date: z.string(),
+  hour: z.string(),
+  minute: z.string(),
+  am_pm: z.string(),
   status: z.enum(game_status_options),
 });
 
@@ -1276,7 +1302,10 @@ export async function editGame(
     home_team_id: parseInt(formData.get("home_team_id") as string),
     away_team_id: parseInt(formData.get("away_team_id") as string),
     arena_id: parseInt(formData.get("arena_id") as string),
-    date_time: new Date(formData.get("date_time") as string),
+    date: formData.get("date") as string,
+    hour: formData.get("hour") as string,
+    minute: formData.get("minute") as string,
+    am_pm: formData.get("am_pm") as "AM" | "PM",
     status: formData.get("status") as string,
   };
 
@@ -1288,7 +1317,10 @@ export async function editGame(
     home_team_id: submittedData.home_team_id,
     away_team_id: submittedData.away_team_id,
     arena_id: submittedData.arena_id,
-    date_time: formData.get("date_time") as string,
+    date: submittedData.date,
+    hour: submittedData.hour,
+    minute: submittedData.minute,
+    am_pm: submittedData.am_pm,
     status: submittedData.status,
   };
 
@@ -1331,7 +1363,14 @@ export async function editGame(
       };
 
     const tz_offset = parseInt(formData.get("tz_offset") as string) * -1;
-    const date_string = `${(formData.get("date_time") as string).replace("T", " ")}:00${tz_offset < 0 ? tz_offset : `+${tz_offset}`}`;
+    const date_string = formatDateTimeSelectAsDate({
+      date: submittedData.date,
+      hour: submittedData.hour,
+      minute: submittedData.minute,
+      am_pm: submittedData.am_pm,
+      tz_offset,
+      as_string: true,
+    });
 
     const updateSql = `
       UPDATE

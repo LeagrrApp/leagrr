@@ -1,12 +1,16 @@
 "use client";
 
+import { applyClasses } from "@/utils/html-attributes";
 import { ChangeEvent, useState } from "react";
 import Alert from "../Alert/Alert";
 import forms from "./forms.module.css";
+import Label from "./Label";
 
 interface NumberSelectProps extends Partial<HTMLSelectElement> {
+  name: string;
   label: string;
   labelAfter?: boolean;
+  hideLabel?: boolean;
   min: number;
   max: number;
   onChange?(e: ChangeEvent<HTMLSelectElement>): unknown;
@@ -15,6 +19,7 @@ interface NumberSelectProps extends Partial<HTMLSelectElement> {
     type?: string;
   };
   selected?: string | number;
+  optional?: boolean;
 }
 
 export default function NumberSelect({
@@ -22,6 +27,7 @@ export default function NumberSelect({
   label,
   name,
   labelAfter,
+  hideLabel,
   min,
   max,
   selected,
@@ -30,6 +36,8 @@ export default function NumberSelect({
   onChange,
   errors,
   disabled,
+  optional,
+  className,
 }: NumberSelectProps) {
   const [selectValue, setSelectValue] = useState<string | number | undefined>(
     selected || "",
@@ -48,11 +56,15 @@ export default function NumberSelect({
   }
 
   return (
-    <div className={forms.unit}>
+    <div className={applyClasses(forms.unit, className)}>
       {!labelAfter && (
-        <label className={forms.label} htmlFor={id || name}>
-          {label}
-        </label>
+        <Label
+          label={label}
+          htmlFor={id || name}
+          hideLabel={hideLabel}
+          required={required}
+          optional={optional}
+        />
       )}
       <select
         className={forms.field}
@@ -73,9 +85,13 @@ export default function NumberSelect({
         })}
       </select>
       {labelAfter && (
-        <label className={forms.label} htmlFor={id || name}>
-          {label}
-        </label>
+        <Label
+          label={label}
+          htmlFor={id || name}
+          hideLabel={hideLabel}
+          required={required}
+          optional={optional}
+        />
       )}
       {errors?.errs?.length && <Alert alert={errors.errs} type={errors.type} />}
     </div>

@@ -3,14 +3,17 @@
 import { createGame } from "@/actions/games";
 import Alert from "@/components/ui/Alert/Alert";
 import Button from "@/components/ui/Button/Button";
+import FauxLabel from "@/components/ui/forms/FauxLabel";
 import Input from "@/components/ui/forms/Input";
+import NumberSelect from "@/components/ui/forms/NumberSelect";
 import Select from "@/components/ui/forms/Select";
 import Icon from "@/components/ui/Icon/Icon";
 import Col from "@/components/ui/layout/Col";
 import Grid from "@/components/ui/layout/Grid";
 import { game_status_options } from "@/lib/definitions";
-import { formatDateForInput } from "@/utils/helpers/formatting";
+import { formatDateForInput, numberStringArray } from "@/utils/formatting";
 import { useActionState } from "react";
+import css from "./createGame.module.css";
 
 interface CreateGameProps {
   division_id: number;
@@ -65,18 +68,48 @@ export default function CreateGame({
           errors={{ errs: state?.errors?.home_team_id, type: "danger" }}
           selected={state?.data?.home_team_id}
         />
-        <Input
-          type="datetime-local"
-          name="date_time"
-          label="Date & Time"
-          errors={{ errs: state?.errors?.date_time, type: "danger" }}
-          value={
-            state?.data?.date_time
-              ? formatDateForInput(state?.data?.date_time)
-              : ""
-          }
-          required
-        />
+        <div className={css.date_time_container}>
+          <div className={css.date_time_grid}>
+            <Input
+              type="date"
+              name="date"
+              label="Date"
+              errors={{ errs: state?.errors?.date, type: "danger" }}
+              value={
+                state?.data?.date ? formatDateForInput(state?.data?.date) : ""
+              }
+              required
+            />
+            <div className={css.time_grid}>
+              <FauxLabel label="Time" required />
+              <NumberSelect
+                label="Hour"
+                name="hour"
+                min={1}
+                max={12}
+                selected={state?.data?.hour || 1}
+                hideLabel
+              />
+              <Select
+                label="Minute"
+                name="minute"
+                choices={numberStringArray(0, 59, {
+                  leading_zeros: true,
+                  step: 5,
+                })}
+                selected={state?.data?.hour || "00"}
+                hideLabel
+              />
+              <Select
+                label="AM or PM"
+                name="am_pm"
+                choices={["AM", "PM"]}
+                selected={state?.data?.am_pm || "PM"}
+                hideLabel
+              />
+            </div>
+          </div>
+        </div>
         <Select
           name="arena_id"
           label="Location"

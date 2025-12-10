@@ -1,6 +1,6 @@
 import { canEditTeam, getTeam, getTeamMetaData } from "@/actions/teams";
 import TeamJoinDivision from "@/components/dashboard/teams/TeamJoinDivision/TeamJoinDivision";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound, redirect } from "next/navigation";
 
 type PageProps = {

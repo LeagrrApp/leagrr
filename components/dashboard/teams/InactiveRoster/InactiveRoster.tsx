@@ -14,7 +14,7 @@ import {
   convertRolesToChoices,
   createDashboardUrl,
   nameDisplay,
-} from "@/utils/helpers/formatting";
+} from "@/utils/formatting";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useActionState, useRef, useState } from "react";

@@ -10,7 +10,7 @@ import EditTeam from "@/components/dashboard/teams/EditTeam";
 import TeamInvite from "@/components/dashboard/teams/TeamInvite/TeamInvite";
 import BackButton from "@/components/ui/BackButton/BackButton";
 import Col from "@/components/ui/layout/Col";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound, redirect } from "next/navigation";
 import css from "./page.module.css";
 

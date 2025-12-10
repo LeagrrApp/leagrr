@@ -1,6 +1,7 @@
 "use client";
 
-import { capitalize } from "@/utils/helpers/formatting";
+import { capitalize } from "@/utils/formatting";
+import { applyClasses } from "@/utils/html-attributes";
 import { ChangeEvent, useEffect, useState } from "react";
 import Alert from "../Alert/Alert";
 import forms from "./forms.module.css";
@@ -36,6 +37,7 @@ export default function Select({
   disabled,
   blankFirst,
   optional,
+  className,
 }: SelectProps) {
   const [selectValue, setSelectValue] = useState<string | number | undefined>(
     selected || "",
@@ -52,7 +54,7 @@ export default function Select({
   }
 
   return (
-    <div className={forms.unit}>
+    <div className={applyClasses(forms.unit, className)}>
       {!labelAfter && (
         <Label
           label={label}

@@ -5,7 +5,7 @@ import { TabbedSideMenu } from "@/components/dashboard/TabbedSide/TabbedSideMenu
 import TabbedSideWorking from "@/components/dashboard/TabbedSide/TabbedSideWorking";
 import Container from "@/components/ui/Container/Container";
 import { verifySession } from "@/lib/session";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
 

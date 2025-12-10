@@ -1,0 +1,22 @@
+.date_time_container {
+  container-type: inline-size;
+}
+
+.date_time_grid {
+  display: grid;
+  gap: var(--gap);
+
+  @container (width >= 27rem) {
+    grid-template-columns: 3fr 2fr;
+  }
+}
+
+.time_grid {
+  display: grid;
+  column-gap: var(--spacer-m);
+  grid-template-columns: auto auto auto;
+
+  & > p {
+    grid-column: 1 / -1;
+  }
+}

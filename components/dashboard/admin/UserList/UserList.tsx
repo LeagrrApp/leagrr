@@ -19,10 +19,7 @@ import {
   user_roles_options,
   user_status_options,
 } from "@/lib/definitions";
-import {
-  applyStatusColor,
-  createDashboardUrl,
-} from "@/utils/helpers/formatting";
+import { applyStatusColor, createDashboardUrl } from "@/utils/formatting";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";

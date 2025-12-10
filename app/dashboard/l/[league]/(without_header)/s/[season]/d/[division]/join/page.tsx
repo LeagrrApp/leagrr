@@ -2,7 +2,7 @@ import { getDivision, getDivisionMetaInfo } from "@/actions/divisions";
 import { getLeague } from "@/actions/leagues";
 import { getUserManagedTeamsForJoinDivision } from "@/actions/users";
 import JoinDivision from "@/components/dashboard/divisions/JoinDivision/JoinDivision";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata({

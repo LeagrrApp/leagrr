@@ -5,7 +5,7 @@ import {
   getTeamMetaData,
 } from "@/actions/teams";
 import Button from "@/components/ui/Button/Button";
-import { createDashboardUrl } from "@/utils/helpers/formatting";
+import { createDashboardUrl } from "@/utils/formatting";
 import { notFound, redirect } from "next/navigation";
 
 type PageProps = {

@@ -1,5 +1,28 @@
 .sign_up {
   min-height: 100dvh;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+
+  @media (orientation: landscape) {
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.sign_up_wrap {
   display: flex;
   align-items: center;
+  padding-block: var(--spacer-l);
+  order: 1;
+  background: linear-gradient(
+    225deg,
+    hsla(from var(--color-primary) h s l / 0.5),
+    transparent 40%
+  );
+}
+
+.sign_up_image {
+  background-image: url("/bg-hockey.jpg");
+  background-size: cover;
+  background-position: center;
 }

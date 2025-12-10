@@ -1,6 +1,6 @@
 "use client";
 
-import { applyClasses } from "@/utils/helpers/html-attributes";
+import { applyClasses } from "@/utils/html-attributes";
 import { ChangeEvent, useState } from "react";
 import Alert from "../Alert/Alert";
 import css from "./forms.module.css";

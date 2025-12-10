@@ -5,10 +5,7 @@ import Badge from "@/components/ui/Badge/Badge";
 import HighlightBox from "@/components/ui/HighlightBox/HighlightBox";
 import Icon from "@/components/ui/Icon/Icon";
 import IconSport from "@/components/ui/Icon/IconSport";
-import {
-  applyStatusColor,
-  createDashboardUrl,
-} from "@/utils/helpers/formatting";
+import { applyStatusColor, createDashboardUrl } from "@/utils/formatting";
 import DHeader from "../../DHeader/DHeader";
 import ModalConfirmAction from "../../ModalConfirmAction/ModalConfirmAction";
 import SeasonSelector from "../../seasons/SeasonSelector/SeasonSelector";
