@@ -37,7 +37,7 @@ export async function createSession(userData: UserSessionData) {
   const session = await encrypt({ userData, expiresAt });
   const cookieStore = await cookies();
 
-  cookieStore.set("session", session, {
+  cookieStore.set("lg_session", session, {
     httpOnly: true,
     secure: process.env.IS_PRODUCTION === "true",
     expires: expiresAt,
@@ -51,13 +51,13 @@ interface SessionProps extends JWTPayload {
 }
 
 export async function getSession(): Promise<SessionProps | undefined> {
-  const session = (await cookies()).get("session")?.value;
+  const session = (await cookies()).get("lg_session")?.value;
   if (!session) return undefined;
   return (await decrypt(session)) as SessionProps;
 }
 
 export async function verifySession(): Promise<UserSessionData> {
-  const cookie = (await cookies()).get("session")?.value;
+  const cookie = (await cookies()).get("lg_session")?.value;
   const session: SessionProps | undefined = await decrypt(cookie);
 
   if (!session?.userData) redirect("/sign-in");
@@ -69,7 +69,7 @@ export async function verifySession(): Promise<UserSessionData> {
 // export async function updateSession() {
 //   "use server";
 //   // console.log("starting to update session!");
-//   const session = (await cookies()).get("session")?.value;
+//   const session = (await cookies()).get("lg_session")?.value;
 //   if (!session) return null;
 
 //   const payload = await decrypt(session);
@@ -86,7 +86,7 @@ export async function verifySession(): Promise<UserSessionData> {
 //   });
 
 //   const cookieStore = await cookies();
-//   cookieStore.set("session", newSession, {
+//   cookieStore.set("lg_session", newSession, {
 //     httpOnly: true,
 //     secure: true,
 //     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),

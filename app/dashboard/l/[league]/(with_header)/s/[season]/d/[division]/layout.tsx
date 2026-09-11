@@ -4,19 +4,11 @@ import { getSeason } from "@/actions/seasons";
 import DivisionHeader from "@/components/dashboard/divisions/DivisionHeader/DivisionHeader";
 import Container from "@/components/ui/Container/Container";
 import { notFound } from "next/navigation";
-import { PropsWithChildren } from "react";
 
 export default async function Layout({
   children,
   params,
-}: PropsWithChildren<{
-  params: Promise<{
-    division: string;
-    season: string;
-    league: string;
-    game_id: string;
-  }>;
-}>) {
+}: LayoutProps<"/dashboard/l/[league]/s/[season]/d/[division]">) {
   const { division, season, league } = await params;
 
   const { data: seasonData } = await getSeason(season, league, {

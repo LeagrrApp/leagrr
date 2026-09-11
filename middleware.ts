@@ -1,7 +1,7 @@
+import { JWTPayload } from "jose";
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { decrypt } from "./lib/session";
-import { JWTPayload } from "jose";
 
 interface SessionProps extends JWTPayload {
   userData?: UserSessionData;
@@ -30,7 +30,7 @@ export default async function middleware(req: NextRequest) {
 
   if (req.nextUrl.pathname.includes("/dashboard")) {
     // check for valid session
-    const cookie = (await cookies()).get("session")?.value;
+    const cookie = (await cookies()).get("lg_session")?.value;
     const session: SessionProps | undefined = await decrypt(cookie);
 
     // redirect unauthed users

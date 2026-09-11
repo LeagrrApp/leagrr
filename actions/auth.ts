@@ -253,6 +253,6 @@ export async function signIn(
 
 export async function logOut() {
   // remove the session
-  (await cookies()).set("session", "", { expires: new Date(0) });
+  (await cookies()).set("lg_session", "", { expires: new Date(0) });
   redirect("/sign-in");
 }
